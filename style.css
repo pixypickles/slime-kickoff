@@ -52,3 +52,20 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
  .story p:nth-child(2),.story p:nth-child(3){display:none}
  .intro-action #startBtn{min-height:42px;padding:7px 14px}
 }
+
+/* v0.09.1 UI FIX: start controls are always reachable */
+.intro-panel .story-card{overflow:hidden;min-height:0}
+.intro-scroll{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 4px}
+.intro-footer{flex:0 0 auto;position:relative;z-index:20;padding-top:4px;background:linear-gradient(180deg,#17262d00,#17262de8 14%,#17262d 42%)}
+.intro-footer .spirit-select{position:relative;z-index:22}
+.intro-footer .spirit-select button{touch-action:manipulation;pointer-events:auto;min-width:64px;min-height:38px;margin:0}
+.intro-footer .intro-action{position:relative;bottom:auto;z-index:21;margin:0;padding:4px 4px max(5px,env(safe-area-inset-bottom));background:none}
+.intro-footer #startBtn{display:block!important;visibility:visible!important;pointer-events:auto;touch-action:manipulation;width:min(430px,94%);min-height:46px;margin:4px auto 0}
+.intro-footer #startBtn:disabled{opacity:.65;filter:saturate(.6)}
+@media (max-height:390px){
+ .intro-scroll .story p:nth-child(2),.intro-scroll .story p:nth-child(3){display:none}
+ .intro-footer .loading{display:none}
+ .intro-footer .spirit-select{margin:1px 0}
+ .intro-footer #startBtn{min-height:40px;margin-top:2px;padding:6px 12px}
+ .intro-footer small{display:none}
+}

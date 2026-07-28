@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.09 WIND SPIRIT</title>
+  <title>スライム・キックオフ！ v0.09.1 UI FIX</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,23 +13,27 @@
 
     <section id="intro" class="panel intro-panel">
       <div class="story-card">
-        <div class="crest">二つの村の、どうでもよくて熱い争い</div>
-        <h1>スライム・キックオフ！</h1>
-        <p class="tagline">ちょっと臭いスライムを、となり村へ。</p>
-        <div class="story">
+        <div class="intro-scroll">
+          <div class="crest">二つの村の、どうでもよくて熱い争い</div>
+          <h1>スライム・キックオフ！</h1>
+          <p class="tagline">ちょっと臭いスライムを、となり村へ。</p>
+          <div class="story">
           <p>ある日、隣り合う二つの村の間に、<br><strong>異次元へつながる空間</strong>が突然現れた。</p>
           <p>地面と村の塀は円形にごっそり削られ、<br>不思議な力のせいで埋め戻すこともできない。</p>
           <p>中心の小さなゲートから現れるのは、<br>意思もなく、人を襲いもしない無害なスライム。</p>
           <p>放っておけば蒸発して消える。<br>ただし……<strong>ほんの少しだけ臭い。</strong></p>
           <p>そこで両村の村長は、相手の村へスライムを押し返した者に<br><strong>褒美を与える</strong>ことにした。</p>
-          <p class="final-line">こうして今日も、村人たちの熱い押し付け合いが始まる！</p>
+            <p class="final-line">こうして今日も、村人たちの熱い押し付け合いが始まる！</p>
+          </div>
         </div>
-        <div class="spirit-select"><span>使う精霊：</span><button type="button" data-spirit="fire" class="selected">🔥 炎</button><button type="button" data-spirit="ice">❄️ 氷</button><button type="button" data-spirit="wind">🌪️ 風</button></div>
-        <div class="intro-action" aria-live="polite">
-          <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
-          <button id="startBtn" class="hidden">村長の合図で開始！</button>
+        <div class="intro-footer">
+          <div class="spirit-select" role="group" aria-label="使う精霊を選択"><span>使う精霊：</span><button type="button" data-spirit="fire" class="selected" aria-pressed="true">🔥 炎</button><button type="button" data-spirit="ice" aria-pressed="false">❄️ 氷</button><button type="button" data-spirit="wind" aria-pressed="false">🌪️ 風</button></div>
+          <div class="intro-action" aria-live="polite">
+            <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
+            <button id="startBtn" type="button">準備中…</button>
+          </div>
+          <small>v0.09.1 UI FIX / 炎・氷・風の精霊使い / 3対3 CPU戦</small>
         </div>
-        <small>v0.09 WIND SPIRIT / 炎・氷・風の精霊使い / 3対3 CPU戦</small>
       </div>
     </section>
 
