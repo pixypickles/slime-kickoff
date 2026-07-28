@@ -1,6 +1,6 @@
 'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
-const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob')};
+const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect')};
 const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
 let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='fire',gameReady=false;
@@ -226,6 +226,28 @@ ui.stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;ui.stick.setPoin
 const loadingLines=['異次元の穴を安定させています…','削れた土壁を点検中…','村人を招集中…','少し臭うスライムを確認中…','村長が褒美を準備中…','押し付け合いの準備完了！'];let loadIndex=0;const loadingTimer=setInterval(()=>{loadIndex++;ui.loadingText.textContent=loadingLines[Math.min(loadIndex,loadingLines.length-1)];if(loadIndex>=loadingLines.length-1){clearInterval(loadingTimer);gameReady=true;ui.startBtn.disabled=false;ui.startBtn.textContent='村長の合図で開始！';}},420);
 draw();
 
-// 精霊選択
-function chooseSpirit(button){selectedSpirit=button.dataset.spirit;document.querySelectorAll('[data-spirit]').forEach(x=>{const active=x===button;x.classList.toggle('selected',active);x.setAttribute('aria-pressed',String(active));});ui.skillBtn.textContent=selectedSpirit==='ice'?'氷魔法':selectedSpirit==='wind'?'加速':'炎魔法';}
-document.querySelectorAll('[data-spirit]').forEach(b=>{b.addEventListener('pointerup',e=>{e.preventDefault();chooseSpirit(b);});b.addEventListener('click',()=>chooseSpirit(b));});
+// 精霊選択：親要素で一括処理し、タッチ端末でも確実に反応させる
+function chooseSpirit(button){
+ if(!button||!button.dataset.spirit)return;
+ selectedSpirit=button.dataset.spirit;
+ document.querySelectorAll('[data-spirit]').forEach(x=>{
+  const active=x===button;
+  x.classList.toggle('selected',active);
+  x.setAttribute('aria-pressed',String(active));
+ });
+ ui.skillBtn.textContent=selectedSpirit==='ice'?'氷魔法':selectedSpirit==='wind'?'加速':'炎魔法';
+}
+function handleSpiritPick(e){
+ const button=e.target.closest('[data-spirit]');
+ if(!button)return;
+ e.preventDefault();
+ e.stopPropagation();
+ chooseSpirit(button);
+}
+ui.spiritSelect.addEventListener('pointerdown',handleSpiritPick,{passive:false});
+ui.spiritSelect.addEventListener('click',handleSpiritPick,{passive:false});
+
+// 説明文領域では縦スクロールを優先する。ゲーム用の全体タッチ抑止と競合させない。
+ui.introScroll.addEventListener('pointerdown',e=>e.stopPropagation());
+ui.introScroll.addEventListener('pointermove',e=>e.stopPropagation());
+ui.introScroll.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
