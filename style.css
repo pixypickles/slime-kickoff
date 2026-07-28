@@ -19,5 +19,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
 #knob{position:absolute;left:31%;top:31%;width:38%;height:38%;border-radius:50%;background:#fff9;box-shadow:0 2px 10px #0007}
 .buttons{position:absolute;right:3%;bottom:4%;width:34%;height:40%;pointer-events:none}.buttons button{position:absolute;width:30%;aspect-ratio:1;border-radius:50%;font-size:clamp(10px,1.8vw,18px);pointer-events:auto}.kick{right:0;bottom:18%;background:#e55442}.dash{right:30%;bottom:0;background:#3f8ee8}.jump{right:31%;bottom:48%;background:#51a95b}.skill{right:62%;bottom:26%;background:#a15de2}
 @media (orientation:portrait){#gameWrap{transform:rotate(90deg);width:100vh;height:60vh;max-width:none;max-height:none}.story-card{max-height:92vh;padding:14px 25px}.story{font-size:12px;line-height:1.35}.story p{margin:5px 0}.panel h1{font-size:28px}}
-
-.buttons{display:grid;grid-template-columns:80px 80px;grid-template-areas:'jump skill' 'dash kick';gap:10px}.jump{grid-area:jump}.skill{grid-area:skill}.dash{grid-area:dash}.kick{grid-area:kick}
+/* v0.04 WORLD */
+.crest{display:inline-block;margin:0 auto 7px;padding:5px 14px;border:1px solid #e8ce8c88;border-radius:999px;color:#ead8aa;background:#3b2a1d99;font-size:clamp(10px,1.4vw,14px);font-weight:800;letter-spacing:.08em}
+.story-card{background:linear-gradient(180deg,#233a43f2,#17262df5);border-color:#cda95f}
+.story strong{color:#ffd888}

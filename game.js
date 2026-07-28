@@ -1,7 +1,7 @@
 'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
 const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),loadingText:document.getElementById('loadingText'),stick:document.getElementById('stick'),knob:document.getElementById('knob')};
-const W=1000,H=600,FIELD={cx:500,cy:310,rx:425,ry:225,goalT:235,goalB:385,gateDepth:78};
+const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
 let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],chiefLine='',chiefLife=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -17,10 +17,10 @@ class Player{
  update(dt){
   this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);
   let ix=0,iy=0,actions={};
-  if(this.isHuman){ix=input.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0);iy=-(input.y)+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);actions={dash:input.dash||keys.Shift,kick:input.kick||keys.j,jump:input.jump||keys.k,skill:input.skill||keys.l};}
+  if(this.isHuman){ix=input.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0);iy=input.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);actions={dash:input.dash||keys.Shift,kick:input.kick||keys.j,jump:input.jump||keys.k,skill:input.skill||keys.l};}
   else ({ix,iy,actions}=this.ai(dt));
   if(this.stun<=0){
-   if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=0;let sp=this.dashTime>0?390:190;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
+   if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?390:190;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
    if(actions.dash&&this.dashCd<=0){this.dashTime=.22;this.dashCd=.8;burst(this.x,this.y,teamColor(this.team),8);}
    if(actions.jump&&this.jumpT<=0)this.jumpT=.55;
    if(actions.kick&&this.kickCd<=0)this.kick();
@@ -53,7 +53,7 @@ class Player{
  }
 }
 
-function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){players.push(new Player(0,250,[225,310,395][i],i===0,i));players.push(new Player(1,750,[225,310,395][i],false,i));}slime={x:500,y:310,vx:0,vy:0,r:37,wobble:0,think:rand(1.5,3.5),hop:0};if(afterGoal)for(const p of players)p.stun=.45;message='始めぇぇ！！';messageLife=1;chiefLine='褒美は用意してあるぞー！';chiefLife=2;}
+function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){players.push(new Player(0,250,[225,310,395][i],i===0,i));players.push(new Player(1,750,[225,310,395][i],false,i));}slime={x:500,y:310,vx:0,vy:0,r:37,wobble:0,think:rand(1.5,3.5),hop:0};if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;}
 function startGame(){score=[0,0];timeLeft=75;particles=[];freeze=0;running=true;ui.intro.classList.add('hidden');ui.result.classList.add('hidden');ui.controls.classList.remove('hidden');reset();last=performance.now();requestAnimationFrame(loop);}
 function endGame(){running=false;ui.controls.classList.add('hidden');ui.result.classList.remove('hidden');const win=score[0]>score[1],draw=score[0]===score[1];ui.resultTitle.textContent=draw?'引き分け！':win?'褒美獲得！':'スライムを押し付けられた…';ui.resultText.textContent=`あなたの村 ${score[0]} － ${score[1]} となり村`;}
 function update(dt){if(!running)return;timeLeft-=dt;if(timeLeft<=0)return endGame();messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);collisions();updateParticles(dt);input.dash=input.kick=input.jump=input.skill=false;}
@@ -65,7 +65,53 @@ function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.l
 function burst(x,y,color,n){for(let i=0;i<n;i++){const a=rand(0,7),s=rand(50,240);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.25,.7),color});}}
 function updateParticles(dt){for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;}particles=particles.filter(p=>p.life>0);}
 function draw(){ctx.save();if(shake)ctx.translate(rand(-shake,shake),rand(-shake,shake));drawField();drawChiefs();for(const p of players)p.draw();drawSlime();for(const p of particles){ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
-function drawField(){ctx.fillStyle='#6cad47';ctx.fillRect(0,0,W,H);ctx.fillStyle='#4f8739';for(let x=0;x<W;x+=80)ctx.fillRect(x,0,40,H);ctx.fillStyle='#c9a96a';ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx+16,FIELD.ry+16,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#6d4728';ctx.lineWidth=22;ctx.stroke();ctx.fillStyle='#d8bf82';ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-3,FIELD.ry-3,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff8';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-25,FIELD.ry-25,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(500,88);ctx.lineTo(500,532);ctx.stroke();ctx.beginPath();ctx.arc(500,310,72,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#4f84a4';ctx.fillRect(0,FIELD.goalT,95,FIELD.goalB-FIELD.goalT);ctx.fillStyle='#a34f4f';ctx.fillRect(905,FIELD.goalT,95,FIELD.goalB-FIELD.goalT);ctx.fillStyle='#6d4728';ctx.fillRect(0,FIELD.goalT-12,95,12);ctx.fillRect(0,FIELD.goalB,95,12);ctx.fillRect(905,FIELD.goalT-12,95,12);ctx.fillRect(905,FIELD.goalB,95,12);ctx.fillStyle='#fff';ctx.font='bold 17px sans-serif';ctx.textAlign='center';ctx.fillText('あなたの村',47,220);ctx.fillText('となり村',953,220);}
+function drawField(){
+ // 草地と村外周
+ ctx.fillStyle='#527f3e';ctx.fillRect(0,0,W,H);
+ for(let y=0;y<H;y+=42){for(let x=(y/42%2)*24;x<W;x+=48){ctx.fillStyle=((x+y)/48)%2?'#5f8d47':'#4c783a';ctx.fillRect(x,y,25,3);}}
+ drawVillage(0,0);drawVillage(1,W);
+
+ // 次元に削り取られた土の縁（少し不規則な二重楕円）
+ ctx.save();ctx.translate(FIELD.cx,FIELD.cy);
+ ctx.fillStyle='#7a4d2a';ctx.beginPath();
+ for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,r=1+Math.sin(i*2.7)*.014+Math.sin(i*6.1)*.009;const x=Math.cos(a)*(FIELD.rx+25)*r,y=Math.sin(a)*(FIELD.ry+25)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#3e2818';ctx.lineWidth=7;ctx.stroke();
+ ctx.fillStyle='#c9aa6d';ctx.beginPath();ctx.ellipse(0,0,FIELD.rx+8,FIELD.ry+8,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#d9c084';ctx.beginPath();ctx.ellipse(0,0,FIELD.rx-4,FIELD.ry-4,0,0,Math.PI*2);ctx.fill();
+ ctx.restore();
+
+ // 土壁の石・ひび
+ ctx.fillStyle='#9b6a3b';for(let i=0;i<38;i++){const a=i/38*Math.PI*2;const x=FIELD.cx+Math.cos(a)*(FIELD.rx+18),y=FIELD.cy+Math.sin(a)*(FIELD.ry+18);ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.beginPath();ctx.roundRect(-12,-7,24,14,5);ctx.fill();ctx.restore();}
+
+ // 競技線
+ ctx.strokeStyle='#fff8';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-24,FIELD.ry-24,0,0,Math.PI*2);ctx.stroke();
+ ctx.setLineDash([12,10]);ctx.beginPath();ctx.moveTo(500,112);ctx.lineTo(500,520);ctx.stroke();ctx.setLineDash([]);
+ ctx.beginPath();ctx.arc(500,316,72,0,Math.PI*2);ctx.stroke();
+
+ // 村へつながる破れた入口
+ drawBrokenGate(0,FIELD.goalT,FIELD.goalB,0);drawBrokenGate(905,FIELD.goalT,FIELD.goalB,1);
+
+ // 中心の小さな異次元ゲート
+ const pulse=1+Math.sin(performance.now()/260)*.08;
+ ctx.save();ctx.translate(500,316);ctx.scale(pulse,1/pulse);
+ const glow=ctx.createRadialGradient(0,0,2,0,0,48);glow.addColorStop(0,'#fff');glow.addColorStop(.25,'#b8f7ff');glow.addColorStop(.58,'#7659cc');glow.addColorStop(1,'#2b163d00');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,48,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#d8c7ff';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,24,10,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+ ctx.fillStyle='#553c67';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText('小さなゲート',500,374);
+}
+function drawVillage(team,edge){
+ const left=team===0,x0=left?0:910,dir=left?1:-1,c=teamColor(team);
+ ctx.fillStyle=left?'#406d89':'#884d4d';ctx.fillRect(x0,190,90,250);
+ ctx.fillStyle='#d8c29b';for(let y=205;y<430;y+=55){for(let x=x0+8;x<x0+86;x+=38){ctx.fillRect(x,y,28,33);ctx.fillStyle='#744629';ctx.fillRect(x+8,y+18,12,15);ctx.fillStyle='#d8c29b';}}
+ ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(left?0:1000,168);ctx.lineTo(left?94:906,168);ctx.lineTo(left?77:923,115);ctx.lineTo(left?17:983,115);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#f5e7c0';ctx.font='900 15px sans-serif';ctx.textAlign='center';ctx.fillText(left?'あなたの村':'となり村',left?47:953,213);
+ // 壊れた塀の切断面
+ ctx.fillStyle='#8a613e';for(let y=210;y<430;y+=27){ctx.fillRect(left?82:905,y,18,18);}
+}
+function drawBrokenGate(x,top,bottom,team){
+ ctx.fillStyle=teamColor(team);ctx.globalAlpha=.72;ctx.fillRect(x,top,95,bottom-top);ctx.globalAlpha=1;
+ ctx.fillStyle='#6d4728';ctx.fillRect(x,top-13,95,13);ctx.fillRect(x,bottom,95,13);
+ ctx.fillStyle='#d0ae70';for(let i=0;i<4;i++){const xx=team===0?72+i*10:905+i*10;ctx.beginPath();ctx.arc(xx,top-5-(i%2)*8,9,0,7);ctx.fill();ctx.beginPath();ctx.arc(xx,bottom+5+(i%2)*8,9,0,7);ctx.fill();}
+}
 function drawChiefs(){drawChief(105,42,0);drawChief(895,42,1);if(chiefLife>0){ctx.fillStyle='#fff';ctx.strokeStyle='#573d28';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(330,66,340,42,12);ctx.fill();ctx.stroke();ctx.fillStyle='#2c241d';ctx.font='bold 17px sans-serif';ctx.textAlign='center';ctx.fillText(chiefLine,500,93);}}
 function drawChief(x,y,team){ctx.save();ctx.translate(x,y);ctx.fillStyle='#f1c798';ctx.strokeStyle='#4b3021';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,21,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#eee';ctx.beginPath();ctx.arc(0,15,17,0,Math.PI);ctx.fill();ctx.fillStyle=teamColor(team);ctx.fillRect(-22,21,44,14);ctx.fillStyle='#2a1812';ctx.beginPath();ctx.arc(-7,-4,2,0,7);ctx.arc(7,-4,2,0,7);ctx.fill();ctx.restore();}
 function drawSlime(){const speed=Math.hypot(slime.vx,slime.vy),squash=clamp(speed/900,0,.3),hop=slime.hop>0?Math.sin((1-slime.hop/.45)*Math.PI)*17:0;ctx.save();ctx.translate(slime.x,slime.y-hop);ctx.rotate(slime.wobble*.08);ctx.scale(1+squash,1-squash);const g=ctx.createRadialGradient(-10,-15,4,0,0,45);g.addColorStop(0,'#e8fbff');g.addColorStop(.35,'#61ccff');g.addColorStop(1,'#0874da');ctx.fillStyle=g;ctx.strokeStyle='#073d92';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,4,slime.r,slime.r*.78,0,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.globalAlpha=.8;ctx.beginPath();ctx.ellipse(-13,-12,10,7,-.5,0,7);ctx.fill();ctx.restore();}
@@ -76,5 +122,5 @@ addEventListener('keydown',e=>{keys[e.key]=true;keys[e.key.toLowerCase()]=true;e
 let stickId=null;function stickMove(e){const r=ui.stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=r.width*.32,d=Math.hypot(dx,dy)||1,k=Math.min(1,max/d);input.x=dx/d*k;input.y=dy/d*k;ui.knob.style.transform=`translate(${input.x*max}px,${input.y*max}px)`;}
 ui.stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;ui.stick.setPointerCapture(e.pointerId);stickMove(e);});ui.stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickMove(e);});ui.stick.addEventListener('pointerup',e=>{if(e.pointerId===stickId){stickId=null;input.x=input.y=0;ui.knob.style.transform='';}});document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('pointerdown',e=>{input[b.dataset.action]=true;e.preventDefault();}));
 
-const loadingLines=['画像を読み込み中…','村人を招集中…','スライムを捕獲中…','村長が褒美を準備中…','準備完了！'];let loadIndex=0;const loadingTimer=setInterval(()=>{loadIndex++;ui.loadingText.textContent=loadingLines[Math.min(loadIndex,loadingLines.length-1)];if(loadIndex>=loadingLines.length-1){clearInterval(loadingTimer);ui.startBtn.classList.remove('hidden');}},650);
+const loadingLines=['異次元の穴を安定させています…','削れた土壁を点検中…','村人を招集中…','少し臭うスライムを確認中…','村長が褒美を準備中…','押し付け合いの準備完了！'];let loadIndex=0;const loadingTimer=setInterval(()=>{loadIndex++;ui.loadingText.textContent=loadingLines[Math.min(loadIndex,loadingLines.length-1)];if(loadIndex>=loadingLines.length-1){clearInterval(loadingTimer);ui.startBtn.classList.remove('hidden');}},650);
 draw();
