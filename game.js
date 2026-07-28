@@ -3,7 +3,7 @@ const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
 const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),loadingText:document.getElementById('loadingText'),stick:document.getElementById('stick'),knob:document.getElementById('knob')};
 const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
-let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],chiefLine='',chiefLife=0;
+let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const norm=(x,y)=>{const d=Math.hypot(x,y)||1;return{x:x/d,y:y/d}};
 const rand=(a,b)=>a+Math.random()*(b-a);
@@ -67,18 +67,18 @@ class Player{
  }
 }
 
-function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){players.push(new Player(0,250,[225,310,395][i],i===0,i));players.push(new Player(1,750,[225,310,395][i],false,i));}slime={x:500,y:310,vx:0,vy:0,r:37,wobble:0,think:rand(1.5,3.5),hop:0};if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;}
+function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){players.push(new Player(0,250,[225,310,395][i],i===0,i));players.push(new Player(1,750,[225,310,395][i],false,i));}slime={x:500,y:310,vx:0,vy:0,r:37,wobble:0,think:rand(1.5,3.5),hop:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0};if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
 function startGame(){score=[0,0];timeLeft=75;particles=[];freeze=0;running=true;ui.intro.classList.add('hidden');ui.result.classList.add('hidden');ui.controls.classList.remove('hidden');reset();last=performance.now();requestAnimationFrame(loop);}
 function endGame(){running=false;ui.controls.classList.add('hidden');ui.result.classList.remove('hidden');const win=score[0]>score[1],draw=score[0]===score[1];ui.resultTitle.textContent=draw?'引き分け！':win?'褒美獲得！':'スライムを押し付けられた…';ui.resultText.textContent=`あなたの村 ${score[0]} － ${score[1]} となり村`;}
-function update(dt){if(!running)return;timeLeft-=dt;if(timeLeft<=0)return endGame();messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);collisions();updateParticles(dt);input.dash=input.kick=input.jump=input.skill=false;}
-function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt);if(slime.think<=0){slime.think=rand(1.1,3);const a=rand(0,Math.PI*2),f=rand(60,165);slime.vx+=Math.cos(a)*f;slime.vy+=Math.sin(a)*f;slime.wobble=rand(-3,3);slime.hop=.45;}
+function update(dt){if(!running)return;timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=['押し返せー！','褒美は目の前だぞ！','臭いのは向こうへやれ！','靴を止めるなー！','おおっ、その調子だ！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
+function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt);slime.blink-=dt;slime.blinkT=Math.max(0,slime.blinkT-dt);slime.scared=Math.max(0,slime.scared-dt);if(slime.blink<=0){slime.blink=rand(1.5,4);slime.blinkT=.13;}if(slime.startT>0){slime.startT=Math.max(0,slime.startT-dt);slime.hop=.45;const burstOut=1-slime.startT/.9;slime.y=slime.startY-Math.sin(burstOut*Math.PI)*42;slime.vx*=.8;slime.vy*=.8;return;}if(slime.think<=0){slime.think=rand(.9,2.7);const a=rand(0,Math.PI*2),f=rand(70,190);slime.vx+=Math.cos(a)*f;slime.vy+=Math.sin(a)*f;slime.wobble=rand(-3,3);slime.hop=.45;}
  slime.vx*=Math.pow(.12,dt);slime.vy*=Math.pow(.12,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;slime.wobble*=Math.pow(.05,dt);constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}}
-function goal(team){message='押し込み成功！';messageLife=1.3;chiefLine=team===0?'見事だ！ 褒美に近づいたぞ！':'押し返せー！ まだ終わっておらん！';chiefLife=2.2;shake=18;if(Math.max(...score)>=3)return endGame();reset(true);}
+function goal(team){goalScene={team,life:1.1};message='押し込み成功！';messageLife=1.3;chiefLine=team===0?'見事だ！ 褒美に近づいたぞ！':'押し返せー！ まだ終わっておらん！';chiefLife=2.2;shake=18;if(Math.max(...score)>=3)return endGame();reset(true);}
 function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.length;j++){const a=players[i],b=players[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d<min){const n=norm(dx,dy),push=(min-d)*.5;a.x-=n.x*push;b.x+=n.x*push;a.y-=n.y*push;b.y+=n.y*push;}}
- for(const p of players){const dx=slime.x-p.x,dy=slime.y-p.y,d=Math.hypot(dx,dy),min=p.r+slime.r;if(d<min){const n=norm(dx,dy),push=min-d;slime.x+=n.x*push;slime.y+=n.y*push;slime.vx+=n.x*80;slime.vy+=n.y*80;}}}
+ for(const p of players){const dx=slime.x-p.x,dy=slime.y-p.y,d=Math.hypot(dx,dy),min=p.r+slime.r;if(d<min){const n=norm(dx,dy),push=min-d;slime.x+=n.x*push;slime.y+=n.y*push;slime.vx+=n.x*80;slime.vy+=n.y*80;slime.scared=.35;}}}
 function burst(x,y,color,n){for(let i=0;i<n;i++){const a=rand(0,7),s=rand(50,240);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.25,.7),color});}}
 function updateParticles(dt){for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;}particles=particles.filter(p=>p.life>0);}
-function draw(){ctx.save();if(shake)ctx.translate(rand(-shake,shake),rand(-shake,shake));drawField();drawChiefs();for(const p of players)p.draw();drawSlime();for(const p of particles){ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
+function draw(){ctx.save();if(shake)ctx.translate(rand(-shake,shake),rand(-shake,shake));drawField();drawChiefs();for(const p of players)p.draw();drawSlime();drawGoalScene();for(const p of particles){ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
 function drawField(){
  // 草地と村外周
  ctx.fillStyle='#527f3e';ctx.fillRect(0,0,W,H);
@@ -109,7 +109,7 @@ function drawField(){
  const pulse=1+Math.sin(performance.now()/260)*.08;
  ctx.save();ctx.translate(500,316);ctx.scale(pulse,1/pulse);
  const glow=ctx.createRadialGradient(0,0,2,0,0,48);glow.addColorStop(0,'#fff');glow.addColorStop(.25,'#b8f7ff');glow.addColorStop(.58,'#7659cc');glow.addColorStop(1,'#2b163d00');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,48,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle='#d8c7ff';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,24,10,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+ ctx.strokeStyle='#d8c7ff';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,24,10,0,0,Math.PI*2);ctx.stroke();for(let i=0;i<4;i++){const a=portalTime*(1.7+i*.24)+i*1.55,r=17+i*5;ctx.fillStyle=i%2?'#d9c8ff':'#8defff';ctx.globalAlpha=.65;ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*r*.42,3+i*.35,0,7);ctx.fill();}ctx.globalAlpha=1;ctx.restore();
  ctx.fillStyle='#553c67';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText('小さなゲート',500,374);
 }
 function drawVillage(team,edge){
@@ -155,10 +155,20 @@ function drawSlime(){
  const g=ctx.createRadialGradient(-10,-15,4,0,0,45);g.addColorStop(0,'#e8fbff');g.addColorStop(.35,'#61ccff');g.addColorStop(1,'#0874da');ctx.fillStyle=g;ctx.strokeStyle='#073d92';ctx.lineWidth=5;
  ctx.beginPath();ctx.moveTo(-34,10);ctx.quadraticCurveTo(-42,-12,-22,-25);ctx.quadraticCurveTo(0,-42,23,-25);ctx.quadraticCurveTo(44,-10,34,13);ctx.quadraticCurveTo(0,34,-34,10);ctx.fill();ctx.stroke();
  ctx.fillStyle='#fff';ctx.globalAlpha=.85;ctx.beginPath();ctx.ellipse(-13,-18,10,7,-.5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
- ctx.fillStyle='#063a78';ctx.beginPath();ctx.arc(-10,-4,3,0,Math.PI*2);ctx.arc(10,-4,3,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle='#063a78';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,4,7,.15,Math.PI-.15);ctx.stroke();ctx.restore();
+ ctx.fillStyle='#063a78';ctx.beginPath();if(slime.blinkT>0){ctx.ellipse(-10,-4,4,1,0,0,7);ctx.ellipse(10,-4,4,1,0,0,7);}else{const look=clamp(slime.vx/240,-2,2);ctx.arc(-10+look,-4,3,0,Math.PI*2);ctx.arc(10+look,-4,3,0,Math.PI*2);}ctx.fill();
+ ctx.strokeStyle='#063a78';ctx.lineWidth=3;ctx.beginPath();if(slime.scared>0){ctx.arc(0,7,5,0,Math.PI*2);}else{ctx.arc(0,4,7,.15,Math.PI-.15);}ctx.stroke();ctx.restore();
  // 本当に微かな臭い
  ctx.save();ctx.globalAlpha=.18;ctx.strokeStyle='#d7e78a';ctx.lineWidth=5;for(let i=0;i<2;i++){const t=performance.now()/700+i*1.8;ctx.beginPath();ctx.moveTo(slime.x-8+i*16,slime.y-hop-40);ctx.bezierCurveTo(slime.x-20+i*18,slime.y-hop-58,slime.x+14-i*8,slime.y-hop-69,slime.x-2+i*10,slime.y-hop-86);ctx.stroke();}ctx.restore();
+}
+
+function drawGoalScene(){
+ if(!goalScene)return;
+ const t=1-goalScene.life/1.1,dir=goalScene.team===0?1:-1,x=goalScene.team===0?915:85;
+ ctx.save();ctx.globalAlpha=Math.sin(Math.min(1,t)*Math.PI)*.95;
+ ctx.fillStyle='#fff4c2';ctx.strokeStyle='#5a3b25';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(x-74,204,148,48,14);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#3a291e';ctx.font='900 18px sans-serif';ctx.textAlign='center';ctx.fillText('うわっ、臭い！',x,235);
+ for(let i=0;i<3;i++){const sx=x+dir*(18+i*20),sy=302+i*28;drawSpectator(sx,sy,goalScene.team?1:0,i);}
+ ctx.restore();
 }
 function drawHud(){
  ctx.fillStyle='#10202be8';ctx.beginPath();ctx.roundRect(300,7,400,59,13);ctx.fill();
@@ -175,7 +185,7 @@ function loop(t){if(!running)return;const dt=Math.min(.033,(t-last)/1000);last=t
 
 addEventListener('keydown',e=>{keys[e.key]=true;keys[e.key.toLowerCase()]=true;e.preventDefault();});addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false;});ui.startBtn.onclick=startGame;ui.retryBtn.onclick=startGame;
 let stickId=null;function stickMove(e){const r=ui.stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=r.width*.32,d=Math.hypot(dx,dy)||1,k=Math.min(1,max/d);input.x=dx/d*k;input.y=dy/d*k;ui.knob.style.transform=`translate(${input.x*max}px,${input.y*max}px)`;}
-ui.stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;ui.stick.setPointerCapture(e.pointerId);stickMove(e);});ui.stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickMove(e);});ui.stick.addEventListener('pointerup',e=>{if(e.pointerId===stickId){stickId=null;input.x=input.y=0;ui.knob.style.transform='';}});document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('pointerdown',e=>{input[b.dataset.action]=true;e.preventDefault();}));
+ui.stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;ui.stick.setPointerCapture(e.pointerId);stickMove(e);});ui.stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickMove(e);});ui.stick.addEventListener('pointerup',e=>{if(e.pointerId===stickId){stickId=null;input.x=input.y=0;ui.knob.style.transform='';}});document.querySelectorAll('[data-action]').forEach(b=>{b.addEventListener('pointerdown',e=>{input[b.dataset.action]=true;e.preventDefault();});b.addEventListener('pointerup',e=>{input[b.dataset.action]=false;e.preventDefault();});b.addEventListener('pointercancel',()=>{input[b.dataset.action]=false;});});
 
 const loadingLines=['異次元の穴を安定させています…','削れた土壁を点検中…','村人を招集中…','少し臭うスライムを確認中…','村長が褒美を準備中…','押し付け合いの準備完了！'];let loadIndex=0;const loadingTimer=setInterval(()=>{loadIndex++;ui.loadingText.textContent=loadingLines[Math.min(loadIndex,loadingLines.length-1)];if(loadIndex>=loadingLines.length-1){clearInterval(loadingTimer);ui.startBtn.classList.remove('hidden');}},650);
 draw();
