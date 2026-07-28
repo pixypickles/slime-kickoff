@@ -13,14 +13,14 @@ function insideEllipse(x,y,margin=0){const rx=FIELD.rx-margin,ry=FIELD.ry-margin
 function constrainToField(o){const inGate=o.y>FIELD.goalT&&o.y<FIELD.goalB;if(inGate&&o.x<FIELD.cx-FIELD.rx+o.r)return;if(inGate&&o.x>FIELD.cx+FIELD.rx-o.r)return;const rx=FIELD.rx-o.r,ry=FIELD.ry-o.r,dx=o.x-FIELD.cx,dy=o.y-FIELD.cy,q=(dx*dx)/(rx*rx)+(dy*dy)/(ry*ry);if(q>1){const k=1/Math.sqrt(q);o.x=FIELD.cx+dx*k;o.y=FIELD.cy+dy*k;const nx=dx/(rx*rx),ny=dy/(ry*ry),n=norm(nx,ny),dot=o.vx*n.x+o.vy*n.y;if(dot>0){o.vx-=1.75*dot*n.x;o.vy-=1.75*dot*n.y;}}}
 
 class Player{
- constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0});}
+ constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0});}
  update(dt){
-  this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
+  this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
   let ix=0,iy=0,actions={};
   if(this.isHuman){ix=input.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0);iy=input.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);actions={dash:input.dash||keys.Shift,kick:input.kick||keys.j,jump:input.jump||keys.k,skill:input.skill||keys.l};}
   else ({ix,iy,actions}=this.ai(dt));
   if(this.stun<=0&&this.frozen<=0){
-   if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?390:190;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
+   if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?390:190;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
    if(actions.dash&&this.dashCd<=0){this.dashTime=.22;this.dashCd=.8;burst(this.x,this.y,teamColor(this.team),8);}
    if(actions.jump&&this.jumpT<=0)this.jumpT=.55;
    if(actions.kick&&this.kickCd<=0)this.kick();
@@ -38,7 +38,8 @@ class Player{
   if(Math.hypot(dx,dy)<95+slime.r){const n=norm(dx+fx*25,dy+fy*25);slime.vx+=n.x*power;slime.vy+=n.y*power;slime.wobble+=rand(-2,2);shake=Math.max(shake,sliding?10:6);burst(slime.x,slime.y,'#b9efff',14);}
   for(const p of players){if(p===this||p.team===this.team)continue;const px=p.x-this.x,py=p.y-this.y,n=norm(px,py);if(Math.hypot(px,py)<88&&n.x*fx+n.y*fy>-.1){p.vx+=fx*power*.85;p.vy+=fy*power*.85;p.stun=Math.max(p.stun,sliding?.7:.35);shake=Math.max(shake,8);burst(p.x,p.y,'#fff1a3',10);}}
  }
- skill(){if(this.spirit==='ice')return this.coldBreath();this.skillCd=5.2;const n=norm(this.faceX,this.faceY);fireballs.push({x:this.x+n.x*42,y:this.y+n.y*42-6,vx:n.x*520,vy:n.y*520,team:this.team,owner:this,life:1.35,r:15,trail:0});message='ファイアボール！';messageLife=.8;shake=Math.max(shake,4);burst(this.x+n.x*35,this.y+n.y*35,'#ffb13b',14);}
+ skill(){if(this.spirit==='ice')return this.coldBreath();if(this.spirit==='wind')return this.windBoost();this.skillCd=5.2;const n=norm(this.faceX,this.faceY);fireballs.push({x:this.x+n.x*42,y:this.y+n.y*42-6,vx:n.x*520,vy:n.y*520,team:this.team,owner:this,life:1.35,r:15,trail:0});message='ファイアボール！';messageLife=.8;shake=Math.max(shake,4);burst(this.x+n.x*35,this.y+n.y*35,'#ffb13b',14);}
+ windBoost(){this.skillCd=2.4;this.speedBoost=1.35;const n=norm(this.faceX,this.faceY);this.vx+=n.x*240;this.vy+=n.y*240;message='風の加速！';messageLife=.65;burst(this.x,this.y,'#c8ffd4',22);}
  coldBreath(){this.skillCd=6.4;const n=norm(this.faceX,this.faceY);iceWaves.push({x:this.x+n.x*28,y:this.y+n.y*28,dx:n.x,dy:n.y,team:this.team,owner:this,life:.38,maxLife:.38,range:210,angle:.52});message='コールドブレス！';messageLife=.9;shake=Math.max(shake,3);burst(this.x+n.x*34,this.y+n.y*34,'#bff7ff',18);}
  draw(){
   const jump=this.jumpT>0?Math.sin((1-this.jumpT/.55)*Math.PI)*28:0;
@@ -60,17 +61,19 @@ class Player{
 
   // 頭・顔は画面上向きに固定。
   ctx.fillStyle='#f2c895';ctx.strokeStyle='#5d3924';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-25,19,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle=this.spirit==='ice'?'#b7efff':this.spirit==='fire'?'#d9482f':'#53321f';ctx.beginPath();ctx.arc(0,-31,15,Math.PI,Math.PI*2);ctx.fill();if(this.spirit==='fire'){ctx.fillStyle='#ffcf45';ctx.beginPath();ctx.moveTo(-12,-39);ctx.quadraticCurveTo(-4,-58,1,-41);ctx.quadraticCurveTo(10,-58,13,-37);ctx.closePath();ctx.fill();}
+  ctx.fillStyle=this.spirit==='ice'?'#b7efff':this.spirit==='fire'?'#d9482f':this.spirit==='wind'?'#85d69a':'#53321f';ctx.beginPath();ctx.arc(0,-31,15,Math.PI,Math.PI*2);ctx.fill();if(this.spirit==='fire'){ctx.fillStyle='#ffcf45';ctx.beginPath();ctx.moveTo(-12,-39);ctx.quadraticCurveTo(-4,-58,1,-41);ctx.quadraticCurveTo(10,-58,13,-37);ctx.closePath();ctx.fill();}
   if(this.spirit==='ice'){ctx.fillStyle='#e9fdff';ctx.beginPath();ctx.moveTo(-14,-38);ctx.lineTo(-5,-55);ctx.lineTo(0,-40);ctx.lineTo(8,-56);ctx.lineTo(14,-37);ctx.closePath();ctx.fill();}
+  if(this.spirit==='wind'){ctx.strokeStyle='#e2ffe9';ctx.lineWidth=5;ctx.beginPath();ctx.arc(-2,-39,15,Math.PI*1.05,Math.PI*1.9);ctx.stroke();ctx.beginPath();ctx.arc(5,-43,10,Math.PI*.9,Math.PI*1.75);ctx.stroke();}
   ctx.fillStyle='#2b1b15';ctx.beginPath();ctx.arc(-6,-25,2.3,0,Math.PI*2);ctx.arc(6,-25,2.3,0,Math.PI*2);ctx.fill();
   ctx.strokeStyle='#8a4d3b';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-19,5,.2,Math.PI-.2);ctx.stroke();
   ctx.restore();
+  if(this.speedBoost>0){ctx.save();ctx.globalAlpha=.5;ctx.strokeStyle='#d9ffe2';ctx.lineWidth=4;for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(this.x-38-i*8,this.y-18+i*14);ctx.lineTo(this.x-68-i*12,this.y-18+i*14);ctx.stroke();}ctx.restore();}
   if(this.frozen>0){ctx.save();ctx.globalAlpha=.55;ctx.fillStyle='#bff7ff';ctx.strokeStyle='#ecffff';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(this.x-30,this.y-jump-55,60,95,15);ctx.fill();ctx.stroke();ctx.restore();ctx.font='23px sans-serif';ctx.fillText('❄️',this.x-13,this.y-jump-65);}
-  if(this.stun>0&&this.burn<=0&&this.frozen<=0){ctx.font='24px sans-serif';ctx.fillText('★',this.x-12,this.y-jump-58);}if(this.burn>0){ctx.font='25px sans-serif';ctx.fillText('🔥',this.x-13,this.y-jump-62);}if(this.skillCd>0&&this.index===0){ctx.fillStyle='#0009';ctx.fillRect(this.x-24,this.y+40,48,5);ctx.fillStyle=this.spirit==='ice'?'#8deeff':'#ff8b2c';const maxCd=this.spirit==='ice'?6.4:5.2;ctx.fillRect(this.x-24,this.y+40,48*(1-this.skillCd/maxCd),5);}
+  if(this.stun>0&&this.burn<=0&&this.frozen<=0){ctx.font='24px sans-serif';ctx.fillText('★',this.x-12,this.y-jump-58);}if(this.burn>0){ctx.font='25px sans-serif';ctx.fillText('🔥',this.x-13,this.y-jump-62);}if(this.skillCd>0&&this.index===0){ctx.fillStyle='#0009';ctx.fillRect(this.x-24,this.y+40,48,5);ctx.fillStyle=this.spirit==='ice'?'#8deeff':this.spirit==='wind'?'#87eda2':'#ff8b2c';const maxCd=this.spirit==='ice'?6.4:this.spirit==='wind'?2.4:5.2;ctx.fillRect(this.x-24,this.y+40,48*(1-this.skillCd/maxCd),5);}
  }
 }
 
-function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=selectedSpirit;b.spirit=selectedSpirit==='fire'?'ice':'fire';}players.push(a,b);}slime={x:500,y:310,vx:0,vy:0,r:37,wobble:0,think:rand(1.5,3.5),hop:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0};if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
+function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=selectedSpirit;b.spirit=selectedSpirit==='fire'?'ice':selectedSpirit==='ice'?'wind':'fire';}players.push(a,b);}slime={x:500,y:310,vx:0,vy:0,r:37,wobble:0,think:rand(1.5,3.5),hop:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0};if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
 function startGame(){score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];freeze=0;running=true;ui.intro.classList.add('hidden');ui.result.classList.add('hidden');ui.controls.classList.remove('hidden');reset();last=performance.now();requestAnimationFrame(loop);}
 function endGame(){running=false;ui.controls.classList.add('hidden');ui.result.classList.remove('hidden');const win=score[0]>score[1],draw=score[0]===score[1];ui.resultTitle.textContent=draw?'引き分け！':win?'褒美獲得！':'スライムを押し付けられた…';ui.resultText.textContent=`あなたの村 ${score[0]} － ${score[1]} となり村`;}
 function update(dt){if(!running)return;timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=['押し返せー！','褒美は目の前だぞ！','臭いのは向こうへやれ！','靴を止めるなー！','おおっ、その調子だ！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
@@ -209,7 +212,7 @@ function drawHud(){
  // 褒美までの簡易印
  for(let team=0;team<2;team++)for(let i=0;i<3;i++){ctx.fillStyle=i<score[team]?'#ffd85a':'#ffffff33';ctx.beginPath();ctx.arc(team===0?265-i*18:735+i*18,37,6,0,Math.PI*2);ctx.fill();}
  if(messageLife>0){ctx.fillStyle='#fff4a3';ctx.font='900 36px sans-serif';ctx.fillText(message,500,145);}if(freeze>0){ctx.fillStyle='#b9efff';ctx.font='900 25px sans-serif';ctx.fillText(`TIME STOP ${freeze.toFixed(1)}`,500,174);}
- ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#fff';const spirit=players.find(p=>p.isHuman)?.spirit||selectedSpirit;ctx.fillText(spirit==='ice'?'氷の精霊使い：コールドブレスで凍結　／　凍ったものは触れると滑る':'炎の精霊使い：ファイアボール　／　燃えた相手は転がって消火',18,585);
+ ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#fff';const spirit=players.find(p=>p.isHuman)?.spirit||selectedSpirit;ctx.fillText(spirit==='ice'?'氷の精霊使い：コールドブレスで凍結　／　凍ったものは触れると滑る':spirit==='wind'?'風の精霊使い：加速　／　短いクールタイムで一気に間合いを詰める':'炎の精霊使い：ファイアボール　／　燃えた相手は転がって消火',18,585);
 }
 function loop(t){if(!running)return;const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop);}
 
@@ -221,4 +224,4 @@ const loadingLines=['異次元の穴を安定させています…','削れた�
 draw();
 
 // 精霊選択
-document.querySelectorAll('[data-spirit]').forEach(b=>b.addEventListener('click',()=>{selectedSpirit=b.dataset.spirit;document.querySelectorAll('[data-spirit]').forEach(x=>x.classList.toggle('selected',x===b));ui.skillBtn.textContent=selectedSpirit==='ice'?'氷魔法':'炎魔法';}));
+document.querySelectorAll('[data-spirit]').forEach(b=>b.addEventListener('click',()=>{selectedSpirit=b.dataset.spirit;document.querySelectorAll('[data-spirit]').forEach(x=>x.classList.toggle('selected',x===b));ui.skillBtn.textContent=selectedSpirit==='ice'?'氷魔法':selectedSpirit==='wind'?'加速':'炎魔法';}));
