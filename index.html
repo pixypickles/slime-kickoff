@@ -4,23 +4,36 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム押し付け合戦 v0.01</title>
+  <title>スライム・キックオフ！ v0.02</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main id="gameWrap">
-    <canvas id="game" width="1000" height="600" aria-label="スライム押し付け合戦"></canvas>
-    <section id="start" class="panel">
-      <h1>スライム押し付け合戦</h1>
-      <p>ちょっと臭いスライムを、隣村へ。</p>
-      <button id="startBtn">試合開始</button>
-      <small>v0.01 / 3対3 CPU戦</small>
+    <canvas id="game" width="1000" height="600" aria-label="スライム・キックオフ！"></canvas>
+
+    <section id="intro" class="panel intro-panel">
+      <div class="story-card">
+        <h1>スライム・キックオフ！</h1>
+        <p class="tagline">ちょっと臭いスライムを、となり村へ。</p>
+        <div class="story">
+          <p>ある日、二つの村の間に<br>異次元へつながる奇妙な空間が現れた。</p>
+          <p>そこから出てくるのは、<br>人を襲わない無害なスライム。</p>
+          <p>ただし……<strong>ほんの少しだけ臭い。</strong></p>
+          <p>村長は、スライムを相手の村へ押し返した者に<br>褒美を与えることにした。</p>
+          <p class="final-line">こうして今日も、村人たちの熱い戦いが始まる！</p>
+        </div>
+        <div id="loadingText" class="loading">画像を読み込み中…</div>
+        <button id="startBtn" class="hidden">試合開始</button>
+        <small>v0.02 / 3対3 CPU戦</small>
+      </div>
     </section>
+
     <section id="result" class="panel hidden">
       <h2 id="resultTitle">試合終了</h2>
       <p id="resultText"></p>
       <button id="retryBtn">もう一度</button>
     </section>
+
     <div id="controls" class="hidden" aria-label="タッチ操作">
       <div id="stick"><div id="knob"></div></div>
       <div class="buttons">
