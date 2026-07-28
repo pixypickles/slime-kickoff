@@ -40,16 +40,30 @@ class Player{
  }
  skill(){this.skillCd=12;if(this.team===0){freeze=2.2;message='時間停止！';messageLife=1.1;}else{for(const p of players)if(p.team===0)p.stun=Math.max(p.stun,1.6);message='ナイトメア！';messageLife=1.1;}burst(this.x,this.y,'#d98cff',28);}
  draw(){
-  const jump=this.jumpT>0?Math.sin((1-this.jumpT/.55)*Math.PI)*28:0,ang=Math.atan2(this.faceY,this.faceX);ctx.save();ctx.translate(this.x,this.y-jump);
-  ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(0,27+jump,29,10,0,0,Math.PI*2);ctx.fill();
-  ctx.rotate(ang);const kicking=this.kickTime>0;
-  ctx.fillStyle='#5b3b25';ctx.strokeStyle='#29180e';ctx.lineWidth=4;
-  ctx.beginPath();ctx.ellipse(-8,21,19,11,-.2,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.ellipse(kicking?31:13,kicking?4:21,kicking?25:19,11,kicking?-.15:.2,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle=teamColor(this.team);ctx.strokeStyle=this.isHuman?'#ffe45c':'#fff';ctx.lineWidth=this.isHuman?5:3;ctx.beginPath();ctx.roundRect(-19,-8,38,39,10);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#f2c895';ctx.strokeStyle='#5d3924';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-24,18,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#2b1b15';ctx.beginPath();ctx.arc(7,-28,2.5,0,7);ctx.fill();ctx.restore();
-  if(this.stun>0){ctx.font='24px sans-serif';ctx.fillText('★',this.x-12,this.y-jump-55);}if(this.skillCd>0){ctx.fillStyle='#0009';ctx.fillRect(this.x-24,this.y+37,48,5);ctx.fillStyle='#d98cff';ctx.fillRect(this.x-24,this.y+37,48*(1-this.skillCd/12),5);}
+  const jump=this.jumpT>0?Math.sin((1-this.jumpT/.55)*Math.PI)*28:0;
+  const ang=Math.atan2(this.faceY,this.faceX),kicking=this.kickTime>0;
+  ctx.save();ctx.translate(this.x,this.y-jump);
+  ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(0,30+jump,31,10,0,0,Math.PI*2);ctx.fill();
+
+  // 胴体は常に上向き。靴だけが移動・キック方向を向く。
+  ctx.fillStyle=teamColor(this.team);ctx.strokeStyle=this.isHuman?'#ffe45c':'#fff';ctx.lineWidth=this.isHuman?5:3;
+  ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.fill();ctx.stroke();
+  ctx.fillStyle=this.team?'#803737':'#25688f';ctx.fillRect(-15,17,30,7);
+
+  ctx.save();ctx.rotate(ang);
+  ctx.fillStyle='#6a4328';ctx.strokeStyle='#29180e';ctx.lineWidth=4;
+  ctx.beginPath();ctx.ellipse(-7,23,21,12,-.18,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(kicking?38:15,kicking?2:23,kicking?29:22,12,kicking?-.08:.18,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#d9b36c';ctx.fillRect(kicking?28:6,kicking?-3:18,kicking?22:18,5);
+  ctx.restore();
+
+  // 頭・顔は画面上向きに固定。
+  ctx.fillStyle='#f2c895';ctx.strokeStyle='#5d3924';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-25,19,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#53321f';ctx.beginPath();ctx.arc(0,-31,15,Math.PI,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2b1b15';ctx.beginPath();ctx.arc(-6,-25,2.3,0,Math.PI*2);ctx.arc(6,-25,2.3,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#8a4d3b';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-19,5,.2,Math.PI-.2);ctx.stroke();
+  ctx.restore();
+  if(this.stun>0){ctx.font='24px sans-serif';ctx.fillText('★',this.x-12,this.y-jump-58);}if(this.skillCd>0){ctx.fillStyle='#0009';ctx.fillRect(this.x-24,this.y+40,48,5);ctx.fillStyle='#d98cff';ctx.fillRect(this.x-24,this.y+40,48*(1-this.skillCd/12),5);}
  }
 }
 
@@ -99,13 +113,33 @@ function drawField(){
  ctx.fillStyle='#553c67';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText('小さなゲート',500,374);
 }
 function drawVillage(team,edge){
- const left=team===0,x0=left?0:910,dir=left?1:-1,c=teamColor(team);
- ctx.fillStyle=left?'#406d89':'#884d4d';ctx.fillRect(x0,190,90,250);
- ctx.fillStyle='#d8c29b';for(let y=205;y<430;y+=55){for(let x=x0+8;x<x0+86;x+=38){ctx.fillRect(x,y,28,33);ctx.fillStyle='#744629';ctx.fillRect(x+8,y+18,12,15);ctx.fillStyle='#d8c29b';}}
- ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(left?0:1000,168);ctx.lineTo(left?94:906,168);ctx.lineTo(left?77:923,115);ctx.lineTo(left?17:983,115);ctx.closePath();ctx.fill();
- ctx.fillStyle='#f5e7c0';ctx.font='900 15px sans-serif';ctx.textAlign='center';ctx.fillText(left?'あなたの村':'となり村',left?47:953,213);
+ const left=team===0,x0=left?0:910,c=teamColor(team),dir=left?1:-1;
+ // 村の地面
+ ctx.fillStyle=left?'#52758a':'#8a5656';ctx.fillRect(x0,172,90,286);
+ // 家と屋根
+ for(let i=0;i<3;i++){
+  const yy=192+i*82;ctx.fillStyle='#e3cfaa';ctx.fillRect(x0+7,yy,72,48);
+  ctx.fillStyle=left?'#31556d':'#6f3737';ctx.beginPath();ctx.moveTo(x0+2,yy);ctx.lineTo(x0+43,yy-28);ctx.lineTo(x0+84,yy);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#744629';ctx.fillRect(x0+17,yy+20,15,28);ctx.fillStyle='#9bd1df';ctx.fillRect(x0+47,yy+13,18,15);
+ }
+ // 村旗
+ ctx.strokeStyle='#55341f';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(left?30:970,116);ctx.lineTo(left?30:970,180);ctx.stroke();
+ ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(left?32:968,120);ctx.lineTo(left?77:923,134);ctx.lineTo(left?32:968,148);ctx.closePath();ctx.fill();
+ // 村名札
+ ctx.fillStyle='#f5e7c0';ctx.strokeStyle='#5a3a25';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x0+5,153,80,31,7);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#3a2a1f';ctx.font='900 14px sans-serif';ctx.textAlign='center';ctx.fillText(left?'あなたの村':'となり村',left?45:955,174);
  // 壊れた塀の切断面
- ctx.fillStyle='#8a613e';for(let y=210;y<430;y+=27){ctx.fillRect(left?82:905,y,18,18);}
+ ctx.fillStyle='#8a613e';for(let y=202;y<440;y+=27){ctx.fillRect(left?82:900,y,18,18);}
+ // 荷車と樽
+ ctx.fillStyle='#704526';ctx.fillRect(left?8:942,474,48,18);ctx.strokeStyle='#2f2118';ctx.lineWidth=5;ctx.beginPath();ctx.arc(left?18:952,495,10,0,Math.PI*2);ctx.arc(left?49:983,495,10,0,Math.PI*2);ctx.stroke();
+ ctx.fillStyle='#9b6a3b';ctx.beginPath();ctx.roundRect(left?60:914,468,24,34,6);ctx.fill();
+ // 応援する村人
+ for(let i=0;i<3;i++)drawSpectator(left?24+i*25:926+i*25,535+(i%2)*7,team,i);
+}
+function drawSpectator(x,y,team,i){
+ const bounce=Math.sin(performance.now()/220+i*1.7)*3;ctx.save();ctx.translate(x,y+bounce);
+ ctx.fillStyle=teamColor(team);ctx.fillRect(-7,-2,14,18);ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-10,7,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#51321f';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-5,3);ctx.lineTo(-12,-5);ctx.moveTo(5,3);ctx.lineTo(12,-7);ctx.stroke();ctx.restore();
 }
 function drawBrokenGate(x,top,bottom,team){
  ctx.fillStyle=teamColor(team);ctx.globalAlpha=.72;ctx.fillRect(x,top,95,bottom-top);ctx.globalAlpha=1;
@@ -114,8 +148,29 @@ function drawBrokenGate(x,top,bottom,team){
 }
 function drawChiefs(){drawChief(105,42,0);drawChief(895,42,1);if(chiefLife>0){ctx.fillStyle='#fff';ctx.strokeStyle='#573d28';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(330,66,340,42,12);ctx.fill();ctx.stroke();ctx.fillStyle='#2c241d';ctx.font='bold 17px sans-serif';ctx.textAlign='center';ctx.fillText(chiefLine,500,93);}}
 function drawChief(x,y,team){ctx.save();ctx.translate(x,y);ctx.fillStyle='#f1c798';ctx.strokeStyle='#4b3021';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,21,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#eee';ctx.beginPath();ctx.arc(0,15,17,0,Math.PI);ctx.fill();ctx.fillStyle=teamColor(team);ctx.fillRect(-22,21,44,14);ctx.fillStyle='#2a1812';ctx.beginPath();ctx.arc(-7,-4,2,0,7);ctx.arc(7,-4,2,0,7);ctx.fill();ctx.restore();}
-function drawSlime(){const speed=Math.hypot(slime.vx,slime.vy),squash=clamp(speed/900,0,.3),hop=slime.hop>0?Math.sin((1-slime.hop/.45)*Math.PI)*17:0;ctx.save();ctx.translate(slime.x,slime.y-hop);ctx.rotate(slime.wobble*.08);ctx.scale(1+squash,1-squash);const g=ctx.createRadialGradient(-10,-15,4,0,0,45);g.addColorStop(0,'#e8fbff');g.addColorStop(.35,'#61ccff');g.addColorStop(1,'#0874da');ctx.fillStyle=g;ctx.strokeStyle='#073d92';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,4,slime.r,slime.r*.78,0,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.globalAlpha=.8;ctx.beginPath();ctx.ellipse(-13,-12,10,7,-.5,0,7);ctx.fill();ctx.restore();}
-function drawHud(){ctx.fillStyle='#10202be8';ctx.fillRect(330,8,340,52);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='900 28px sans-serif';ctx.fillText(`${score[0]}  -  ${score[1]}`,500,38);ctx.font='bold 15px sans-serif';ctx.fillText(`${Math.ceil(timeLeft)}秒 / 3回押し込み`,500,56);if(messageLife>0){ctx.fillStyle='#fff4a3';ctx.font='900 36px sans-serif';ctx.fillText(message,500,145);}if(freeze>0){ctx.fillStyle='#b9efff';ctx.font='900 25px sans-serif';ctx.fillText(`TIME STOP ${freeze.toFixed(1)}`,500,174);}ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#fff';ctx.fillText('ダッシュ中キック＝スライディング　ジャンプ中キック＝空中キック',18,585);}
+function drawSlime(){
+ const speed=Math.hypot(slime.vx,slime.vy),squash=clamp(speed/900,0,.3),hop=slime.hop>0?Math.sin((1-slime.hop/.45)*Math.PI)*17:0;
+ const wob=Math.sin(performance.now()/120)*.035;
+ ctx.save();ctx.translate(slime.x,slime.y-hop);ctx.rotate(slime.wobble*.08);ctx.scale(1+squash+wob,1-squash-wob);
+ const g=ctx.createRadialGradient(-10,-15,4,0,0,45);g.addColorStop(0,'#e8fbff');g.addColorStop(.35,'#61ccff');g.addColorStop(1,'#0874da');ctx.fillStyle=g;ctx.strokeStyle='#073d92';ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(-34,10);ctx.quadraticCurveTo(-42,-12,-22,-25);ctx.quadraticCurveTo(0,-42,23,-25);ctx.quadraticCurveTo(44,-10,34,13);ctx.quadraticCurveTo(0,34,-34,10);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#fff';ctx.globalAlpha=.85;ctx.beginPath();ctx.ellipse(-13,-18,10,7,-.5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+ ctx.fillStyle='#063a78';ctx.beginPath();ctx.arc(-10,-4,3,0,Math.PI*2);ctx.arc(10,-4,3,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#063a78';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,4,7,.15,Math.PI-.15);ctx.stroke();ctx.restore();
+ // 本当に微かな臭い
+ ctx.save();ctx.globalAlpha=.18;ctx.strokeStyle='#d7e78a';ctx.lineWidth=5;for(let i=0;i<2;i++){const t=performance.now()/700+i*1.8;ctx.beginPath();ctx.moveTo(slime.x-8+i*16,slime.y-hop-40);ctx.bezierCurveTo(slime.x-20+i*18,slime.y-hop-58,slime.x+14-i*8,slime.y-hop-69,slime.x-2+i*10,slime.y-hop-86);ctx.stroke();}ctx.restore();
+}
+function drawHud(){
+ ctx.fillStyle='#10202be8';ctx.beginPath();ctx.roundRect(300,7,400,59,13);ctx.fill();
+ ctx.fillStyle='#8ed7ff';ctx.textAlign='right';ctx.font='900 16px sans-serif';ctx.fillText('あなたの村',420,28);
+ ctx.fillStyle='#ffaaaa';ctx.textAlign='left';ctx.fillText('となり村',580,28);
+ ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='900 30px sans-serif';ctx.fillText(`${score[0]} － ${score[1]}`,500,38);
+ ctx.font='bold 13px sans-serif';ctx.fillStyle='#ffeeb0';ctx.fillText(`押し付け数　　残り ${Math.ceil(timeLeft)}秒　　3回で褒美！`,500,58);
+ // 褒美までの簡易印
+ for(let team=0;team<2;team++)for(let i=0;i<3;i++){ctx.fillStyle=i<score[team]?'#ffd85a':'#ffffff33';ctx.beginPath();ctx.arc(team===0?265-i*18:735+i*18,37,6,0,Math.PI*2);ctx.fill();}
+ if(messageLife>0){ctx.fillStyle='#fff4a3';ctx.font='900 36px sans-serif';ctx.fillText(message,500,145);}if(freeze>0){ctx.fillStyle='#b9efff';ctx.font='900 25px sans-serif';ctx.fillText(`TIME STOP ${freeze.toFixed(1)}`,500,174);}
+ ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#fff';ctx.fillText('ダッシュ中キック＝スライディング　ジャンプ中キック＝空中キック',18,585);
+}
 function loop(t){if(!running)return;const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop);}
 
 addEventListener('keydown',e=>{keys[e.key]=true;keys[e.key.toLowerCase()]=true;e.preventDefault();});addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false;});ui.startBtn.onclick=startGame;ui.retryBtn.onclick=startGame;
