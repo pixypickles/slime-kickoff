@@ -130,3 +130,67 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
   font-size:13px;
   text-align:center;
 }
+
+
+/* v0.09.4 NATIVE SPIRIT SELECT
+   ネイティブのラジオボタン＋labelを使い、特殊なタッチイベントに依存しない。 */
+#spiritSelect{
+  border:0;
+  padding:0;
+  min-width:0;
+  margin:5px 0 1px;
+}
+#spiritSelect legend{
+  width:100%;
+  margin:0 0 4px;
+  padding:0;
+  color:#e9f7ff;
+  font-size:13px;
+  font-weight:900;
+  text-align:center;
+}
+#spiritSelect input[type="radio"]{
+  position:absolute;
+  width:1px;
+  height:1px;
+  margin:-1px;
+  padding:0;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+#spiritSelect label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  min-width:78px;
+  min-height:43px;
+  padding:7px 14px;
+  border-radius:13px;
+  background:#31495b;
+  color:#fff;
+  box-shadow:inset 0 -3px 0 #0004;
+  font-size:15px;
+  font-weight:900;
+  cursor:pointer;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  user-select:none;
+  -webkit-user-select:none;
+}
+#spiritSelect input[type="radio"]:checked + label{
+  background:#8a681f;
+  outline:3px solid #fff06a;
+  transform:translateY(-2px);
+  box-shadow:inset 0 -3px 0 #0004,0 0 0 3px #1119,0 0 14px #ffe66a99;
+}
+#spiritSelect input[type="radio"]:focus-visible + label{
+  outline:4px solid #bdeeff;
+}
+#spiritSelect label:active{transform:translateY(1px) scale(.97)}
+@media (max-height:390px){
+ #spiritSelect legend{display:none}
+ #spiritSelect label{min-width:66px;min-height:36px;padding:4px 9px;font-size:12px}
+}

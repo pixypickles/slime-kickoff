@@ -218,7 +218,7 @@ function loop(t){if(!running)return;const dt=Math.min(.033,(t-last)/1000);last=t
 
 addEventListener('keydown',e=>{keys[e.key]=true;keys[e.key.toLowerCase()]=true;e.preventDefault();});addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false;});
 ui.startBtn.disabled=true;
-ui.startBtn.addEventListener('click',()=>{if(gameReady)startGame();});
+ui.startBtn.addEventListener('click',()=>{const checked=document.querySelector('input[name="spirit"]:checked');if(checked)applySpirit(checked.value);if(gameReady)startGame();});
 ui.retryBtn.addEventListener('click',startGame);
 let stickId=null;function stickMove(e){const r=ui.stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=r.width*.32,d=Math.hypot(dx,dy)||1,k=Math.min(1,max/d);input.x=dx/d*k;input.y=dy/d*k;ui.knob.style.transform=`translate(${input.x*max}px,${input.y*max}px)`;}
 ui.stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;ui.stick.setPointerCapture(e.pointerId);stickMove(e);});ui.stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickMove(e);});ui.stick.addEventListener('pointerup',e=>{if(e.pointerId===stickId){stickId=null;input.x=input.y=0;ui.knob.style.transform='';}});document.querySelectorAll('[data-action]').forEach(b=>{b.addEventListener('pointerdown',e=>{input[b.dataset.action]=true;e.preventDefault();});b.addEventListener('pointerup',e=>{input[b.dataset.action]=false;e.preventDefault();});b.addEventListener('pointercancel',()=>{input[b.dataset.action]=false;});});
@@ -226,35 +226,19 @@ ui.stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;ui.stick.setPoin
 const loadingLines=['異次元の穴を安定させています…','削れた土壁を点検中…','村人を招集中…','少し臭うスライムを確認中…','村長が褒美を準備中…','押し付け合いの準備完了！'];let loadIndex=0;const loadingTimer=setInterval(()=>{loadIndex++;ui.loadingText.textContent=loadingLines[Math.min(loadIndex,loadingLines.length-1)];if(loadIndex>=loadingLines.length-1){clearInterval(loadingTimer);gameReady=true;ui.startBtn.disabled=false;ui.startBtn.textContent='村長の合図で開始！';}},420);
 draw();
 
-// 精霊選択：各ボタンへ直接イベントを登録する。
-// 親要素へのイベント委譲は、一部の折りたたみ端末・ブラウザで反応しないため使用しない。
+// 精霊選択：ネイティブのラジオボタンを使う。
+// labelをタップするだけでブラウザ標準の選択処理が動くため、端末固有のpointer/touch差に依存しない。
 const spiritNames={fire:'炎',ice:'氷',wind:'風'};
-function chooseSpirit(button){
- if(!button||!button.dataset.spirit)return;
- selectedSpirit=button.dataset.spirit;
- document.querySelectorAll('#spiritSelect [data-spirit]').forEach(x=>{
-  const active=x.dataset.spirit===selectedSpirit;
-  x.classList.toggle('selected',active);
-  x.setAttribute('aria-pressed',String(active));
- });
- ui.skillBtn.textContent=selectedSpirit==='ice'?'氷魔法':selectedSpirit==='wind'?'加速':'炎魔法';
- if(ui.spiritStatus)ui.spiritStatus.textContent=`選択中：${spiritNames[selectedSpirit]}`;
+function applySpirit(value){
+ if(!spiritNames[value])return;
+ selectedSpirit=value;
+ ui.skillBtn.textContent=value==='ice'?'氷魔法':value==='wind'?'加速':'炎魔法';
+ if(ui.spiritStatus)ui.spiritStatus.textContent=`選択中：${spiritNames[value]}`;
 }
-function bindSpiritButton(button){
- const select=e=>{
-  // pointerdown/touchstart の時点で反映し、click が発生しない端末にも対応。
-  chooseSpirit(button);
-  e.stopPropagation();
- };
- button.addEventListener('pointerdown',select);
- button.addEventListener('touchstart',select,{passive:true});
- button.addEventListener('click',select);
- button.addEventListener('keydown',e=>{
-  if(e.key==='Enter'||e.key===' '){e.preventDefault();chooseSpirit(button);}
- });
-}
-document.querySelectorAll('#spiritSelect [data-spirit]').forEach(bindSpiritButton);
-chooseSpirit(document.querySelector('#spiritSelect [data-spirit="fire"]'));
+document.querySelectorAll('input[name="spirit"]').forEach(radio=>{
+ radio.addEventListener('change',()=>{if(radio.checked)applySpirit(radio.value);});
+});
+applySpirit(document.querySelector('input[name="spirit"]:checked')?.value||'fire');
 
 // 説明文領域では縦スクロールを優先する。ゲーム用の全体タッチ抑止と競合させない。
 ui.introScroll.addEventListener('pointerdown',e=>e.stopPropagation());
