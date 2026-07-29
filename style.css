@@ -232,3 +232,8 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
  outline:3px solid #fff06a!important;
  transform:none!important;
 }
+
+
+/* v0.10 EARTH SPIRIT */
+#spiritSelect label[for="spiritEarth"]{--spirit-accent:#c99a62}
+#spiritSelect input:checked+label[for="spiritEarth"]{background:#6d5034;border-color:#f0c58b;box-shadow:0 0 0 3px #f0c58b55}
