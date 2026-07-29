@@ -281,3 +281,118 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
 .match-setup label{display:flex;align-items:center;gap:7px}.match-setup select{max-width:235px;padding:7px 10px;border:2px solid #d7b66e;border-radius:10px;background:#f8f2dc;color:#2c241d;font:inherit;font-weight:800}
 @media (orientation:portrait){html,body{width:100dvw;height:100dvh;min-height:100dvh}#gameWrap{position:absolute;left:50%;top:50%;translate:-50% -50%}}
 @media (max-width:430px) and (orientation:portrait){.buttons{right:2%;bottom:3%;width:35%;height:42%}#stick{left:3%;bottom:5%;width:21%}.buttons button{font-size:clamp(10px,2.5dvw,15px)}}
+
+/* v0.43 STORY PANEL: あらすじを常時表示し、全文は読みやすいパネルで開く */
+.story-preview{
+  width:min(650px,96%);
+  margin:8px auto 4px;
+  padding:9px 12px;
+  border:1px solid #e4c87a88;
+  border-radius:14px;
+  background:#0e1c24b8;
+  box-shadow:inset 0 0 18px #0004;
+}
+.story-preview p{
+  margin:0 0 7px;
+  color:#fff4c4;
+  font-size:clamp(11px,1.65vw,16px);
+  line-height:1.45;
+  font-weight:800;
+}
+.story-preview .story-open{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  margin:0;
+  padding:6px 16px;
+  border:1px solid #ffe48a99;
+  border-radius:999px;
+  background:#496678;
+  box-shadow:inset 0 -3px 0 #0004,0 3px 8px #0005;
+  font-size:clamp(11px,1.55vw,15px);
+  touch-action:manipulation!important;
+  pointer-events:auto;
+}
+.story-modal{
+  position:absolute;
+  inset:clamp(5px,1.5vh,12px);
+  z-index:100;
+  display:grid;
+  place-items:center;
+  padding:8px;
+  border-radius:18px;
+  background:#071017e8;
+  backdrop-filter:blur(4px);
+  touch-action:manipulation!important;
+}
+.story-modal-card{
+  display:flex;
+  flex-direction:column;
+  width:min(720px,100%);
+  max-height:100%;
+  padding:clamp(12px,2.4vh,22px);
+  border:3px solid #d7b66e;
+  border-radius:20px;
+  background:linear-gradient(180deg,#27434df8,#14252cfb);
+  box-shadow:0 14px 40px #000b,inset 0 0 28px #0005;
+}
+.story-modal-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:0 0 auto;
+  border-bottom:1px solid #f0d58a55;
+  padding-bottom:7px;
+}
+.story-modal-head h2{
+  flex:1;
+  margin:0;
+  font-size:clamp(18px,3.2vw,30px);
+  text-shadow:0 3px 0 #0007;
+}
+.story-modal .story-close{
+  flex:0 0 auto;
+  width:42px;
+  height:42px;
+  margin:0;
+  padding:0;
+  border-radius:50%;
+  background:#824639;
+  font-size:27px;
+  line-height:1;
+  touch-action:manipulation!important;
+}
+.story-full{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  margin:8px 0;
+  padding:2px 8px;
+  font-size:clamp(13px,2vw,18px);
+  line-height:1.58;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y!important;
+}
+.story-full p{margin:9px 0}
+.story-close-bottom{
+  flex:0 0 auto;
+  width:min(360px,94%);
+  min-height:42px;
+  margin:2px auto 0!important;
+  padding:8px 18px!important;
+  background:#d77f28!important;
+  font-size:clamp(14px,2vw,18px)!important;
+  touch-action:manipulation!important;
+}
+@media (max-height:460px){
+  .story-preview{margin:3px auto 1px;padding:5px 9px}
+  .story-preview p{margin-bottom:4px;font-size:10px;line-height:1.25}
+  .story-preview .story-open{min-height:27px;padding:3px 11px;font-size:10px}
+  .story-modal-card{padding:8px 12px}
+  .story-modal-head h2{font-size:17px}
+  .story-modal .story-close{width:34px;height:34px;font-size:22px}
+  .story-full{margin:4px 0;font-size:12px;line-height:1.38}
+  .story-full p{margin:5px 0}
+  .story-close-bottom{min-height:34px!important;padding:5px 12px!important;font-size:12px!important}
+}

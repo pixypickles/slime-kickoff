@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.42 GROUND & MENU FIX</title>
+  <title>スライム・キックオフ！ v0.43 STORY PANEL</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,17 +14,29 @@
     <section id="intro" class="panel intro-panel">
       <div class="story-card">
         <div class="intro-scroll" id="introScroll" tabindex="0" aria-label="物語。上下にスクロールできます">
-          <div class="scroll-hint">↕ 物語は上下にスクロールできます</div>
           <div class="crest">二つの村の、どうでもよくて熱い争い</div>
           <h1>スライム・キックオフ！</h1>
           <p class="tagline">ちょっと臭いスライムを、となり村へ。</p>
-          <div class="story">
-          <p>ある日、隣り合う二つの村の間に、<br><strong>異次元へつながる空間</strong>が突然現れた。</p>
-          <p>地面と村の塀は円形にごっそり削られ、<br>不思議な力のせいで埋め戻すこともできない。</p>
-          <p>中心の小さなゲートから現れるのは、<br>意思もなく、人を襲いもしない無害なスライム。</p>
-          <p>放っておけば蒸発して消える。<br>ただし……<strong>ほんの少しだけ臭い。</strong></p>
-          <p>そこで両村の村長は、相手の村へスライムを押し返した者に<br><strong>褒美を与える</strong>ことにした。</p>
-            <p class="final-line">こうして今日も、村人たちの熱い押し付け合いが始まる！</p>
+          <div class="story-preview" aria-label="物語のあらすじ">
+            <p>村の間に現れた異次元ゲート。そこから出てくるスライムを、相手村へ押し返せ！</p>
+            <button id="storyOpenBtn" class="story-open" type="button" aria-haspopup="dialog" aria-controls="storyModal">📖 物語を全文読む</button>
+          </div>
+        </div>
+        <div id="storyModal" class="story-modal hidden" role="dialog" aria-modal="true" aria-labelledby="storyModalTitle">
+          <div class="story-modal-card">
+            <div class="story-modal-head">
+              <h2 id="storyModalTitle">スライム・キックオフ！のお話</h2>
+              <button id="storyCloseBtn" class="story-close" type="button" aria-label="物語を閉じる">×</button>
+            </div>
+            <div class="story story-full">
+              <p>ある日、隣り合う二つの村の間に、<br><strong>異次元へつながる空間</strong>が突然現れた。</p>
+              <p>地面と村の塀は円形にごっそり削られ、<br>不思議な力のせいで埋め戻すこともできない。</p>
+              <p>中心の小さなゲートから現れるのは、<br>意思もなく、人を襲いもしない無害なスライム。</p>
+              <p>放っておけば蒸発して消える。<br>ただし……<strong>ほんの少しだけ臭い。</strong></p>
+              <p>そこで両村の村長は、相手の村へスライムを押し返した者に<br><strong>褒美を与える</strong>ことにした。</p>
+              <p class="final-line">こうして今日も、村人たちの熱い押し付け合いが始まる！</p>
+            </div>
+            <button id="storyCloseBottomBtn" class="story-close-bottom" type="button">閉じて準備に戻る</button>
           </div>
         </div>
         <div class="intro-footer">
@@ -69,7 +81,7 @@
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.42 GROUND & MENU FIX</small>
+          <small>v0.43 STORY PANEL</small>
         </div>
       </div>
     </section>
