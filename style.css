@@ -270,3 +270,6 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
 .clear-card button{padding:13px 24px;border-radius:14px;border:3px solid #5e231e;background:#ffd68b;font-weight:900;font-size:18px}
 @keyframes gatePulse{from{transform:scale(.8);opacity:.55}to{transform:scale(1.25);opacity:1}}
 @media(max-height:420px) and (orientation:landscape){.clear-card-inner{padding:16px 24px}.clear-card h2{font-size:30px}.gate-flash{font-size:34px}.next-village{margin:8px 0;font-size:17px}.next-village strong{font-size:28px}}
+
+.spirit-select input:disabled+label{opacity:.38;filter:grayscale(1);cursor:not-allowed}
+.spirit-select label.locked::after{content:' 🔒';font-size:.82em}
