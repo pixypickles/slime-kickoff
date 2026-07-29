@@ -1096,30 +1096,3 @@ document.querySelectorAll('[data-action]').forEach(function(b){
 reset();
 running=false;
 draw();
-
-// v0.43 STORY PANEL: タイトル画面の物語を全文表示する。
-(function setupStoryPanel(){
- const modal=document.getElementById('storyModal');
- const openBtn=document.getElementById('storyOpenBtn');
- const closeBtn=document.getElementById('storyCloseBtn');
- const closeBottomBtn=document.getElementById('storyCloseBottomBtn');
- if(!modal||!openBtn)return;
- let previousFocus=null;
- function openStory(){
-  previousFocus=document.activeElement;
-  modal.classList.remove('hidden');
-  modal.scrollTop=0;
-  const story=modal.querySelector('.story-full');
-  if(story)story.scrollTop=0;
-  if(closeBtn)closeBtn.focus();
- }
- function closeStory(){
-  modal.classList.add('hidden');
-  if(previousFocus&&typeof previousFocus.focus==='function')previousFocus.focus();
- }
- openBtn.addEventListener('click',openStory);
- if(closeBtn)closeBtn.addEventListener('click',closeStory);
- if(closeBottomBtn)closeBottomBtn.addEventListener('click',closeStory);
- modal.addEventListener('click',function(e){if(e.target===modal)closeStory();});
- document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!modal.classList.contains('hidden'))closeStory();});
-})();
