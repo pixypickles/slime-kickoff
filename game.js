@@ -20,6 +20,10 @@ const norm=(x,y)=>{const d=Math.hypot(x,y)||1;return{x:x/d,y:y/d}};
 const rand=(a,b)=>a+Math.random()*(b-a);
 const teamColor=t=>t?'#d95757':'#3e9cdc';
 
+function slimeAirborne(){
+ return slime&&slime.hop>0.12&&Math.sin((1-slime.hop/Math.max(.01,slime.hopMax||.58))*Math.PI)>0.16;
+}
+
 function launchAirKO(target,type,dir=1){
  target.respawnT=3.0;target.stun=3.0;target.vx=target.vy=0;
  target.airKO={type,x:target.x,y:target.y,z:target.jumpHeight(),spin:0,dir,t:0};
@@ -142,11 +146,26 @@ class Player{
     burst(stompTarget.x,stompTarget.y,'#9a673d',34);
    }
   }
-  if(Math.hypot(dx,dy)<95+slime.r){const n=norm(dx+fx*25,dy+fy*25);slime.vx+=n.x*power*elementPower;slime.vy+=n.y*power*elementPower;slime.wobble+=rand(-2,2);slime.hop=Math.max(slime.hop,air||sliding?.68:.54);slime.hopMax=Math.max(slime.hopMax||.45,slime.hop);shake=Math.max(shake,sliding?10:6);burst(slime.x,slime.y,elementColor,16);
+  if(Math.hypot(dx,dy)<95+slime.r){
+   const n=norm(dx+fx*25,dy+fy*25);
+   const airborneVolley=air&&slimeAirborne();
+   if(airborneVolley){
+    const goalDir=this.team===0?1:-1;
+    slime.vx=goalDir*1380;slime.vy=clamp(slime.vy+fy*160,-260,260);
+    slime.airSpinSpeed=26+Math.abs(slime.vx)/75;slime.airVolleyT=1.15;
+    slime.hop=Math.max(slime.hop,.8);slime.hopMax=Math.max(slime.hopMax||.58,slime.hop);
+    slime.scared=1;message='空中ボレー！ 属性レジスト！';messageLife=1.0;
+    shake=Math.max(shake,16);burst(slime.x,slime.y,'#fff4b5',34);
+   }else{
+    slime.vx+=n.x*power*elementPower;slime.vy+=n.y*power*elementPower;
+    slime.wobble+=rand(-2,2);slime.hop=Math.max(slime.hop,air||sliding?.68:.54);
+    slime.hopMax=Math.max(slime.hopMax||.45,slime.hop);
+    shake=Math.max(shake,sliding?10:6);burst(slime.x,slime.y,elementColor,16);
+   }
    if(this.spirit==='fire'){slime.vx+=fx*180;slime.vy+=fy*180;slime.scared=1;slime.hop=.58;slime.hopMax=.58;message='ファイアキック！';messageLife=.65;burst(slime.x,slime.y,'#ff8b2c',18);}
-   if(this.spirit==='ice'){slime.frozen=Math.max(slime.frozen||0,1.8);slime.vx*=.72;slime.vy*=.72;message='アイスキック！';messageLife=.65;burst(slime.x,slime.y,'#bff7ff',20);}
-   if(this.spirit==='wind'){message='ウインドキック！';messageLife=.6;}
-   if(this.spirit==='earth'){message='アースキック！';messageLife=.6;shake=Math.max(shake,11);}
+   if(!airborneVolley&&this.spirit==='ice'){slime.frozen=Math.max(slime.frozen||0,1.8);slime.vx*=.72;slime.vy*=.72;message='アイスキック！';messageLife=.65;burst(slime.x,slime.y,'#bff7ff',20);}
+   if(!airborneVolley&&this.spirit==='wind'){message='ウインドキック！';messageLife=.6;}
+   if(!airborneVolley&&this.spirit==='earth'){message='アースキック！';messageLife=.6;shake=Math.max(shake,11);}
   }
   for(const p of players){if(p===this||p.team===this.team||p.respawnT>0||p.buriedT>0)continue;const px=p.x-this.x,py=p.y-this.y,n=norm(px,py);if(Math.hypot(px,py)<88&&n.x*fx+n.y*fy>-.1){p.vx+=fx*power*1.28*elementPower;p.vy+=fy*power*1.28*elementPower;p.stun=Math.max(p.stun,sliding?.82:air?.62:.46);p.vx+=fx*(air||sliding?360:220);p.vy+=fy*(air||sliding?360:220);shake=Math.max(shake,8);burst(p.x,p.y,elementColor,12);
     if(air&&this.spirit==='fire'){launchAirKO(p,'fire',fx>=0?1:-1);continue;}
@@ -255,19 +274,19 @@ class Player{
  }
 }
 
-function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=selectedSpirit;b.spirit=selectedSpirit==='fire'?'ice':selectedSpirit==='ice'?'wind':selectedSpirit==='wind'?'earth':'fire';}players.push(a,b);}slime={x:500,y:310,vx:0,vy:0,r:37,wobble:0,think:rand(1.5,3.5),hop:0,hopMax:.45,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0};if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
+function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=selectedSpirit;b.spirit=selectedSpirit==='fire'?'ice':selectedSpirit==='ice'?'wind':selectedSpirit==='wind'?'earth':'fire';}players.push(a,b);}slime={x:500,y:310,vx:0,vy:0,r:37,wobble:0,think:rand(.7,1.6),hop:0,hopMax:.58,airSpin:0,airSpinSpeed:0,airVolleyT:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0};if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
 function startGame(){score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];hurricanes=[];freeze=0;running=true;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';ui.controls.classList.remove('hidden');ui.controls.style.display='block';reset();last=performance.now();requestAnimationFrame(loop);}
 function endGame(){running=false;ui.controls.classList.add('hidden');ui.result.classList.remove('hidden');const win=score[0]>score[1],draw=score[0]===score[1];ui.resultTitle.textContent=draw?'引き分け！':win?'褒美獲得！':'スライムを押し付けられた…';ui.resultText.textContent=`あなたの村 ${score[0]} － ${score[1]} となり村`;}
 function update(dt){if(!running)return;timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=['押し返せー！','褒美は目の前だぞ！','臭いのは向こうへやれ！','靴を止めるなー！','おおっ、その調子だ！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);updateRockBalls(dt,stopped);updateHurricanes(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
-function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt*.82);slime.blink-=dt;slime.blinkT=Math.max(0,slime.blinkT-dt);slime.scared=Math.max(0,slime.scared-dt);slime.frozen=Math.max(0,(slime.frozen||0)-dt);if(slime.blink<=0){slime.blink=rand(1.5,4);slime.blinkT=.13;}if(slime.frozen>0){slime.vx*=Math.pow(.75,dt);slime.vy*=Math.pow(.75,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}return;}if(slime.startT>0){slime.startT=Math.max(0,slime.startT-dt);slime.hop=.58;slime.hopMax=.58;const burstOut=1-slime.startT/.9;slime.y=slime.startY-Math.sin(burstOut*Math.PI)*42;slime.vx*=.8;slime.vy*=.8;return;}if(slime.think<=0){
-  slime.think=rand(.55,1.8);
-  const sideBias=Math.random()<.68;
-  const a=sideBias?(Math.random()<.5?0:Math.PI)+rand(-.55,.55):rand(0,Math.PI*2);
-  const f=rand(120,260);
+function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt*.62);slime.blink-=dt;slime.blinkT=Math.max(0,slime.blinkT-dt);slime.scared=Math.max(0,slime.scared-dt);slime.airVolleyT=Math.max(0,(slime.airVolleyT||0)-dt);slime.airSpin+=(slime.airSpinSpeed||0)*dt;if(slime.airVolleyT<=0)slime.airSpinSpeed*=Math.pow(.08,dt);slime.frozen=Math.max(0,(slime.frozen||0)-dt);if(slime.blink<=0){slime.blink=rand(1.5,4);slime.blinkT=.13;}if(slime.frozen>0){slime.vx*=Math.pow(.75,dt);slime.vy*=Math.pow(.75,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}return;}if(slime.startT>0){slime.startT=Math.max(0,slime.startT-dt);slime.hop=.58;slime.hopMax=.58;const burstOut=1-slime.startT/.9;slime.y=slime.startY-Math.sin(burstOut*Math.PI)*42;slime.vx*=.8;slime.vy*=.8;return;}if(slime.think<=0){
+  slime.think=rand(.38,1.15);
+  const sideBias=Math.random()<.78;
+  const a=sideBias?(Math.random()<.5?0:Math.PI)+rand(-.4,.4):rand(0,Math.PI*2);
+  const f=rand(145,285);
   slime.vx+=Math.cos(a)*f;slime.vy+=Math.sin(a)*f;
-  slime.wobble=rand(-3.6,3.6);
-  slime.hop=rand(.58,.82);slime.hopMax=slime.hop;
-  if(Math.random()<.28)slime.think=rand(.18,.34);
+  slime.wobble=rand(-4.2,4.2);
+  slime.hop=rand(.7,1.0);slime.hopMax=slime.hop;
+  if(Math.random()<.36)slime.think=rand(.14,.28);
  }
  slime.vx*=Math.pow(.18,dt);slime.vy*=Math.pow(.18,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;slime.wobble*=Math.pow(.05,dt);constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}}
 
@@ -290,7 +309,7 @@ function updateFireballs(dt,stopped){
   if(f.trail<=0){f.trail=.035;particles.push({x:f.x+rand(-4,4),y:f.y-f.z+rand(-4,4),vx:rand(-35,35),vy:rand(-35,35),life:rand(.18,.38),color:Math.random()<.5?'#ffcf45':'#ff6b2c'});}
   if(!insideEllipse(f.x,f.y,-18)){f.life=0;burst(f.x,f.y-f.z,'#ff8b2c',8);continue;}
   const sd=Math.hypot(slime.x-f.x,slime.y-f.y);
-  if(sd<slime.r+f.r+8&&f.z<70){const n=norm(f.vx,f.vy);slime.vx+=n.x*980;slime.vy+=n.y*980;slime.scared=.9;slime.hop=.72;slime.hopMax=.72;f.life=0;message='スライムが熱くて転がった！';messageLife=.9;shake=12;burst(slime.x,slime.y,'#ff9a32',28);continue;}
+  if(sd<slime.r+f.r+8&&Math.abs((slimeAirborne()?42:0)-f.z)<86){const n=norm(f.vx,f.vy);slime.vx+=n.x*1120;slime.vy+=n.y*1120;slime.scared=.9;slime.hop=.72;slime.hopMax=.72;f.life=0;message='スライムが熱くて転がった！';messageLife=.9;shake=12;burst(slime.x,slime.y,'#ff9a32',28);continue;}
   for(const target of players){
    if(target.team===f.team||target===f.owner||target.respawnT>0||target.buriedT>0)continue;
    if(Math.abs(target.jumpHeight()-f.z)>76)continue;
@@ -440,7 +459,11 @@ function drawChief(x,y,team){ctx.save();ctx.translate(x,y);ctx.fillStyle='#f1c79
 function drawSlime(){
  const speed=Math.hypot(slime.vx,slime.vy),squash=clamp(speed/900,0,.3),hop=slime.hop>0?Math.sin((1-slime.hop/Math.max(.01,slime.hopMax||.58))*Math.PI)*26:0;
  const wob=Math.sin(performance.now()/120)*.035;
- ctx.save();ctx.translate(slime.x,slime.y-hop);ctx.rotate(slime.wobble*.08);ctx.scale(1+squash+wob,1-squash-wob);
+ if(slime.airVolleyT>0){
+  ctx.save();ctx.globalAlpha=.55;ctx.strokeStyle='#fff4b5';ctx.lineWidth=8;
+  ctx.beginPath();ctx.moveTo(slime.x-Math.sign(slime.vx)*72,slime.y-hop);ctx.lineTo(slime.x-Math.sign(slime.vx)*24,slime.y-hop);ctx.stroke();ctx.restore();
+ }
+ ctx.save();ctx.translate(slime.x,slime.y-hop);ctx.rotate(slime.airVolleyT>0?slime.airSpin:slime.wobble*.08);ctx.scale(1+squash+wob,1-squash-wob);
  const g=ctx.createRadialGradient(-10,-15,4,0,0,45);g.addColorStop(0,'#e8fbff');g.addColorStop(.35,'#61ccff');g.addColorStop(1,'#0874da');ctx.fillStyle=g;ctx.strokeStyle='#073d92';ctx.lineWidth=5;
  ctx.beginPath();ctx.moveTo(-34,10);ctx.quadraticCurveTo(-42,-12,-22,-25);ctx.quadraticCurveTo(0,-42,23,-25);ctx.quadraticCurveTo(44,-10,34,13);ctx.quadraticCurveTo(0,34,-34,10);ctx.fill();ctx.stroke();
  ctx.fillStyle='#fff';ctx.globalAlpha=.85;ctx.beginPath();ctx.ellipse(-13,-18,10,7,-.5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
