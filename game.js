@@ -25,7 +25,7 @@ function constrainToField(o){const inGate=o.y>FIELD.goalT&&o.y<FIELD.goalB;if(in
 
 class Player{
  constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0});}
- jumpHeight(){return this.jumpT>0?Math.sin((1-this.jumpT/.92)*Math.PI)*112:0;}
+ jumpHeight(){return this.jumpT>0?Math.sin((1-this.jumpT/.82)*Math.PI)*124:0;}
  isAirborne(){return this.jumpHeight()>34;}
  update(dt){
   this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
@@ -33,9 +33,9 @@ class Player{
   if(this.isHuman){ix=input.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0);iy=input.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);actions={dash:input.dash||keys.Shift,kick:input.kick||keys.j,jump:input.jump||keys.k,skill:input.skill||keys.l};}
   else ({ix,iy,actions}=this.ai(dt));
   if(this.stun<=0&&this.frozen<=0){
-   if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?390:190;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
-   if(actions.dash&&this.dashCd<=0){this.dashTime=.22;this.dashCd=.8;burst(this.x,this.y,teamColor(this.team),8);}
-   if(actions.jump&&this.jumpT<=0){this.jumpT=.92;burst(this.x,this.y+24,'#eee1bd',10);}
+   if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?590:205;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
+   if(actions.dash&&this.dashCd<=0){this.dashTime=.14;this.dashCd=.42;burst(this.x,this.y,teamColor(this.team),8);}
+   if(actions.jump&&this.jumpT<=0){this.jumpT=.82;burst(this.x,this.y+24,'#eee1bd',10);}
    if(actions.kick&&this.kickCd<=0)this.kick();
    if(actions.skill&&this.skillCd<=0&&this.index===0)this.skill();
   }
@@ -61,7 +61,7 @@ class Player{
   return n;
  }
  kick(){
-  this.kickCd=.42;this.kickTime=.18;const sliding=this.dashTime>0,air=this.isAirborne();let power=sliding?760:air?760:560;if(sliding&&air)power=980;
+  this.kickCd=.34;this.kickTime=.22;const sliding=this.dashTime>0,air=this.isAirborne();let power=sliding?980:air?930:720;if(sliding&&air)power=1220;
   let elementPower=1,elementColor='#fff1a3';
   if(this.spirit==='wind'){elementPower=1.22;elementColor='#c8ffd4';this.vx+=this.faceX*120;this.vy+=this.faceY*120;this.speedBoost=Math.max(this.speedBoost,.28);}
   if(this.spirit==='earth'){elementPower=1.34;elementColor='#d8b27a';}
@@ -72,14 +72,14 @@ class Player{
    if(this.spirit==='wind'){message='ウインドキック！';messageLife=.6;}
    if(this.spirit==='earth'){message='アースキック！';messageLife=.6;shake=Math.max(shake,11);}
   }
-  for(const p of players){if(p===this||p.team===this.team)continue;const px=p.x-this.x,py=p.y-this.y,n=norm(px,py);if(Math.hypot(px,py)<88&&n.x*fx+n.y*fy>-.1){p.vx+=fx*power*.85*elementPower;p.vy+=fy*power*.85*elementPower;p.stun=Math.max(p.stun,sliding?.7:.35);shake=Math.max(shake,8);burst(p.x,p.y,elementColor,12);
-    if(this.spirit==='fire'){p.burn=Math.max(p.burn,1.15);p.burnTick=0;}
-    if(this.spirit==='ice'){p.frozen=Math.max(p.frozen,1.25);p.stun=0;}
-    if(this.spirit==='wind'){p.vx+=fx*210;p.vy+=fy*210;}
-    if(this.spirit==='earth'){p.stun=Math.max(p.stun,.72);}
+  for(const p of players){if(p===this||p.team===this.team)continue;const px=p.x-this.x,py=p.y-this.y,n=norm(px,py);if(Math.hypot(px,py)<88&&n.x*fx+n.y*fy>-.1){p.vx+=fx*power*1.08*elementPower;p.vy+=fy*power*1.08*elementPower;p.stun=Math.max(p.stun,sliding?.78:air?.58:.42);shake=Math.max(shake,8);burst(p.x,p.y,elementColor,12);
+    if(this.spirit==='fire'){p.burn=Math.max(p.burn,air||sliding?1.7:1.3);p.burnTick=0;p.vx+=fx*(air||sliding?240:150);p.vy+=fy*(air||sliding?240:150);}
+    if(this.spirit==='ice'){p.frozen=Math.max(p.frozen,air||sliding?1.75:1.35);p.stun=0;p.vx+=fx*(air||sliding?210:120);p.vy+=fy*(air||sliding?210:120);}
+    if(this.spirit==='wind'){p.vx+=fx*(air||sliding?430:300);p.vy+=fy*(air||sliding?430:300);}
+    if(this.spirit==='earth'){p.stun=Math.max(p.stun,air||sliding?1.0:.78);p.vx+=fx*(air||sliding?280:170);p.vy+=fy*(air||sliding?280:170);}
   }}
  }
- skill(){if(this.spirit==='ice')return this.coldBreath();if(this.spirit==='wind')return this.hurricane();if(this.spirit==='earth')return this.rockCannon();this.skillCd=5.2;const n=this.autoAim();fireballs.push({x:this.x+n.x*48,y:this.y-this.jumpHeight()+n.y*48-6,vx:n.x*520,vy:n.y*520,team:this.team,owner:this,life:1.35,r:22,trail:0});message='ファイアボール！';messageLife=.8;shake=Math.max(shake,5);burst(this.x+n.x*38,this.y+n.y*38,'#ffb13b',18);}
+ skill(){if(this.spirit==='ice')return this.coldBreath();if(this.spirit==='wind')return this.hurricane();if(this.spirit==='earth')return this.rockCannon();this.skillCd=5.2;const n=this.autoAim();fireballs.push({x:this.x+n.x*48,y:this.y+n.y*48,vx:n.x*500,vy:n.y*500,z:this.jumpHeight()+20,vz:-24,team:this.team,owner:this,life:2.1,r:24,trail:0});message='ファイアボール！';messageLife=.8;shake=Math.max(shake,5);burst(this.x+n.x*38,this.y+n.y*38,'#ffb13b',18);}
  hurricane(){this.skillCd=7.2;const n=this.autoAim();hurricanes.push({x:this.x+n.x*52,y:this.y-this.jumpHeight()+n.y*52,vx:n.x*255,vy:n.y*255,team:this.team,owner:this,life:1.65,maxLife:1.65,r:58,spin:0});message='ハリケーン！';messageLife=.9;shake=Math.max(shake,5);burst(this.x+n.x*40,this.y+n.y*40,'#c8ffd4',24);}
  rockCannon(){this.skillCd=6.8;const n=this.autoAim();rockBalls.push({x:this.x+n.x*45,y:this.y-this.jumpHeight()+n.y*45-5,vx:n.x*470,vy:n.y*470,team:this.team,owner:this,life:1.65,r:21,spin:0});message='ロックキャノン！';messageLife=.9;shake=Math.max(shake,5);burst(this.x+n.x*34,this.y+n.y*34,'#c99a62',16);}
  coldBreath(){this.skillCd=6.4;const n=this.autoAim();const originX=this.x,originY=this.y-this.jumpHeight();iceWaves.push({x:originX,y:originY,dx:n.x,dy:n.y,team:this.team,owner:this,life:.42,maxLife:.42,range:225,angle:.6});
@@ -93,16 +93,24 @@ class Player{
   ctx.save();ctx.translate(this.x,this.y-jump);if(this.burn>0)ctx.rotate(this.rollAngle);
   ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(0,30+jump,31,10,0,0,Math.PI*2);ctx.fill();
 
-  // 胴体と足は常に上向き。両方の靴を胴体の下に固定する。
+  // 胴体は常に上向き。片足は胴体の下へ固定し、もう片足だけ大きく蹴り出す。
   ctx.fillStyle=teamColor(this.team);ctx.strokeStyle=this.isHuman?'#ffe45c':'#fff';ctx.lineWidth=this.isHuman?5:3;
   ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.fill();ctx.stroke();
   ctx.fillStyle=this.team?'#803737':'#25688f';ctx.fillRect(-15,17,30,7);
-  ctx.fillStyle='#d9b36c';ctx.fillRect(-16,25,9,11);ctx.fillRect(7,25,9,11);
+  ctx.fillStyle='#d9b36c';ctx.fillRect(-13,25,9,12);ctx.fillRect(5,25,9,12);
   ctx.fillStyle='#6a4328';ctx.strokeStyle='#29180e';ctx.lineWidth=4;
-  ctx.beginPath();ctx.ellipse(-14,38,20,12,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.ellipse(14,38,20,12,.08,0,Math.PI*2);ctx.fill();ctx.stroke();
-  // キック中だけ、向いている方向へ短い衝撃線を出す。靴そのものは頭側へ移動しない。
-  if(kicking){ctx.save();ctx.rotate(ang);ctx.strokeStyle=this.spirit==='fire'?'#ff9a32':this.spirit==='ice'?'#bff7ff':this.spirit==='wind'?'#c8ffd4':this.spirit==='earth'?'#d8b27a':'#fff1a3';ctx.lineWidth=8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(22,16);ctx.lineTo(53,8);ctx.stroke();ctx.restore();}
+  // 軸足
+  ctx.beginPath();ctx.ellipse(-12,39,20,12,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
+  // 蹴り足。通常時は胴体下、キック中だけ向いている方向へ大きく動く。
+  if(kicking){
+   const kickReach=this.isAirborne()?62:(this.dashTime>0?70:54);
+   ctx.save();ctx.rotate(ang);ctx.translate(kickReach,5);ctx.rotate(.12);
+   ctx.scale(1.28,1.12);ctx.beginPath();ctx.ellipse(0,0,24,14,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.strokeStyle=this.spirit==='fire'?'#ff9a32':this.spirit==='ice'?'#bff7ff':this.spirit==='wind'?'#c8ffd4':this.spirit==='earth'?'#d8b27a':'#fff1a3';
+   ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-32,0);ctx.lineTo(-10,0);ctx.stroke();ctx.restore();
+  }else{
+   ctx.beginPath();ctx.ellipse(12,39,20,12,.08,0,Math.PI*2);ctx.fill();ctx.stroke();
+  }
 
   // 頭・顔は画面上向きに固定。
   ctx.fillStyle='#f2c895';ctx.strokeStyle='#5d3924';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-25,19,0,Math.PI*2);ctx.fill();ctx.stroke();
@@ -129,12 +137,28 @@ function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Mat
 function updateFireballs(dt,stopped){
  if(stopped)return;
  for(const f of fireballs){
-  f.life-=dt;f.trail-=dt;f.x+=f.vx*dt;f.y+=f.vy*dt;
-  if(f.trail<=0){f.trail=.035;particles.push({x:f.x+rand(-4,4),y:f.y+rand(-4,4),vx:rand(-35,35),vy:rand(-35,35),life:rand(.18,.38),color:Math.random()<.5?'#ffcf45':'#ff6b2c'});}
-  if(!insideEllipse(f.x,f.y,-8)){f.life=0;burst(f.x,f.y,'#ff8b2c',8);continue;}
+  f.life-=dt;f.trail-=dt;
+  // スライムか最寄りの敵へ緩やかに追尾。空中ではゆっくり下降する。
+  let target={x:slime.x,y:slime.y,z:0,kind:'slime'},best=Math.hypot(slime.x-f.x,slime.y-f.y);
+  for(const p of players){
+   if(p.team===f.team||p===f.owner)continue;
+   const d=Math.hypot(p.x-f.x,p.y-f.y);
+   if(d<best){best=d;target={x:p.x,y:p.y,z:p.jumpHeight(),kind:'enemy'};}
+  }
+  const desired=norm(target.x-f.x,target.y-f.y),speed=Math.max(430,Math.hypot(f.vx,f.vy));
+  const turn=clamp(dt*3.1,0,1);
+  f.vx+=(desired.x*speed-f.vx)*turn;f.vy+=(desired.y*speed-f.vy)*turn;
+  f.x+=f.vx*dt;f.y+=f.vy*dt;
+  f.z=Math.max(0,(f.z||0)+(f.vz||-24)*dt);f.vz=Math.max(-54,(f.vz||-24)-10*dt);
+  if(f.trail<=0){f.trail=.035;particles.push({x:f.x+rand(-4,4),y:f.y-f.z+rand(-4,4),vx:rand(-35,35),vy:rand(-35,35),life:rand(.18,.38),color:Math.random()<.5?'#ffcf45':'#ff6b2c'});}
+  if(!insideEllipse(f.x,f.y,-18)){f.life=0;burst(f.x,f.y-f.z,'#ff8b2c',8);continue;}
   const sd=Math.hypot(slime.x-f.x,slime.y-f.y);
-  if(sd<slime.r+f.r){const n=norm(f.vx,f.vy);slime.vx+=n.x*760;slime.vy+=n.y*760;slime.scared=.8;slime.hop=.45;f.life=0;message='スライムが熱くて転がった！';messageLife=.9;shake=10;burst(slime.x,slime.y,'#ff9a32',22);continue;}
-  for(const target of players){if(target.team===f.team||target===f.owner||target.jumpHeight()>72)continue;if(Math.hypot(target.x-f.x,target.y-f.y)<target.r+f.r){const n=norm(f.vx,f.vy);target.vx+=n.x*430;target.vy+=n.y*430;target.burn=1.65;target.burnTick=0;target.stun=.2;f.life=0;message='燃えた！ コロコロ消火中！';messageLife=1;shake=9;burst(target.x,target.y,'#ff7a24',24);break;}}
+  if(sd<slime.r+f.r+8&&f.z<70){const n=norm(f.vx,f.vy);slime.vx+=n.x*980;slime.vy+=n.y*980;slime.scared=.9;slime.hop=.55;f.life=0;message='スライムが熱くて転がった！';messageLife=.9;shake=12;burst(slime.x,slime.y,'#ff9a32',28);continue;}
+  for(const target of players){
+   if(target.team===f.team||target===f.owner)continue;
+   if(Math.abs(target.jumpHeight()-f.z)>76)continue;
+   if(Math.hypot(target.x-f.x,target.y-f.y)<target.r+f.r+7){const n=norm(f.vx,f.vy);target.vx+=n.x*650;target.vy+=n.y*650;target.burn=1.9;target.burnTick=0;target.stun=.32;f.life=0;message='燃えた！ コロコロ消火中！';messageLife=1;shake=11;burst(target.x,target.y-target.jumpHeight(),'#ff7a24',28);break;}
+  }
  }
  fireballs=fireballs.filter(f=>f.life>0);
 }
@@ -199,10 +223,10 @@ function drawRockBalls(){for(const r of rockBalls){ctx.save();ctx.translate(r.x,
 
 function drawIceWaves(){for(const w of iceWaves){const p=1-w.life/w.maxLife,a=Math.atan2(w.dy,w.dx),r=w.range*p;ctx.save();ctx.translate(w.x,w.y);ctx.rotate(a);ctx.globalAlpha=.3*(1-p);const g=ctx.createRadialGradient(0,0,10,0,0,r);g.addColorStop(0,'#efffff');g.addColorStop(.45,'#8deeff');g.addColorStop(1,'#73bfff00');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,-w.angle,w.angle);ctx.closePath();ctx.fill();ctx.globalAlpha=.85;ctx.strokeStyle='#dffcff';ctx.lineWidth=3;for(let i=0;i<5;i++){const aa=-w.angle+i*(w.angle*2/4),rr=r*rand(.65,.95);ctx.beginPath();ctx.moveTo(Math.cos(aa)*rr*.4,Math.sin(aa)*rr*.4);ctx.lineTo(Math.cos(aa)*rr,Math.sin(aa)*rr);ctx.stroke();}ctx.restore();}}
 
-function drawFireballs(){for(const f of fireballs){const a=Math.atan2(f.vy,f.vx);ctx.save();ctx.translate(f.x,f.y);ctx.rotate(a);ctx.globalAlpha=.35;ctx.fillStyle='#ff6b1f';ctx.beginPath();ctx.ellipse(-f.r*1.35,0,f.r*1.75,f.r*.65,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;const g=ctx.createRadialGradient(-5,-6,3,0,0,f.r+5);g.addColorStop(0,'#fff7ba');g.addColorStop(.35,'#ffd447');g.addColorStop(1,'#f0441d');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,f.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
+function drawFireballs(){for(const f of fireballs){const a=Math.atan2(f.vy,f.vx);ctx.save();ctx.translate(f.x,f.y-(f.z||0));ctx.rotate(a);ctx.globalAlpha=.35;ctx.fillStyle='#ff6b1f';ctx.beginPath();ctx.ellipse(-f.r*1.35,0,f.r*1.75,f.r*.65,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;const g=ctx.createRadialGradient(-5,-6,3,0,0,f.r+5);g.addColorStop(0,'#fff7ba');g.addColorStop(.35,'#ffd447');g.addColorStop(1,'#f0441d');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,f.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
 
 function goal(team){goalScene={team,life:1.1};message='押し込み成功！';messageLife=1.3;chiefLine=team===0?'見事だ！ 褒美に近づいたぞ！':'押し返せー！ まだ終わっておらん！';chiefLife=2.2;shake=18;if(Math.max(...score)>=3)return endGame();reset(true);}
-function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.length;j++){const a=players[i],b=players[j];if(a.isAirborne()||b.isAirborne())continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d<min){const n=norm(dx,dy),push=(min-d)*.5;a.x-=n.x*push;b.x+=n.x*push;a.y-=n.y*push;b.y+=n.y*push;if(a.frozen>0){a.vx-=n.x*360;a.vy-=n.y*360;}if(b.frozen>0){b.vx+=n.x*360;b.vy+=n.y*360;}}}
+function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.length;j++){const a=players[i],b=players[j];if(a.isAirborne()||b.isAirborne())continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d<min){const n=norm(dx,dy),push=(min-d)*.62;a.x-=n.x*push;b.x+=n.x*push;a.y-=n.y*push;b.y+=n.y*push;const repel=95+(min-d)*10;a.vx-=n.x*repel;b.vx+=n.x*repel;a.vy-=n.y*repel;b.vy+=n.y*repel;if(a.frozen>0){a.vx-=n.x*360;a.vy-=n.y*360;}if(b.frozen>0){b.vx+=n.x*360;b.vy+=n.y*360;}}}
  for(const p of players){if(p.isAirborne())continue;const dx=slime.x-p.x,dy=slime.y-p.y,d=Math.hypot(dx,dy),min=p.r+slime.r;if(d<min){const n=norm(dx,dy),push=min-d;slime.x+=n.x*push;slime.y+=n.y*push;const boost=slime.frozen>0?430:80;slime.vx+=n.x*boost;slime.vy+=n.y*boost;slime.scared=.35;if(slime.frozen>0){message='凍ったスライムがツルーッ！';messageLife=.7;}}}}
 function burst(x,y,color,n){for(let i=0;i<n;i++){const a=rand(0,7),s=rand(50,240);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.25,.7),color});}}
 function updateParticles(dt){for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;}particles=particles.filter(p=>p.life>0);}
