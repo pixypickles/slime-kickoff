@@ -225,7 +225,7 @@ class Player{
   }
 
   if(slime&&segmentDistance(slime.x,slime.y,sx,sy,ex,ey)<slime.r+30){
-   const dashPush=slime.type==='rock'?.58:(slime.type==='cloud'?1.28:1);
+   const dashPush=slime.type==='rock'?.58:(slime.type==='cloud'?1.28:(slime.type==='speedy'?1.42:1));
    slime.vx+=n.x*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760)*dashPush;
    slime.vy+=n.y*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760)*dashPush;
    slime.hop=Math.max(slime.hop,.62);slime.hopMax=Math.max(slime.hopMax||.58,slime.hop);
@@ -284,7 +284,7 @@ class Player{
     slime.scared=1;message='空中ボレー！ 属性レジスト！';messageLife=1.0;
     shake=Math.max(shake,16);burst(slime.x,slime.y,'#fff4b5',34);
    }else{
-    const slimePush=slime.type==='rock'?.58:(slime.type==='cloud'?1.28:1);slime.vx+=n.x*power*elementPower*slimePush;slime.vy+=n.y*power*elementPower*slimePush;
+    const slimePush=slime.type==='rock'?.58:(slime.type==='cloud'?1.28:(slime.type==='speedy'?1.42:1));slime.vx+=n.x*power*elementPower*slimePush;slime.vy+=n.y*power*elementPower*slimePush;
     slime.wobble+=rand(-2,2);slime.hop=Math.max(slime.hop,air||sliding?.68:.54);
     slime.hopMax=Math.max(slime.hopMax||.45,slime.hop);
     shake=Math.max(shake,sliding?10:6);burst(slime.x,slime.y,elementColor,16);
@@ -481,8 +481,8 @@ class Player{
 }
 
 function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=selectedSpirit;b.spirit=opponentElement();}players.push(a,b);}
- const jumpy=selectedSlime==='jumpy',rock=selectedSlime==='rock',cloud=selectedSlime==='cloud',split=selectedSlime==='split';
- slime={x:500,y:310,vx:0,vy:0,r:rock?42:(cloud?35:(split?38:(jumpy?34:37))),wobble:0,think:rock?rand(.9,1.8):(cloud?rand(.8,1.5):(jumpy?rand(.35,.8):rand(.7,1.6))),hop:0,hopMax:rock?.34:(cloud?.2:(jumpy?.82:.58)),airSpin:0,airSpinSpeed:0,airVolleyT:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0,shockT:0,type:selectedSlime,mass:rock?1.75:(cloud?.62:1),floatPhase:rand(0,Math.PI*2),split:false,splitTimer:split?rand(3.5,6.5):0,mergeTimer:0,pieces:[]};
+ const jumpy=selectedSlime==='jumpy',rock=selectedSlime==='rock',cloud=selectedSlime==='cloud',split=selectedSlime==='split',speedy=selectedSlime==='speedy';
+ slime={x:500,y:310,vx:0,vy:0,r:rock?42:(cloud?35:(split?38:(speedy?35:(jumpy?34:37)))),wobble:0,think:rock?rand(.9,1.8):(cloud?rand(.8,1.5):(speedy?rand(.12,.25):(jumpy?rand(.35,.8):rand(.7,1.6)))),hop:0,hopMax:rock?.34:(cloud?.2:(speedy?.24:(jumpy?.82:.58))),airSpin:0,airSpinSpeed:0,airVolleyT:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0,shockT:0,type:selectedSlime,mass:rock?1.75:(cloud?.62:(speedy?.56:1)),floatPhase:rand(0,Math.PI*2),split:false,splitTimer:split?rand(3.5,6.5):0,mergeTimer:0,pieces:[]};
  if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
 function startGame(){markStageSeen(currentStage);selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];pebbles=[];hurricanes=[];freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';if(ui.clearCard){ui.clearCard.classList.add('hidden');ui.clearCard.style.display='none';}ui.controls.classList.add('hidden');ui.controls.style.display='none';
  if(ui.stageCard){
@@ -541,16 +541,16 @@ function update(dt){if(!running)return;
 function triggerSplit(){if(!slime||slime.type!=='split'||slime.split)return;slime.split=true;slime.mergeTimer=rand(4.5,8);slime.pieces=[{x:-24,y:-8,vx:rand(-85,-35),vy:rand(-55,55),goal:0},{x:24,y:8,vx:rand(35,85),vy:rand(-55,55),goal:0}];message='分裂スライムが ぷるんっ！';messageLife=1;burst(slime.x,slime.y,'#8df06d',24);}
 function updateSplitPieces(dt){if(slime.type!=='split')return;if(!slime.split){slime.splitTimer-=dt;if(slime.splitTimer<=0||Math.hypot(slime.vx,slime.vy)>980)triggerSplit();return;}slime.mergeTimer-=dt;for(const q of slime.pieces){q.vx*=Math.pow(.28,dt);q.vy*=Math.pow(.28,dt);q.vx+=rand(-25,25)*dt;q.vy+=rand(-25,25)*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.x=clamp(q.x,-105,105);q.y=clamp(q.y,-72,72);const wx=slime.x+q.x;q.goal=wx<-18? -1:(wx>W+18?1:0);}const gs=slime.pieces.map(q=>q.goal);if(gs.every(g=>g===1)){score[0]++;goal(0);return;}if(gs.every(g=>g===-1)){score[1]++;goal(1);return;}if(gs.includes(1)&&gs.includes(-1)){message='別々のゴールでは得点なし！';messageLife=1.2;reset(true);return;}if(slime.mergeTimer<=0&&gs.every(g=>g===0)){slime.split=false;slime.pieces=[];slime.splitTimer=rand(4,7);message='分裂スライムが ひとつに戻った！';messageLife=1;}}
 function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt*.62);slime.blink-=dt;slime.blinkT=Math.max(0,slime.blinkT-dt);slime.scared=Math.max(0,slime.scared-dt);slime.airVolleyT=Math.max(0,(slime.airVolleyT||0)-dt);slime.airSpin+=(slime.airSpinSpeed||0)*dt;if(slime.airVolleyT<=0)slime.airSpinSpeed*=Math.pow(.08,dt);slime.frozen=Math.max(0,(slime.frozen||0)-dt);slime.shockT=Math.max(0,(slime.shockT||0)-dt);if(slime.shockT>0){slime.vx*=Math.pow(.08,dt);slime.vy*=Math.pow(.08,dt);if(Math.random()<.22)burst(slime.x+rand(-18,18),slime.y+rand(-18,18),'#fff36a',1);}if(slime.blink<=0){slime.blink=rand(1.5,4);slime.blinkT=.13;}if(slime.frozen>0){slime.vx*=Math.pow(.75,dt);slime.vy*=Math.pow(.75,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}return;}if(slime.startT>0){slime.startT=Math.max(0,slime.startT-dt);slime.hop=.58;slime.hopMax=.58;const burstOut=1-slime.startT/.9;slime.y=slime.startY-Math.sin(burstOut*Math.PI)*42;slime.vx*=.8;slime.vy*=.8;return;}if(slime.think<=0){
-  slime.think=slime.type==='rock'?rand(.75,1.5):(slime.type==='cloud'?rand(.7,1.35):(slime.type==='jumpy'?rand(.18,.55):rand(.38,1.15)));
+  slime.think=slime.type==='rock'?rand(.75,1.5):(slime.type==='cloud'?rand(.7,1.35):(slime.type==='speedy'?rand(.1,.24):(slime.type==='jumpy'?rand(.18,.55):rand(.38,1.15))));
   const sideBias=Math.random()<.78;
   const a=sideBias?(Math.random()<.5?0:Math.PI)+rand(-.4,.4):rand(0,Math.PI*2);
-  const f=slime.type==='rock'?rand(70,135):(slime.type==='cloud'?rand(75,150):(slime.type==='jumpy'?rand(180,330):rand(145,285)));
+  const f=slime.type==='rock'?rand(70,135):(slime.type==='cloud'?rand(75,150):(slime.type==='speedy'?rand(270,430):(slime.type==='jumpy'?rand(180,330):rand(145,285))));
   slime.vx+=Math.cos(a)*f;slime.vy+=Math.sin(a)*f;
   slime.wobble=rand(-4.2,4.2);
-  slime.hop=slime.type==='rock'?rand(.22,.38):(slime.type==='cloud'?rand(.08,.18):(slime.type==='jumpy'?rand(.95,1.25):rand(.7,1.0)));slime.hopMax=slime.hop;
+  slime.hop=slime.type==='rock'?rand(.22,.38):(slime.type==='cloud'?rand(.08,.18):(slime.type==='speedy'?rand(.12,.25):(slime.type==='jumpy'?rand(.95,1.25):rand(.7,1.0))));slime.hopMax=slime.hop;
   if(Math.random()<.36)slime.think=rand(.14,.28);
  }
- const slimeDrag=slime.type==='cloud'?.42:.18;slime.vx*=Math.pow(slimeDrag,dt);slime.vy*=Math.pow(slimeDrag,dt);if(slime.type==='cloud'){slime.floatPhase=(slime.floatPhase||0)+dt*2.2;slime.vy+=Math.sin(slime.floatPhase*.7)*8*dt;}slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;slime.wobble*=Math.pow(.05,dt);constrainToField(slime);updateSplitPieces(dt);if(slime.type!=='split'||!slime.split){if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}}}
+ const slimeDrag=slime.type==='cloud'?.42:(slime.type==='speedy'?.34:.18);slime.vx*=Math.pow(slimeDrag,dt);slime.vy*=Math.pow(slimeDrag,dt);if(slime.type==='cloud'){slime.floatPhase=(slime.floatPhase||0)+dt*2.2;slime.vy+=Math.sin(slime.floatPhase*.7)*8*dt;}slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;slime.wobble*=Math.pow(.05,dt);constrainToField(slime);updateSplitPieces(dt);if(slime.type!=='split'||!slime.split){if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}}}
 
 function updateFireballs(dt,stopped){
  if(stopped)return;
@@ -677,8 +677,8 @@ function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.l
 }
 function burst(x,y,color,n){for(let i=0;i<n;i++){const a=rand(0,7),s=rand(50,240);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.25,.7),color});}}
 function updateParticles(dt){for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;}particles=particles.filter(p=>p.life>0);}
-function drawShadow(x,y,height,r){const k=clamp(1-height/180,.28,1);ctx.save();ctx.globalAlpha=.24*k;ctx.fillStyle='#142018';ctx.beginPath();ctx.ellipse(x,y+31,r*k,Math.max(3,r*.32*k),0,0,Math.PI*2);ctx.fill();ctx.restore();}
-function drawAllShadows(){for(const p of players)drawShadow(p.x,p.y,p.jumpHeight(),30);const h=slime.type==='cloud'?38+(Math.sin(performance.now()/430+(slime.floatPhase||0))*7):((slime.hop>0?Math.sin((1-slime.hop/Math.max(.01,slime.hopMax||.58))*Math.PI)*26:0));if(slime.type==='split'&&slime.split){for(const q of slime.pieces)drawShadow(slime.x+q.x,slime.y+q.y,h+8,19);}else drawShadow(slime.x,slime.y,h,slime.r*.82);}
+function drawShadow(x,y,height,r,offsetY=31){const airborne=Math.max(0,height-3),k=clamp(1-airborne/180,.28,1);ctx.save();ctx.globalAlpha=.24*k;ctx.fillStyle='#142018';ctx.beginPath();ctx.ellipse(x,y+offsetY,r*k,Math.max(3,r*.32*k),0,0,Math.PI*2);ctx.fill();ctx.restore();}
+function drawAllShadows(){for(const p of players)drawShadow(p.x,p.y,p.jumpHeight(),30,31);const h=slime.type==='cloud'?38+(Math.sin(performance.now()/430+(slime.floatPhase||0))*7):((slime.hop>0?Math.sin((1-slime.hop/Math.max(.01,slime.hopMax||.58))*Math.PI)*26:0));if(slime.type==='split'&&slime.split){for(const q of slime.pieces)drawShadow(slime.x+q.x,slime.y+q.y,h+8,19,25);}else drawShadow(slime.x,slime.y,h,slime.r*.82,27);}
 function draw(){ctx.save();if(shake)ctx.translate(rand(-shake,shake),rand(-shake,shake));drawField();drawChiefs();drawAllShadows();for(const p of players)p.draw();drawSlime();drawFireballs();drawIceWaves();drawRockBalls();drawPebbles();drawHurricanes();drawGoalScene();for(const p of particles){ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
 function drawField(){
  const isBrifo=currentStage===1,isSalubie=currentStage===2,isSalubibi=currentStage===3,isTakezo=currentStage===4,isChestapi=currentStage===5;
@@ -911,11 +911,12 @@ function drawChief(x,y,team){ctx.save();ctx.translate(x,y);ctx.fillStyle='#f1c79
 function drawOneSlime(x,y,scale=1){
  const speed=Math.hypot(slime.vx,slime.vy),squash=clamp(speed/900,0,.3),floatLift=slime.type==='cloud'?28+Math.sin(performance.now()/430+(slime.floatPhase||0))*7:0,hop=(slime.hop>0?Math.sin((1-slime.hop/Math.max(.01,slime.hopMax||.58))*Math.PI)*26:0)+floatLift;
  const wob=Math.sin(performance.now()/120)*.035;ctx.save();ctx.translate(x,y-hop);ctx.scale(scale*(1+squash+wob),scale*(1-squash-wob));
- const g=ctx.createRadialGradient(-10,-15,4,0,0,45);if(slime.type==='rock'){g.addColorStop(0,'#e0d4c1');g.addColorStop(.38,'#9a856c');g.addColorStop(1,'#55493d');}else if(slime.type==='cloud'){g.addColorStop(0,'#ffffff');g.addColorStop(.58,'#f4fcff');g.addColorStop(1,'#d7eef5');}else if(slime.type==='split'){g.addColorStop(0,'#efffca');g.addColorStop(.42,'#77df55');g.addColorStop(1,'#24943c');}else{g.addColorStop(0,'#e8fbff');g.addColorStop(.35,'#61ccff');g.addColorStop(1,'#0874da');}ctx.fillStyle=g;ctx.strokeStyle=slime.type==='rock'?'#3d342c':slime.type==='cloud'?'#9bc3d1':slime.type==='split'?'#2d7b32':'#073d92';ctx.lineWidth=5;
+ const g=ctx.createRadialGradient(-10,-15,4,0,0,45);if(slime.type==='rock'){g.addColorStop(0,'#e0d4c1');g.addColorStop(.38,'#9a856c');g.addColorStop(1,'#55493d');}else if(slime.type==='cloud'){g.addColorStop(0,'#ffffff');g.addColorStop(.58,'#f4fcff');g.addColorStop(1,'#d7eef5');}else if(slime.type==='split'){g.addColorStop(0,'#efffca');g.addColorStop(.42,'#77df55');g.addColorStop(1,'#24943c');}else if(slime.type==='speedy'){g.addColorStop(0,'#f5dcff');g.addColorStop(.38,'#a64de2');g.addColorStop(1,'#4b168b');}else{g.addColorStop(0,'#e8fbff');g.addColorStop(.35,'#61ccff');g.addColorStop(1,'#0874da');}ctx.fillStyle=g;ctx.strokeStyle=slime.type==='rock'?'#3d342c':slime.type==='cloud'?'#9bc3d1':slime.type==='split'?'#2d7b32':slime.type==='speedy'?'#32105f':'#073d92';ctx.lineWidth=5;
  ctx.beginPath();ctx.moveTo(-34,10);ctx.quadraticCurveTo(-42,-12,-22,-25);ctx.quadraticCurveTo(0,-42,23,-25);ctx.quadraticCurveTo(44,-10,34,13);ctx.quadraticCurveTo(0,34,-34,10);ctx.fill();ctx.stroke();
  ctx.fillStyle='#fff';ctx.globalAlpha=.85;ctx.beginPath();ctx.ellipse(-13,-18,10,7,-.5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#063a78';ctx.beginPath();if(slime.blinkT>0){ctx.ellipse(-10,-4,4,1,0,0,7);ctx.ellipse(10,-4,4,1,0,0,7);}else{ctx.arc(-10,-4,3,0,Math.PI*2);ctx.arc(10,-4,3,0,Math.PI*2);}ctx.fill();
  if(slime.type==='rock'){ctx.fillStyle='#6c5c4d';for(const [a,b,r] of [[-22,-18,8],[18,-21,7],[-25,6,6],[21,8,9],[0,-30,7]]){ctx.beginPath();ctx.arc(a,b,r,0,Math.PI*2);ctx.fill();}}
- if(slime.type==='cloud'){ctx.fillStyle='#ffffff';ctx.strokeStyle='#b8d7e1';ctx.lineWidth=3;for(const [a,b,r] of [[-27,-18,12],[0,-31,14],[27,-17,11],[-24,12,10],[24,12,10]]){ctx.beginPath();ctx.arc(a,b,r,0,Math.PI*2);ctx.fill();ctx.stroke();}}
+ if(slime.type==='cloud'){ctx.fillStyle='#ffffff';ctx.strokeStyle='#b8d7e1';ctx.lineWidth=2.5;for(const [a,b,r] of [[-21,10,7],[0,15,8],[21,10,7]]){ctx.beginPath();ctx.arc(a,b,r,Math.PI,Math.PI*2);ctx.fill();ctx.stroke();}ctx.globalAlpha=.55;ctx.beginPath();ctx.arc(0,-25,8,Math.PI,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}
+ if(slime.type==='speedy'){ctx.save();ctx.clip();ctx.strokeStyle='#ffe85b';ctx.lineWidth=8;ctx.globalAlpha=.95;for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(-48+i*24,-35);ctx.lineTo(-12+i*24,35);ctx.stroke();}ctx.restore();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.globalAlpha=.75;ctx.beginPath();ctx.moveTo(-33,18);ctx.lineTo(-50,18);ctx.moveTo(-28,26);ctx.lineTo(-43,29);ctx.stroke();ctx.globalAlpha=1;}
  ctx.strokeStyle='#063a78';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,4,7,.15,Math.PI-.15);ctx.stroke();ctx.restore();
 }
 function drawSlime(){if(slime.type==='split'&&slime.split){for(const q of slime.pieces)drawOneSlime(slime.x+q.x,slime.y+q.y,.68);}else drawOneSlime(slime.x,slime.y,1);}
