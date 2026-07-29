@@ -614,7 +614,17 @@ ui.startBtn.disabled=false;
 
 function showClearSequence(){
  clearSequence=true;
- if(ui.clearCard){ui.clearCard.classList.remove('hidden');ui.clearCard.style.display='flex';}
+ if(ui.clearCard){
+  ui.clearCard.classList.remove('hidden');
+  ui.clearCard.style.display='flex';
+ }else{
+  clearSequence=false;
+  ui.result.classList.remove('hidden');
+  ui.result.style.display='grid';
+  ui.resultTitle.textContent='褒美獲得！';
+  ui.resultText.textContent='次の接続先：🔥 さるびえ村';
+  if(ui.nextStageBtn){ui.nextStageBtn.hidden=false;ui.nextStageBtn.textContent='さるびえ村へ進む';}
+ }
  chiefLine='助かった！ 約束の褒美だ！';chiefLife=2.4;
 }
 function closeClearSequence(){
