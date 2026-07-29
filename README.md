@@ -65,7 +65,14 @@
 - 精霊選択は開始時にラジオボタンの状態を再取得
 
 
-## v0.09.6 START HARD FIX
+## v0.09.7 START HARD FIX
 - 開始ボタンを inline onclick / ontouchend と click の三重経路で受けるよう修正
 - イントロ画面を class だけでなく style.display でも確実に非表示化
 - 開始処理に失敗した場合は画面へ戻して再試行できるよう修正
+
+
+## v0.09.7 COMPATIBILITY FIX
+- 初期化前に `draw()` が呼ばれ、未生成のスライム参照でJavaScriptが停止していた問題を修正
+- 古いAndroid WebView向けにCanvas `roundRect()` の互換処理を追加
+- 精霊選択のラジオボタンを常時見える標準表示へ変更
+- 開始ボタンのイベント処理を1本化

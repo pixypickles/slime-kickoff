@@ -1,5 +1,16 @@
 'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+// 古いAndroid WebView向け互換処理。roundRect未対応でも描画処理を止めない。
+if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prototype.roundRect){
+ CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+  let radius=Array.isArray(r)?Number(r[0]||0):Number(r||0);
+  radius=Math.max(0,Math.min(radius,Math.abs(w)/2,Math.abs(h)/2));
+  this.moveTo(x+radius,y);this.lineTo(x+w-radius,y);this.quadraticCurveTo(x+w,y,x+w,y+radius);
+  this.lineTo(x+w,y+h-radius);this.quadraticCurveTo(x+w,y+h,x+w-radius,y+h);
+  this.lineTo(x+radius,y+h);this.quadraticCurveTo(x,y+h,x,y+h-radius);
+  this.lineTo(x,y+radius);this.quadraticCurveTo(x,y,x+radius,y);this.closePath();return this;
+ };
+}
 const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus')};
 const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
@@ -260,31 +271,54 @@ function startFromIntro(e){
  return false;
 }
 window.startSlimeGame=startFromIntro;
-ui.startBtn.disabled=false;
-// onclick/ontouchendはHTML側にも設定。ここはPC・新しいブラウザ用の保険。
-ui.startBtn.addEventListener('click',startFromIntro);
-ui.retryBtn.addEventListener('click',startGame);
-let stickId=null;function stickMove(e){const r=ui.stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=r.width*.32,d=Math.hypot(dx,dy)||1,k=Math.min(1,max/d);input.x=dx/d*k;input.y=dy/d*k;ui.knob.style.transform=`translate(${input.x*max}px,${input.y*max}px)`;}
-ui.stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;ui.stick.setPointerCapture(e.pointerId);stickMove(e);});ui.stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickMove(e);});ui.stick.addEventListener('pointerup',e=>{if(e.pointerId===stickId){stickId=null;input.x=input.y=0;ui.knob.style.transform='';}});document.querySelectorAll('[data-action]').forEach(b=>{b.addEventListener('pointerdown',e=>{input[b.dataset.action]=true;e.preventDefault();});b.addEventListener('pointerup',e=>{input[b.dataset.action]=false;e.preventDefault();});b.addEventListener('pointercancel',()=>{input[b.dataset.action]=false;});});
 
-const loadingLines=['異次元の穴を安定させています…','削れた土壁を点検中…','村人を招集中…','少し臭うスライムを確認中…','村長が褒美を準備中…','押し付け合いの準備完了！'];let loadIndex=0;const loadingTimer=setInterval(()=>{loadIndex++;ui.loadingText.textContent=loadingLines[Math.min(loadIndex,loadingLines.length-1)];if(loadIndex>=loadingLines.length-1){clearInterval(loadingTimer);}},420);
-draw();
+const loadingLines=['異次元の穴を安定させています…','削れた土壁を点検中…','村人を招集中…','少し臭うスライムを確認中…','村長が褒美を準備中…','押し付け合いの準備完了！'];
+let loadIndex=0;
+const loadingTimer=setInterval(function(){
+ loadIndex++;
+ ui.loadingText.textContent=loadingLines[Math.min(loadIndex,loadingLines.length-1)];
+ if(loadIndex>=loadingLines.length-1)clearInterval(loadingTimer);
+},420);
 
-// 精霊選択：ネイティブのラジオボタンを使う。
-// labelをタップするだけでブラウザ標準の選択処理が動くため、端末固有のpointer/touch差に依存しない。
+// 精霊選択はブラウザ標準のラジオボタンを使う。
+// 初期描画より先に登録し、描画互換エラーの影響を受けないようにする。
 const spiritNames={fire:'炎',ice:'氷',wind:'風'};
 function applySpirit(value){
  if(!spiritNames[value])return;
  selectedSpirit=value;
  ui.skillBtn.textContent=value==='ice'?'氷魔法':value==='wind'?'加速':'炎魔法';
- if(ui.spiritStatus)ui.spiritStatus.textContent=`選択中：${spiritNames[value]}`;
+ if(ui.spiritStatus)ui.spiritStatus.textContent='選択中：'+spiritNames[value];
 }
-document.querySelectorAll('input[name="spirit"]').forEach(radio=>{
- radio.addEventListener('change',()=>{if(radio.checked)applySpirit(radio.value);});
-});
-applySpirit(document.querySelector('input[name="spirit"]:checked')?.value||'fire');
+const spiritRadios=document.querySelectorAll('input[name="spirit"]');
+for(let i=0;i<spiritRadios.length;i++){
+ spiritRadios[i].addEventListener('change',function(){if(this.checked)applySpirit(this.value);});
+}
+let firstChecked=document.querySelector('input[name="spirit"]:checked');
+applySpirit(firstChecked?firstChecked.value:'fire');
 
-// 説明文領域では縦スクロールを優先する。ゲーム用の全体タッチ抑止と競合させない。
-ui.introScroll.addEventListener('pointerdown',e=>e.stopPropagation());
-ui.introScroll.addEventListener('pointermove',e=>e.stopPropagation());
-ui.introScroll.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
+// 説明文領域では縦スクロールを優先する。
+ui.introScroll.addEventListener('pointerdown',function(e){e.stopPropagation();});
+ui.introScroll.addEventListener('pointermove',function(e){e.stopPropagation();});
+ui.introScroll.addEventListener('wheel',function(e){e.stopPropagation();},{passive:true});
+
+// 開始処理は1本だけにする。clickは通常のタップでも発火する。
+ui.startBtn.disabled=false;
+ui.startBtn.addEventListener('click',startFromIntro);
+ui.retryBtn.addEventListener('click',startGame);
+
+let stickId=null;
+function stickMove(e){const r=ui.stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=r.width*.32,d=Math.hypot(dx,dy)||1,k=Math.min(1,max/d);input.x=dx/d*k;input.y=dy/d*k;ui.knob.style.transform='translate('+input.x*max+'px,'+input.y*max+'px)';}
+ui.stick.addEventListener('pointerdown',function(e){stickId=e.pointerId;ui.stick.setPointerCapture(e.pointerId);stickMove(e);});
+ui.stick.addEventListener('pointermove',function(e){if(e.pointerId===stickId)stickMove(e);});
+ui.stick.addEventListener('pointerup',function(e){if(e.pointerId===stickId){stickId=null;input.x=input.y=0;ui.knob.style.transform='';}});
+document.querySelectorAll('[data-action]').forEach(function(b){
+ b.addEventListener('pointerdown',function(e){input[b.dataset.action]=true;e.preventDefault();});
+ b.addEventListener('pointerup',function(e){input[b.dataset.action]=false;e.preventDefault();});
+ b.addEventListener('pointercancel',function(){input[b.dataset.action]=false;});
+});
+
+// タイトル画面の背景用に初期状態を作ってから描画する。
+// 以前はslime未生成のままdraw()して例外が発生し、以降の初期化が止まっていた。
+reset();
+running=false;
+draw();
