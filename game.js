@@ -348,9 +348,16 @@ class Player{
   ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.fill();ctx.stroke();
   if(isHomePlayer){ctx.fillStyle='#f2cf4a';ctx.fillRect(-20,7,40,10);}
   else if(enemyBrifo){ctx.save();ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.clip();ctx.fillStyle='#7fd5ef';for(let sx=-18;sx<22;sx+=12)ctx.fillRect(sx,-7,6,42);ctx.restore();}else if(this.team===1&&currentStage===4){ctx.fillStyle='#172c55';ctx.fillRect(-20,6,40,12);}
-  ctx.fillStyle=this.team?'#803737':'#25688f';ctx.fillRect(-15,17,30,7);
+  let shorts='#444',shoe='#f2cf4a';
+  if(isHomePlayer){shorts='#4b4b4b';shoe='#f2cf4a';}
+  else if(enemyBrifo){shorts='#ffffff';shoe='#2b7cff';}
+  else if(currentStage===2){shorts='#ffffff';shoe='#ff8c2b';}
+  else if(currentStage===3){shorts='#ffffff';shoe='#29b8b4';}
+  else if(currentStage===4){shorts='#ffffff';shoe='#f27bb8';}
+  else {shorts='#222';shoe='#ffe14a';}
+  ctx.fillStyle=shorts;ctx.fillRect(-15,17,30,7);
   ctx.fillStyle='#d9b36c';ctx.fillRect(-13,25,9,12);ctx.fillRect(5,25,9,12);
-  ctx.fillStyle='#6a4328';ctx.strokeStyle='#16120f';ctx.lineWidth=4;
+  ctx.fillStyle=shoe;ctx.strokeStyle='#16120f';ctx.lineWidth=4;
   // 軸足
   ctx.beginPath();ctx.ellipse(-12,39,20,12,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
   // 蹴り足。通常時は胴体下、キック中だけ向いている方向へ大きく動く。
