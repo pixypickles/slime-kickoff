@@ -1,9 +1,20 @@
 'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
-const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),rematchBtn:document.getElementById('rematchBtn'),menuBtn:document.getElementById('menuBtn'),nextStageBtn:document.getElementById('nextStageBtn'),slimeSelect:document.getElementById('slimeSelect'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus')};
-const W=GAME_CONFIG.canvas.width,H=GAME_CONFIG.canvas.height,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
+// 古いAndroid WebView向け互換処理。roundRect未対応でも描画処理を止めない。
+if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prototype.roundRect){
+ CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+  let radius=Array.isArray(r)?Number(r[0]||0):Number(r||0);
+  radius=Math.max(0,Math.min(radius,Math.abs(w)/2,Math.abs(h)/2));
+  this.moveTo(x+radius,y);this.lineTo(x+w-radius,y);this.quadraticCurveTo(x+w,y,x+w,y+radius);
+  this.lineTo(x+w,y+h-radius);this.quadraticCurveTo(x+w,y+h,x+w-radius,y+h);
+  this.lineTo(x+radius,y+h);this.quadraticCurveTo(x,y+h,x,y+h-radius);
+  this.lineTo(x,y+radius);this.quadraticCurveTo(x,y,x+radius,y);this.closePath();return this;
+ };
+}
+const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),rematchBtn:document.getElementById('rematchBtn'),menuBtn:document.getElementById('menuBtn'),nextStageBtn:document.getElementById('nextStageBtn'),slimeSelect:document.getElementById('slimeSelect'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus'),stageCard:document.getElementById('stageCard')};
+const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
-let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],rockBalls=[],hurricanes=[],chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='fire',selectedSlime='normal',currentStage=1,gameReady=true;
+let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],rockBalls=[],hurricanes=[],chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='fire',selectedSlime='normal',currentStage=1,stageIntroT=0,gameReady=true;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const norm=(x,y)=>{const d=Math.hypot(x,y)||1;return{x:x/d,y:y/d}};
 const rand=(a,b)=>a+Math.random()*(b-a);
@@ -224,8 +235,9 @@ class Player{
   ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(0,30+jump,31,10,0,0,Math.PI*2);ctx.fill();
 
   // 胴体は常に上向き。片足は胴体の下へ固定し、もう片足だけ大きく蹴り出す。
-  ctx.fillStyle=teamColor(this.team);ctx.strokeStyle=this.isHuman?'#ffe45c':'#fff';ctx.lineWidth=this.isHuman?5:3;
+  ctx.fillStyle=this.team?'#7b2438':'#ffffff';ctx.strokeStyle=this.isHuman?'#ffe45c':'#fff';ctx.lineWidth=this.isHuman?5:3;
   ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.fill();ctx.stroke();
+  if(!this.team){ctx.save();ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.clip();ctx.fillStyle='#7fd5ef';for(let sx=-18;sx<22;sx+=12)ctx.fillRect(sx,-7,6,42);ctx.restore();}
   ctx.fillStyle=this.team?'#803737':'#25688f';ctx.fillRect(-15,17,30,7);
   ctx.fillStyle='#d9b36c';ctx.fillRect(-13,25,9,12);ctx.fillRect(5,25,9,12);
   ctx.fillStyle='#6a4328';ctx.strokeStyle='#29180e';ctx.lineWidth=4;
@@ -269,9 +281,11 @@ function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Play
  const jumpy=selectedSlime==='jumpy';
  slime={x:500,y:310,vx:0,vy:0,r:jumpy?34:37,wobble:0,think:jumpy?rand(.35,.8):rand(.7,1.6),hop:0,hopMax:jumpy?.82:.58,airSpin:0,airSpinSpeed:0,airVolleyT:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0,type:selectedSlime};
  if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
-function startGame(){selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];hurricanes=[];freeze=0;running=true;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';ui.controls.classList.remove('hidden');ui.controls.style.display='block';reset();last=performance.now();requestAnimationFrame(loop);}
+function startGame(){selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];hurricanes=[];freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';ui.controls.classList.add('hidden');ui.controls.style.display='none';if(ui.stageCard){ui.stageCard.classList.remove('hidden');ui.stageCard.style.display='flex';}reset();last=performance.now();requestAnimationFrame(loop);}
 function endGame(){running=false;ui.controls.classList.add('hidden');ui.result.classList.remove('hidden');ui.result.style.display='grid';const win=score[0]>score[1],draw=score[0]===score[1];ui.resultTitle.textContent=draw?'引き分け！':win?'褒美獲得！':'スライムを押し付けられた…';ui.resultText.textContent=`あなたの村 ${score[0]} － ${score[1]} となり村`;if(ui.nextStageBtn){ui.nextStageBtn.hidden=!win;ui.nextStageBtn.textContent=currentStage===1?'次のステージ：よく跳ねるスライム':'次のステージ（準備中）';}}
-function update(dt){if(!running)return;timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=['押し返せー！','褒美は目の前だぞ！','臭いのは向こうへやれ！','靴を止めるなー！','おおっ、その調子だ！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);updateRockBalls(dt,stopped);updateHurricanes(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
+function update(dt){if(!running)return;
+ if(stageIntroT>0){stageIntroT=Math.max(0,stageIntroT-dt);portalTime+=dt;if(stageIntroT===0){if(ui.stageCard){ui.stageCard.classList.add('hidden');ui.stageCard.style.display='none';}ui.controls.classList.remove('hidden');ui.controls.style.display='block';message='押し付け合い、始めぇぇ！！';messageLife=1.1;}return;}
+ timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=['押し返せー！','褒美は目の前だぞ！','臭いのは向こうへやれ！','靴を止めるなー！','おおっ、その調子だ！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);updateRockBalls(dt,stopped);updateHurricanes(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
 function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt*.62);slime.blink-=dt;slime.blinkT=Math.max(0,slime.blinkT-dt);slime.scared=Math.max(0,slime.scared-dt);slime.airVolleyT=Math.max(0,(slime.airVolleyT||0)-dt);slime.airSpin+=(slime.airSpinSpeed||0)*dt;if(slime.airVolleyT<=0)slime.airSpinSpeed*=Math.pow(.08,dt);slime.frozen=Math.max(0,(slime.frozen||0)-dt);if(slime.blink<=0){slime.blink=rand(1.5,4);slime.blinkT=.13;}if(slime.frozen>0){slime.vx*=Math.pow(.75,dt);slime.vy*=Math.pow(.75,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}return;}if(slime.startT>0){slime.startT=Math.max(0,slime.startT-dt);slime.hop=.58;slime.hopMax=.58;const burstOut=1-slime.startT/.9;slime.y=slime.startY-Math.sin(burstOut*Math.PI)*42;slime.vx*=.8;slime.vy*=.8;return;}if(slime.think<=0){
   slime.think=slime.type==='jumpy'?rand(.18,.55):rand(.38,1.15);
   const sideBias=Math.random()<.78;
@@ -383,21 +397,29 @@ function updateParticles(dt){for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p
 function draw(){ctx.save();if(shake)ctx.translate(rand(-shake,shake),rand(-shake,shake));drawField();drawChiefs();for(const p of players)p.draw();drawSlime();drawFireballs();drawIceWaves();drawRockBalls();drawHurricanes();drawGoalScene();for(const p of particles){ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
 function drawField(){
  // 草地と村外周
- ctx.fillStyle='#527f3e';ctx.fillRect(0,0,W,H);
- for(let y=0;y<H;y+=42){for(let x=(y/42%2)*24;x<W;x+=48){ctx.fillStyle=((x+y)/48)%2?'#5f8d47':'#4c783a';ctx.fillRect(x,y,25,3);}}
+ ctx.fillStyle='#dff4fb';ctx.fillRect(0,0,W,H);
+ for(let y=0;y<H;y+=42){for(let x=(y/42%2)*24;x<W;x+=48){ctx.fillStyle=((x+y)/48)%2?'#c5e7f2':'#eefbff';ctx.fillRect(x,y,25,3);}}
  drawVillage(0,0);drawVillage(1,W);
 
  // 次元に削り取られた土の縁（少し不規則な二重楕円）
  ctx.save();ctx.translate(FIELD.cx,FIELD.cy);
- ctx.fillStyle='#7a4d2a';ctx.beginPath();
+ ctx.fillStyle='#7899aa';ctx.beginPath();
  for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,r=1+Math.sin(i*2.7)*.014+Math.sin(i*6.1)*.009;const x=Math.cos(a)*(FIELD.rx+25)*r,y=Math.sin(a)*(FIELD.ry+25)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
- ctx.strokeStyle='#3e2818';ctx.lineWidth=7;ctx.stroke();
- ctx.fillStyle='#c9aa6d';ctx.beginPath();ctx.ellipse(0,0,FIELD.rx+8,FIELD.ry+8,0,0,Math.PI*2);ctx.fill();
- ctx.fillStyle='#d9c084';ctx.beginPath();ctx.ellipse(0,0,FIELD.rx-4,FIELD.ry-4,0,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#3b6479';ctx.lineWidth=7;ctx.stroke();
+ ctx.fillStyle='#b9dce8';ctx.beginPath();ctx.ellipse(0,0,FIELD.rx+8,FIELD.ry+8,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#edfaff';ctx.beginPath();ctx.ellipse(0,0,FIELD.rx-4,FIELD.ry-4,0,0,Math.PI*2);ctx.fill();
  ctx.restore();
 
  // 土壁の石・ひび
- ctx.fillStyle='#9b6a3b';for(let i=0;i<38;i++){const a=i/38*Math.PI*2;const x=FIELD.cx+Math.cos(a)*(FIELD.rx+18),y=FIELD.cy+Math.sin(a)*(FIELD.ry+18);ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.beginPath();ctx.roundRect(-12,-7,24,14,5);ctx.fill();ctx.restore();}
+ ctx.fillStyle='#8fc9dd';for(let i=0;i<38;i++){const a=i/38*Math.PI*2;const x=FIELD.cx+Math.cos(a)*(FIELD.rx+18),y=FIELD.cy+Math.sin(a)*(FIELD.ry+18);ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.beginPath();ctx.roundRect(-12,-7,24,14,5);ctx.fill();ctx.restore();}
+
+
+ // ぶりふぉ村の雪・氷柱
+ ctx.save();ctx.globalAlpha=.72;
+ for(let i=0;i<34;i++){const x=(i*83+portalTime*18)%W,y=(i*47+portalTime*28)%H;ctx.fillStyle=i%3?'#ffffff':'#c7efff';ctx.beginPath();ctx.arc(x,y,2+(i%3),0,Math.PI*2);ctx.fill();}
+ ctx.restore();
+ ctx.fillStyle='#bceeff';ctx.strokeStyle='#6ebbd2';ctx.lineWidth=2;
+ for(let i=0;i<12;i++){const x=104+i*72,top=i%2?92:104;ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x+9,top);ctx.lineTo(x+4,top+25+(i%3)*7);ctx.closePath();ctx.fill();ctx.stroke();}
 
  // 競技線
  ctx.strokeStyle='#fff8';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-24,FIELD.ry-24,0,0,Math.PI*2);ctx.stroke();
@@ -410,18 +432,18 @@ function drawField(){
  // 中心の小さな異次元ゲート
  const pulse=1+Math.sin(performance.now()/260)*.08;
  ctx.save();ctx.translate(500,316);ctx.scale(pulse,1/pulse);
- const glow=ctx.createRadialGradient(0,0,2,0,0,48);glow.addColorStop(0,'#fff');glow.addColorStop(.25,'#b8f7ff');glow.addColorStop(.58,'#7659cc');glow.addColorStop(1,'#2b163d00');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,48,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle='#d8c7ff';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,24,10,0,0,Math.PI*2);ctx.stroke();for(let i=0;i<4;i++){const a=portalTime*(1.7+i*.24)+i*1.55,r=17+i*5;ctx.fillStyle=i%2?'#d9c8ff':'#8defff';ctx.globalAlpha=.65;ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*r*.42,3+i*.35,0,7);ctx.fill();}ctx.globalAlpha=1;ctx.restore();
+ const glow=ctx.createRadialGradient(0,0,2,0,0,48);glow.addColorStop(0,'#fff');glow.addColorStop(.25,'#b8f7ff');glow.addColorStop(.58,'#4aa8dc');glow.addColorStop(1,'#2b163d00');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,48,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#dffcff';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,24,10,0,0,Math.PI*2);ctx.stroke();for(let i=0;i<4;i++){const a=portalTime*(1.7+i*.24)+i*1.55,r=17+i*5;ctx.fillStyle=i%2?'#e8fbff':'#62d6ff';ctx.globalAlpha=.65;ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*r*.42,3+i*.35,0,7);ctx.fill();}ctx.globalAlpha=1;ctx.restore();
  ctx.fillStyle='#553c67';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText('小さなゲート',500,374);
 }
 function drawVillage(team,edge){
  const left=team===0,x0=left?0:910,c=teamColor(team),dir=left?1:-1;
  // 村の地面
- ctx.fillStyle=left?'#52758a':'#8a5656';ctx.fillRect(x0,172,90,286);
+ ctx.fillStyle=left?'#c9effa':'#80505b';ctx.fillRect(x0,172,90,286);
  // 家と屋根
  for(let i=0;i<3;i++){
   const yy=192+i*82;ctx.fillStyle='#e3cfaa';ctx.fillRect(x0+7,yy,72,48);
-  ctx.fillStyle=left?'#31556d':'#6f3737';ctx.beginPath();ctx.moveTo(x0+2,yy);ctx.lineTo(x0+43,yy-28);ctx.lineTo(x0+84,yy);ctx.closePath();ctx.fill();
+  ctx.fillStyle=left?'#77cce7':'#632c3d';ctx.beginPath();ctx.moveTo(x0+2,yy);ctx.lineTo(x0+43,yy-28);ctx.lineTo(x0+84,yy);ctx.closePath();ctx.fill();
   ctx.fillStyle='#744629';ctx.fillRect(x0+17,yy+20,15,28);ctx.fillStyle='#9bd1df';ctx.fillRect(x0+47,yy+13,18,15);
  }
  // 村旗
@@ -429,12 +451,22 @@ function drawVillage(team,edge){
  ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(left?32:968,120);ctx.lineTo(left?77:923,134);ctx.lineTo(left?32:968,148);ctx.closePath();ctx.fill();
  // 村名札
  ctx.fillStyle='#f5e7c0';ctx.strokeStyle='#5a3a25';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x0+5,153,80,31,7);ctx.fill();ctx.stroke();
- ctx.fillStyle='#3a2a1f';ctx.font='900 14px sans-serif';ctx.textAlign='center';ctx.fillText(left?'あなたの村':'となり村',left?45:955,174);
+ ctx.fillStyle='#3a2a1f';ctx.font='900 14px sans-serif';ctx.textAlign='center';ctx.fillText(left?'ぶりふぉ村':'さるびえ村',left?45:955,174);
  // 壊れた塀の切断面
- ctx.fillStyle='#8a613e';for(let y=202;y<440;y+=27){ctx.fillRect(left?82:900,y,18,18);}
+ ctx.fillStyle=left?'#a8e2f2':'#8a613e';for(let y=202;y<440;y+=27){ctx.fillRect(left?82:900,y,18,18);}
  // 荷車と樽
  ctx.fillStyle='#704526';ctx.fillRect(left?8:942,474,48,18);ctx.strokeStyle='#2f2118';ctx.lineWidth=5;ctx.beginPath();ctx.arc(left?18:952,495,10,0,Math.PI*2);ctx.arc(left?49:983,495,10,0,Math.PI*2);ctx.stroke();
  ctx.fillStyle='#9b6a3b';ctx.beginPath();ctx.roundRect(left?60:914,468,24,34,6);ctx.fill();
+ // 村ごとの装飾
+ if(left){
+  ctx.fillStyle='#fff';ctx.strokeStyle='#8fc9dd';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(42,450,18,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.arc(42,423,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#ef8a35';ctx.beginPath();ctx.moveTo(42,423);ctx.lineTo(57,427);ctx.lineTo(42,430);ctx.closePath();ctx.fill();
+ }else{
+  const glow=ctx.createRadialGradient(950,445,2,950,445,34);glow.addColorStop(0,'#ffd36a');glow.addColorStop(1,'#ff6a2200');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(950,445,34,0,Math.PI*2);ctx.fill();
+ }
+
  // 応援する村人
  for(let i=0;i<3;i++)drawSpectator(left?24+i*25:926+i*25,535+(i%2)*7,team,i);
 }

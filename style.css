@@ -251,50 +251,10 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
  .result-actions button{min-width:130px;padding:10px 12px;font-size:14px}
 }
 
-
-/* v0.30: organized shared UI components */
-.result-actions{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:12px;
-  margin-top:18px;
-}
-.result-actions button{
-  min-width:148px;
-  padding:13px 16px;
-}
-.slime-picker{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-weight:900;
-}
-.slime-picker select{
-  padding:8px 10px;
-  border:3px solid #5a3b25;
-  border-radius:10px;
-  background:#fff8d9;
-  font:inherit;
-}
-.stage-card{
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:24px;
-  text-align:center;
-  color:#fff;
-  background:rgba(10,30,60,.88);
-}
+.stage-card{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at center,rgba(90,190,230,.55),rgba(8,27,52,.94));color:#fff;text-align:center}
 .stage-card.hidden{display:none}
-.legacy-retry{display:none!important}
-
-@media (max-height:420px) and (orientation:landscape){
-  .result-actions{gap:8px;margin-top:8px}
-  .result-actions button{min-width:124px;padding:9px 11px;font-size:14px}
-}
+.stage-card-inner{max-width:560px;padding:28px 34px;border:3px solid #dffcff;border-radius:24px;background:rgba(26,76,108,.82);box-shadow:0 0 38px rgba(146,231,255,.65)}
+.stage-card h2{font-size:clamp(36px,8vw,68px);margin:8px 0 14px}
+.stage-card p{margin:7px 0;font-size:clamp(16px,3vw,23px)}
+.stage-kicker{font-weight:900;color:#c9f5ff;letter-spacing:.08em}
+@media(max-height:420px) and (orientation:landscape){.stage-card-inner{padding:16px 24px}.stage-card h2{font-size:38px;margin:4px 0}.stage-card p{font-size:15px;margin:3px 0}}
