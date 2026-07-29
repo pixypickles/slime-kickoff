@@ -20,6 +20,12 @@ const norm=(x,y)=>{const d=Math.hypot(x,y)||1;return{x:x/d,y:y/d}};
 const rand=(a,b)=>a+Math.random()*(b-a);
 const teamColor=t=>t?'#d95757':'#3e9cdc';
 
+function opponentVillageName(){return currentStage===1?'ぶりふぉ村':'さるびえ村';}
+function opponentElement(){return currentStage===1?'ice':'fire';}
+function homeVillageName(){return 'ぷれん村';}
+function playerVillageName(){return homeVillageName();}
+function enemyVillageName(){return opponentVillageName();}
+
 function slimeAirborne(){
  return slime&&slime.hop>0.12&&Math.sin((1-slime.hop/Math.max(.01,slime.hopMax||.58))*Math.PI)>0.16;
 }
@@ -235,10 +241,12 @@ class Player{
   ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(0,30+jump,31,10,0,0,Math.PI*2);ctx.fill();
 
   // 胴体は常に上向き。片足は胴体の下へ固定し、もう片足だけ大きく蹴り出す。
-  const playerVillageIsSalubie=currentStage===1?this.team===1:this.team===0;
-  ctx.fillStyle=playerVillageIsSalubie?'#7b2438':'#ffffff';ctx.strokeStyle=this.isHuman?'#ffe45c':'#fff';ctx.lineWidth=this.isHuman?5:3;
+  const isHomePlayer=this.team===0;
+  const enemyBrifo=this.team===1&&currentStage===1;
+  ctx.fillStyle=isHomePlayer?'#fffdf0':(enemyBrifo?'#ffffff':'#7b2438');ctx.strokeStyle=this.isHuman?'#ffe45c':'#fff';ctx.lineWidth=this.isHuman?5:3;
   ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.fill();ctx.stroke();
-  if(!playerVillageIsSalubie){ctx.save();ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.clip();ctx.fillStyle='#7fd5ef';for(let sx=-18;sx<22;sx+=12)ctx.fillRect(sx,-7,6,42);ctx.restore();}
+  if(isHomePlayer){ctx.fillStyle='#f2cf4a';ctx.fillRect(-20,7,40,10);}
+  else if(enemyBrifo){ctx.save();ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.clip();ctx.fillStyle='#7fd5ef';for(let sx=-18;sx<22;sx+=12)ctx.fillRect(sx,-7,6,42);ctx.restore();}
   ctx.fillStyle=this.team?'#803737':'#25688f';ctx.fillRect(-15,17,30,7);
   ctx.fillStyle='#d9b36c';ctx.fillRect(-13,25,9,12);ctx.fillRect(5,25,9,12);
   ctx.fillStyle='#6a4328';ctx.strokeStyle='#29180e';ctx.lineWidth=4;
@@ -278,15 +286,15 @@ class Player{
  }
 }
 
-function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=selectedSpirit;b.spirit=currentStage===1?'fire':(selectedSpirit==='fire'?'ice':selectedSpirit==='ice'?'wind':selectedSpirit==='wind'?'earth':'fire');}players.push(a,b);}
+function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=selectedSpirit;b.spirit=opponentElement();}players.push(a,b);}
  const jumpy=selectedSlime==='jumpy';
  slime={x:500,y:310,vx:0,vy:0,r:jumpy?34:37,wobble:0,think:jumpy?rand(.35,.8):rand(.7,1.6),hop:0,hopMax:jumpy?.82:.58,airSpin:0,airSpinSpeed:0,airVolleyT:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0,type:selectedSlime};
  if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
 function startGame(){selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];hurricanes=[];freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';if(ui.clearCard){ui.clearCard.classList.add('hidden');ui.clearCard.style.display='none';}ui.controls.classList.add('hidden');ui.controls.style.display='none';
  if(ui.stageCard){
   const title=ui.stageCard.querySelector('h2'),kicker=ui.stageCard.querySelector('.stage-kicker'),paras=ui.stageCard.querySelectorAll('p'),quote=ui.stageCard.querySelector('strong');
-  if(currentStage===1){kicker.textContent='❄ 異次元ゲート接続';title.textContent='ぶりふぉ村';paras[0].textContent='雪と氷に囲まれた静かな村。';paras[1].textContent='今日も少し臭いスライムを、となり村へ押し返す。';quote.textContent='村長「押し返せ！ 臭いのは向こうへ返すんだ！」';}
-  else{kicker.textContent='🔥 新たな異次元ゲート接続';title.textContent='さるびえ村';paras[0].textContent='鍛冶場の煙が立ちのぼる、熱気のある村。';paras[1].textContent='今回は、よく跳ねるスライムが現れた。';quote.textContent='村長「熱く蹴り返せ！ こっちへ寄せるな！」';}
+  if(currentStage===1){kicker.textContent='❄ 異次元ゲート接続';title.textContent='ぶりふぉ村';paras[0].textContent='雪と氷に囲まれた静かな村。';paras[1].textContent='ぷれん村の前に、氷の村への道が開いた。';quote.textContent='村長「新しい村が相手だ！ 臭いのは向こうへ返すんだ！」';}
+  else{kicker.textContent='🔥 新たな異次元ゲート接続';title.textContent='さるびえ村';paras[0].textContent='鍛冶場の煙が立ちのぼる、熱気のある村。';paras[1].textContent='ぷれん村の次の対戦相手。今回は、よく跳ねるスライムが現れた。';quote.textContent='村長「また別の村だ！ こっちへ寄せるな！」';}
   ui.stageCard.classList.remove('hidden');ui.stageCard.style.display='flex';
  }
  reset();last=performance.now();requestAnimationFrame(loop);}
@@ -294,12 +302,12 @@ function endGame(){running=false;ui.controls.classList.add('hidden');ui.controls
  if(win&&currentStage===1){showClearSequence();return;}
  ui.result.classList.remove('hidden');ui.result.style.display='grid';
  ui.resultTitle.textContent=draw?'引き分け！':win?'褒美獲得！':'スライムを押し付けられた…';
- ui.resultText.textContent=currentStage===1?`ぶりふぉ村 ${score[0]} － ${score[1]} さるびえ村`:`さるびえ村 ${score[0]} － ${score[1]} ぶりふぉ村`;
+ ui.resultText.textContent=`${playerVillageName()} ${score[0]} － ${score[1]} ${enemyVillageName()}`;
  if(ui.nextStageBtn){ui.nextStageBtn.hidden=!win;ui.nextStageBtn.textContent='次のステージ';}
 }
 function update(dt){if(!running)return;
  if(stageIntroT>0){stageIntroT=Math.max(0,stageIntroT-dt);portalTime+=dt;if(stageIntroT===0){if(ui.stageCard){ui.stageCard.classList.add('hidden');ui.stageCard.style.display='none';}ui.controls.classList.remove('hidden');ui.controls.style.display='block';message='押し付け合い、始めぇぇ！！';messageLife=1.1;}return;}
- timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=currentStage===1?['押し返せー！','褒美は目の前だぞ！','臭いのは向こうへやれ！','靴を止めるなー！','おおっ、その調子だ！']:['熱く蹴り返せー！','鍛冶場へ入れるな！','火の粉より臭いぞ！','エンジの意地を見せろ！','そのまま押し込め！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);updateRockBalls(dt,stopped);updateHurricanes(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
+ timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=currentStage===1?['氷の村へ押し返せー！','ぷれん村を守れ！','雪の向こうへやれ！','靴を止めるなー！','その調子だ！']:['炎の村へ押し返せー！','鍛冶場の方へやれ！','ぷれん村へ入れるな！','熱さに負けるな！','そのまま押し込め！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);updateRockBalls(dt,stopped);updateHurricanes(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
 function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt*.62);slime.blink-=dt;slime.blinkT=Math.max(0,slime.blinkT-dt);slime.scared=Math.max(0,slime.scared-dt);slime.airVolleyT=Math.max(0,(slime.airVolleyT||0)-dt);slime.airSpin+=(slime.airSpinSpeed||0)*dt;if(slime.airVolleyT<=0)slime.airSpinSpeed*=Math.pow(.08,dt);slime.frozen=Math.max(0,(slime.frozen||0)-dt);if(slime.blink<=0){slime.blink=rand(1.5,4);slime.blinkT=.13;}if(slime.frozen>0){slime.vx*=Math.pow(.75,dt);slime.vy*=Math.pow(.75,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}return;}if(slime.startT>0){slime.startT=Math.max(0,slime.startT-dt);slime.hop=.58;slime.hopMax=.58;const burstOut=1-slime.startT/.9;slime.y=slime.startY-Math.sin(burstOut*Math.PI)*42;slime.vx*=.8;slime.vy*=.8;return;}if(slime.think<=0){
   slime.think=slime.type==='jumpy'?rand(.18,.55):rand(.38,1.15);
   const sideBias=Math.random()<.78;
@@ -469,52 +477,64 @@ function drawField(){
 }
 function drawVillage(team,edge){
  const left=team===0,x0=left?0:910;
- const isSalubieSide=currentStage===1?!left:left;
- const villageName=isSalubieSide?'さるびえ村':'ぶりふぉ村';
- const villageColor=isSalubieSide?'#7b2438':'#79cfe9';
+ const isHome=left;
+ const isBrifo=!left&&currentStage===1;
+ const isSalubie=!left&&currentStage===2;
+ const villageName=isHome?homeVillageName():(isBrifo?'ぶりふぉ村':'さるびえ村');
+ const villageColor=isHome?'#fff4a8':(isBrifo?'#79cfe9':'#7b2438');
+
  // 村の地面
- ctx.fillStyle=isSalubieSide?'#754338':'#c9effa';ctx.fillRect(x0,172,90,286);
- // 家・鍛冶小屋
+ ctx.fillStyle=isHome?'#ddd7bd':(isBrifo?'#c9effa':'#754338');ctx.fillRect(x0,172,90,286);
+
+ // 家
  for(let i=0;i<3;i++){
   const yy=192+i*82;
-  ctx.fillStyle=isSalubieSide?'#a66850':'#e7f7fb';ctx.fillRect(x0+7,yy,72,48);
-  ctx.fillStyle=isSalubieSide?'#562335':'#77cce7';ctx.beginPath();ctx.moveTo(x0+2,yy);ctx.lineTo(x0+43,yy-28);ctx.lineTo(x0+84,yy);ctx.closePath();ctx.fill();
+  ctx.fillStyle=isHome?'#f0ead2':(isBrifo?'#e7f7fb':'#a66850');ctx.fillRect(x0+7,yy,72,48);
+  ctx.fillStyle=isHome?'#d9c87e':(isBrifo?'#77cce7':'#562335');ctx.beginPath();ctx.moveTo(x0+2,yy);ctx.lineTo(x0+43,yy-28);ctx.lineTo(x0+84,yy);ctx.closePath();ctx.fill();
   ctx.fillStyle='#744629';ctx.fillRect(x0+17,yy+20,15,28);
-  ctx.fillStyle=isSalubieSide?'#ffb45d':'#9bd1df';ctx.fillRect(x0+47,yy+13,18,15);
-  if(isSalubieSide){
+  ctx.fillStyle=isHome?'#fff6ba':(isBrifo?'#9bd1df':'#ffb45d');ctx.fillRect(x0+47,yy+13,18,15);
+  if(isSalubie){
    ctx.fillStyle='#3b2724';ctx.fillRect(x0+62,yy-29,10,27);
    ctx.globalAlpha=.35;ctx.fillStyle='#2b2020';ctx.beginPath();ctx.arc(x0+67,yy-39-(i%2)*8,10+i*2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
   }
  }
+
  // 村旗
  ctx.strokeStyle='#55341f';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(left?30:970,116);ctx.lineTo(left?30:970,180);ctx.stroke();
  ctx.fillStyle=villageColor;ctx.beginPath();ctx.moveTo(left?32:968,120);ctx.lineTo(left?77:923,134);ctx.lineTo(left?32:968,148);ctx.closePath();ctx.fill();
+
  // 村名札
  ctx.fillStyle='#f5e7c0';ctx.strokeStyle='#5a3a25';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x0+5,153,80,31,7);ctx.fill();ctx.stroke();
  ctx.fillStyle='#3a2a1f';ctx.font='900 14px sans-serif';ctx.textAlign='center';ctx.fillText(villageName,left?45:955,174);
+
  // 壊れた塀
- ctx.fillStyle=isSalubieSide?'#824b39':'#a8e2f2';for(let y=202;y<440;y+=27){ctx.fillRect(left?82:900,y,18,18);}
+ ctx.fillStyle=isHome?'#d6ca9b':(isBrifo?'#a8e2f2':'#824b39');for(let y=202;y<440;y+=27)ctx.fillRect(left?82:900,y,18,18);
+
  // 荷車と樽
  ctx.fillStyle='#704526';ctx.fillRect(left?8:942,474,48,18);ctx.strokeStyle='#2f2118';ctx.lineWidth=5;ctx.beginPath();ctx.arc(left?18:952,495,10,0,Math.PI*2);ctx.arc(left?49:983,495,10,0,Math.PI*2);ctx.stroke();
  ctx.fillStyle='#9b6a3b';ctx.beginPath();ctx.roundRect(left?60:914,468,24,34,6);ctx.fill();
- // 村ごとの装飾
- if(isSalubieSide){
-  const fx=left?42:958,fy=446;
-  const glow=ctx.createRadialGradient(fx,fy,2,fx,fy,37);glow.addColorStop(0,'#fff3a4');glow.addColorStop(.4,'#ff8b32');glow.addColorStop(1,'#ff3e1600');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(fx,fy,37,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#3a2d2a';ctx.fillRect(fx-24,fy+16,48,10);
-  ctx.fillStyle='#6f6a68';ctx.beginPath();ctx.moveTo(fx-18,fy+10);ctx.lineTo(fx+18,fy+10);ctx.lineTo(fx+10,fy-1);ctx.lineTo(fx-10,fy-1);ctx.closePath();ctx.fill();
- }else{
-  const sx=left?42:958;
-  ctx.fillStyle='#fff';ctx.strokeStyle='#8fc9dd';ctx.lineWidth=3;
+
+ // 村固有の装飾
+ if(isHome){
+  // ぷれん村：白と黄色の素朴な花壇
+  const fx=42,fy=445;ctx.fillStyle='#8b6a36';ctx.fillRect(fx-26,fy+14,52,9);
+  for(let i=0;i<5;i++){ctx.fillStyle=i%2?'#fff':'#ffe45c';ctx.beginPath();ctx.arc(fx-22+i*11,fy+4+(i%2)*5,5,0,Math.PI*2);ctx.fill();}
+ }else if(isBrifo){
+  const sx=958;ctx.fillStyle='#fff';ctx.strokeStyle='#8fc9dd';ctx.lineWidth=3;
   ctx.beginPath();ctx.arc(sx,450,18,0,Math.PI*2);ctx.fill();ctx.stroke();
   ctx.beginPath();ctx.arc(sx,423,13,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#ef8a35';ctx.beginPath();ctx.moveTo(sx,423);ctx.lineTo(sx+(left?15:-15),427);ctx.lineTo(sx,430);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ef8a35';ctx.beginPath();ctx.moveTo(sx,423);ctx.lineTo(sx-15,427);ctx.lineTo(sx,430);ctx.closePath();ctx.fill();
+ }else{
+  const fx=958,fy=446;
+  const glow=ctx.createRadialGradient(fx,fy,2,fx,fy,37);glow.addColorStop(0,'#fff3a4');glow.addColorStop(.4,'#ff8b32');glow.addColorStop(1,'#ff3e1600');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(fx,fy,37,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#3a2d2a';ctx.fillRect(fx-24,fy+16,48,10);
  }
+
  for(let i=0;i<3;i++)drawSpectator(left?24+i*25:926+i*25,535+(i%2)*7,team,i);
 }
 function drawSpectator(x,y,team,i){
  const bounce=Math.sin(performance.now()/220+i*1.7)*3;ctx.save();ctx.translate(x,y+bounce);
- const spectatorSalubie=currentStage===1?team===1:team===0;ctx.fillStyle=spectatorSalubie?'#7b2438':'#8edcff';ctx.fillRect(-7,-2,14,18);ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-10,7,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=team===0?'#fff4a8':(currentStage===1?'#8edcff':'#7b2438');ctx.fillRect(-7,-2,14,18);ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-10,7,0,Math.PI*2);ctx.fill();
  ctx.strokeStyle='#51321f';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-5,3);ctx.lineTo(-12,-5);ctx.moveTo(5,3);ctx.lineTo(12,-7);ctx.stroke();ctx.restore();
 }
 function drawBrokenGate(x,top,bottom,team){
@@ -553,8 +573,8 @@ function drawGoalScene(){
 }
 function drawHud(){
  ctx.fillStyle='#10202be8';ctx.beginPath();ctx.roundRect(300,7,400,59,13);ctx.fill();
- ctx.fillStyle='#8ed7ff';ctx.textAlign='right';ctx.font='900 16px sans-serif';ctx.fillText(currentStage===1?'ぶりふぉ村':'さるびえ村',420,28);
- ctx.fillStyle='#ffaaaa';ctx.textAlign='left';ctx.fillText(currentStage===1?'さるびえ村':'ぶりふぉ村',580,28);
+ ctx.fillStyle='#8ed7ff';ctx.textAlign='right';ctx.font='900 16px sans-serif';ctx.fillText(playerVillageName(),420,28);
+ ctx.fillStyle='#ffaaaa';ctx.textAlign='left';ctx.fillText(enemyVillageName(),580,28);
  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='900 30px sans-serif';ctx.fillText(`${score[0]} － ${score[1]}`,500,38);
  ctx.font='bold 13px sans-serif';ctx.fillStyle='#ffeeb0';ctx.fillText(`押し付け数　　残り ${Math.ceil(timeLeft)}秒　　3回で褒美！`,500,58);
  // 褒美までの簡易印
@@ -651,7 +671,7 @@ function showClearSequence(){
   ui.result.classList.remove('hidden');
   ui.result.style.display='grid';
   ui.resultTitle.textContent='褒美獲得！';
-  ui.resultText.textContent='次の接続先：🔥 さるびえ村';
+  ui.resultText.textContent='ぷれん村の次の接続先：🔥 さるびえ村';
   if(ui.nextStageBtn){ui.nextStageBtn.hidden=false;ui.nextStageBtn.textContent='さるびえ村へ進む';}
  }
  chiefLine='助かった！ 約束の褒美だ！';chiefLife=2.4;
@@ -663,7 +683,7 @@ function closeClearSequence(){
  if(ui.slimeSelect)ui.slimeSelect.value='jumpy';
  ui.result.classList.remove('hidden');ui.result.style.display='grid';
  ui.resultTitle.textContent='新たな異次元空間が発生！';
- ui.resultText.textContent='次の接続先：🔥 さるびえ村';
+ ui.resultText.textContent='ぷれん村の次の接続先：🔥 さるびえ村';
  if(ui.nextStageBtn){ui.nextStageBtn.hidden=false;ui.nextStageBtn.textContent='さるびえ村へ進む';}
 }
 if(ui.clearNextBtn)ui.clearNextBtn.addEventListener('click',closeClearSequence);
