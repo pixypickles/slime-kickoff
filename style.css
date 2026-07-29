@@ -258,3 +258,15 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
 .stage-card p{margin:7px 0;font-size:clamp(16px,3vw,23px)}
 .stage-kicker{font-weight:900;color:#c9f5ff;letter-spacing:.08em}
 @media(max-height:420px) and (orientation:landscape){.stage-card-inner{padding:16px 24px}.stage-card h2{font-size:38px;margin:4px 0}.stage-card p{font-size:15px;margin:3px 0}}
+
+.clear-card{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at center,rgba(196,55,33,.55),rgba(20,7,12,.96));color:#fff;text-align:center}
+.clear-card.hidden{display:none}
+.clear-card-inner{max-width:600px;padding:28px 34px;border:3px solid #ffb06f;border-radius:24px;background:rgba(83,24,27,.9);box-shadow:0 0 45px rgba(255,92,40,.65)}
+.clear-card h2{font-size:clamp(28px,6vw,50px);margin:10px 0;color:#ffe4bf}
+.reward-line{font-size:clamp(18px,3vw,25px);font-weight:900;color:#fff5c7}
+.gate-flash{font-size:52px;animation:gatePulse .7s infinite alternate}
+.next-village{margin:18px 0;font-size:22px;color:#ffd0aa}
+.next-village strong{font-size:40px;color:#fff}
+.clear-card button{padding:13px 24px;border-radius:14px;border:3px solid #5e231e;background:#ffd68b;font-weight:900;font-size:18px}
+@keyframes gatePulse{from{transform:scale(.8);opacity:.55}to{transform:scale(1.25);opacity:1}}
+@media(max-height:420px) and (orientation:landscape){.clear-card-inner{padding:16px 24px}.clear-card h2{font-size:30px}.gate-flash{font-size:34px}.next-village{margin:8px 0;font-size:17px}.next-village strong{font-size:28px}}
