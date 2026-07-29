@@ -199,9 +199,9 @@ class Player{
   return n;
  }
  shoulderDash(){
-  this.dashCd=.78;this.dashTime=.2;
+  this.dashCd=.4;this.dashTime=.16;
   const n=norm(this.faceX||1,this.faceY||0),sx=this.x,sy=this.y;
-  const distance=185;
+  const distance=128; // 約2.5人分
   this.x+=n.x*distance;this.y+=n.y*distance;constrainToField(this);
   const ex=this.x,ey=this.y;
   let color='#fff1a3',label='ショルダーチャージ！';
@@ -216,20 +216,21 @@ class Player{
    if(segmentDistance(p.x,p.y,sx,sy,ex,ey)>p.r+28)continue;
    p.vx+=n.x*(this.spirit==='wind'?980:this.spirit==='plain'?860:720);
    p.vy+=n.y*(this.spirit==='wind'?980:this.spirit==='plain'?860:720);
-   p.stun=Math.max(p.stun,.5);
-   if(this.spirit==='fire'){p.burn=Math.max(p.burn,1.15);p.burnTick=0;}
-   if(this.spirit==='ice'){p.frozen=Math.max(p.frozen,1.15);p.stun=0;}
-   if(this.spirit==='earth'){p.stun=Math.max(p.stun,.9);p.vx+=n.x*240;p.vy+=n.y*240;}
+   p.stun=Math.max(p.stun,.42);
+   if(this.spirit==='fire'){p.burn=Math.max(p.burn,1.0);p.burnTick=0;}
+   if(this.spirit==='ice'){p.frozen=Math.max(p.frozen,.72);p.stun=0;}
+   if(this.spirit==='earth'){this.dashArmorT=Math.max(this.dashArmorT,.55);p.stun=Math.max(p.stun,.62);p.vx+=n.x*170;p.vy+=n.y*170;}
    if(this.spirit==='thunder')electrify(p,1.05,0);
    burst(p.x,p.y,color,18);
   }
 
   if(slime&&segmentDistance(slime.x,slime.y,sx,sy,ex,ey)<slime.r+30){
-   slime.vx+=n.x*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760);
-   slime.vy+=n.y*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760);
+   const dashPush=slime.type==='rock'?.58:1;
+   slime.vx+=n.x*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760)*dashPush;
+   slime.vy+=n.y*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760)*dashPush;
    slime.hop=Math.max(slime.hop,.62);slime.hopMax=Math.max(slime.hopMax||.58,slime.hop);
    if(this.spirit==='fire'){slime.scared=1;slime.vx+=n.x*180;slime.vy+=n.y*180;}
-   if(this.spirit==='ice'){slime.frozen=Math.max(slime.frozen||0,1.15);}
+   if(this.spirit==='ice'){slime.frozen=Math.max(slime.frozen||0,.72);}
    if(this.spirit==='earth'){slime.vx+=n.x*260;slime.vy+=n.y*260;}
    if(this.spirit==='thunder')electrify(slime,1.0,0);
    burst(slime.x,slime.y,color,20);
@@ -283,7 +284,7 @@ class Player{
     slime.scared=1;message='空中ボレー！ 属性レジスト！';messageLife=1.0;
     shake=Math.max(shake,16);burst(slime.x,slime.y,'#fff4b5',34);
    }else{
-    slime.vx+=n.x*power*elementPower;slime.vy+=n.y*power*elementPower;
+    const slimePush=slime.type==='rock'?.58:1;slime.vx+=n.x*power*elementPower*slimePush;slime.vy+=n.y*power*elementPower*slimePush;
     slime.wobble+=rand(-2,2);slime.hop=Math.max(slime.hop,air||sliding?.68:.54);
     slime.hopMax=Math.max(slime.hopMax||.45,slime.hop);
     shake=Math.max(shake,sliding?10:6);burst(slime.x,slime.y,elementColor,16);
@@ -459,10 +460,18 @@ class Player{
 
   // 頭・顔は画面上向きに固定。
   ctx.fillStyle='#f2c895';ctx.strokeStyle='#16120f';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-25,19,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle=this.spirit==='ice'?'#b7efff':this.spirit==='fire'?'#d9482f':this.spirit==='wind'?'#85d69a':this.spirit==='earth'?'#8a6844':'#53321f';ctx.beginPath();ctx.arc(0,-31,15,Math.PI,Math.PI*2);ctx.fill();if(this.spirit==='fire'){ctx.fillStyle='#ffcf45';ctx.beginPath();ctx.moveTo(-12,-39);ctx.quadraticCurveTo(-4,-58,1,-41);ctx.quadraticCurveTo(10,-58,13,-37);ctx.closePath();ctx.fill();}
-  if(this.spirit==='ice'){ctx.fillStyle='#e9fdff';ctx.beginPath();ctx.moveTo(-14,-38);ctx.lineTo(-5,-55);ctx.lineTo(0,-40);ctx.lineTo(8,-56);ctx.lineTo(14,-37);ctx.closePath();ctx.fill();}
-  if(this.spirit==='wind'){ctx.strokeStyle='#e2ffe9';ctx.lineWidth=5;ctx.beginPath();ctx.arc(-2,-39,15,Math.PI*1.05,Math.PI*1.9);ctx.stroke();ctx.beginPath();ctx.arc(5,-43,10,Math.PI*.9,Math.PI*1.75);ctx.stroke();}
-  if(this.spirit==='earth'){ctx.fillStyle='#d7b07a';ctx.beginPath();ctx.moveTo(-14,-38);ctx.lineTo(-9,-49);ctx.lineTo(-2,-43);ctx.lineTo(5,-51);ctx.lineTo(14,-37);ctx.closePath();ctx.fill();ctx.strokeStyle='#5e432c';ctx.lineWidth=2;ctx.stroke();}
+  ctx.fillStyle=this.spirit==='ice'?'#b7efff':this.spirit==='fire'?'#d9482f':this.spirit==='wind'?'#85d69a':this.spirit==='earth'?'#8a6844':'#53321f';ctx.beginPath();ctx.arc(0,-31,15,Math.PI,Math.PI*2);ctx.fill();
+  if(this.index===0){
+   // リーダーは角ではなく、小さく自然な村帽子。
+   ctx.fillStyle=this.team===0?'#f2cf4a':teamColor(this.team);ctx.strokeStyle='#38261b';ctx.lineWidth=2;
+   ctx.beginPath();ctx.ellipse(0,-42,18,5,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.beginPath();ctx.roundRect(-10,-52,20,11,4);ctx.fill();ctx.stroke();
+  }else{
+   if(this.spirit==='fire'){ctx.fillStyle='#ffcf45';ctx.beginPath();ctx.moveTo(-12,-39);ctx.quadraticCurveTo(-4,-58,1,-41);ctx.quadraticCurveTo(10,-58,13,-37);ctx.closePath();ctx.fill();}
+   if(this.spirit==='ice'){ctx.fillStyle='#e9fdff';ctx.beginPath();ctx.moveTo(-14,-38);ctx.lineTo(-5,-55);ctx.lineTo(0,-40);ctx.lineTo(8,-56);ctx.lineTo(14,-37);ctx.closePath();ctx.fill();}
+   if(this.spirit==='wind'){ctx.strokeStyle='#e2ffe9';ctx.lineWidth=5;ctx.beginPath();ctx.arc(-2,-39,15,Math.PI*1.05,Math.PI*1.9);ctx.stroke();ctx.beginPath();ctx.arc(5,-43,10,Math.PI*.9,Math.PI*1.75);ctx.stroke();}
+   if(this.spirit==='earth'){ctx.fillStyle='#d7b07a';ctx.beginPath();ctx.moveTo(-14,-38);ctx.lineTo(-9,-49);ctx.lineTo(-2,-43);ctx.lineTo(5,-51);ctx.lineTo(14,-37);ctx.closePath();ctx.fill();ctx.strokeStyle='#5e432c';ctx.lineWidth=2;ctx.stroke();}
+  }
   ctx.fillStyle='#2b1b15';ctx.beginPath();ctx.arc(-6,-25,2.3,0,Math.PI*2);ctx.arc(6,-25,2.3,0,Math.PI*2);ctx.fill();
   ctx.strokeStyle='#8a4d3b';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-19,5,.2,Math.PI-.2);ctx.stroke();
   ctx.restore();
@@ -473,8 +482,8 @@ class Player{
 }
 
 function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=selectedSpirit;b.spirit=opponentElement();}players.push(a,b);}
- const jumpy=selectedSlime==='jumpy';
- slime={x:500,y:310,vx:0,vy:0,r:jumpy?34:37,wobble:0,think:jumpy?rand(.35,.8):rand(.7,1.6),hop:0,hopMax:jumpy?.82:.58,airSpin:0,airSpinSpeed:0,airVolleyT:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0,shockT:0,type:selectedSlime};
+ const jumpy=selectedSlime==='jumpy',rock=selectedSlime==='rock';
+ slime={x:500,y:310,vx:0,vy:0,r:rock?42:(jumpy?34:37),wobble:0,think:rock?rand(.9,1.8):(jumpy?rand(.35,.8):rand(.7,1.6)),hop:0,hopMax:rock?.34:(jumpy?.82:.58),airSpin:0,airSpinSpeed:0,airVolleyT:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0,shockT:0,type:selectedSlime,mass:rock?1.75:1};
  if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
 function startGame(){markStageSeen(currentStage);selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];pebbles=[];hurricanes=[];freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';if(ui.clearCard){ui.clearCard.classList.add('hidden');ui.clearCard.style.display='none';}ui.controls.classList.add('hidden');ui.controls.style.display='none';
  if(ui.stageCard){
@@ -531,13 +540,13 @@ function update(dt){if(!running)return;
  if(stageIntroT>0){stageIntroT=Math.max(0,stageIntroT-dt);portalTime+=dt;if(stageIntroT===0){if(ui.stageCard){ui.stageCard.classList.add('hidden');ui.stageCard.style.display='none';}ui.controls.classList.remove('hidden');ui.controls.style.display='block';message='押し付け合い、始めぇぇ！！';messageLife=1.1;}return;}
  timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=currentStage===1?['氷の村へ押し返せー！','ぷれん村を守れ！','雪の向こうへやれ！','靴を止めるなー！','その調子だ！']:currentStage===2?['炎の村へ押し返せー！','鍛冶場の方へやれ！','ぷれん村へ入れるな！','熱さに負けるな！','そのまま押し込め！']:currentStage===3?['風車の向こうへ押し返せー！','飛ばされるな！','ターコイズの旗を狙え！','風に負けず踏ん張れ！','そのまま押し込め！']:currentStage===4?['石垣の向こうへ押し返せー！','地面に埋められるな！','竹林まで飛ばせ！','足元を固めろ！','そのまま押し込め！']:['感電するなー！','サーカスの舞台へ押し返せ！','雷より速く蹴れ！','煙を出すなー！','ショーを終わらせろ！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);updateRockBalls(dt,stopped);updatePebbles(dt,stopped);updateHurricanes(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
 function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt*.62);slime.blink-=dt;slime.blinkT=Math.max(0,slime.blinkT-dt);slime.scared=Math.max(0,slime.scared-dt);slime.airVolleyT=Math.max(0,(slime.airVolleyT||0)-dt);slime.airSpin+=(slime.airSpinSpeed||0)*dt;if(slime.airVolleyT<=0)slime.airSpinSpeed*=Math.pow(.08,dt);slime.frozen=Math.max(0,(slime.frozen||0)-dt);slime.shockT=Math.max(0,(slime.shockT||0)-dt);if(slime.shockT>0){slime.vx*=Math.pow(.08,dt);slime.vy*=Math.pow(.08,dt);if(Math.random()<.22)burst(slime.x+rand(-18,18),slime.y+rand(-18,18),'#fff36a',1);}if(slime.blink<=0){slime.blink=rand(1.5,4);slime.blinkT=.13;}if(slime.frozen>0){slime.vx*=Math.pow(.75,dt);slime.vy*=Math.pow(.75,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}return;}if(slime.startT>0){slime.startT=Math.max(0,slime.startT-dt);slime.hop=.58;slime.hopMax=.58;const burstOut=1-slime.startT/.9;slime.y=slime.startY-Math.sin(burstOut*Math.PI)*42;slime.vx*=.8;slime.vy*=.8;return;}if(slime.think<=0){
-  slime.think=slime.type==='jumpy'?rand(.18,.55):rand(.38,1.15);
+  slime.think=slime.type==='rock'?rand(.75,1.5):(slime.type==='jumpy'?rand(.18,.55):rand(.38,1.15));
   const sideBias=Math.random()<.78;
   const a=sideBias?(Math.random()<.5?0:Math.PI)+rand(-.4,.4):rand(0,Math.PI*2);
-  const f=slime.type==='jumpy'?rand(180,330):rand(145,285);
+  const f=slime.type==='rock'?rand(70,135):(slime.type==='jumpy'?rand(180,330):rand(145,285));
   slime.vx+=Math.cos(a)*f;slime.vy+=Math.sin(a)*f;
   slime.wobble=rand(-4.2,4.2);
-  slime.hop=slime.type==='jumpy'?rand(.95,1.25):rand(.7,1.0);slime.hopMax=slime.hop;
+  slime.hop=slime.type==='rock'?rand(.22,.38):(slime.type==='jumpy'?rand(.95,1.25):rand(.7,1.0));slime.hopMax=slime.hop;
   if(Math.random()<.36)slime.think=rand(.14,.28);
  }
  slime.vx*=Math.pow(.18,dt);slime.vy*=Math.pow(.18,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;slime.wobble*=Math.pow(.05,dt);constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}}
@@ -658,7 +667,7 @@ function pushOutOfBuried(obj,buried,extra=0){
  if('vx' in obj){const dot=(obj.vx||0)*n.x+(obj.vy||0)*n.y;if(dot<0){obj.vx-=dot*n.x*1.4;obj.vy-=dot*n.y*1.4;}obj.vx+=n.x*75;obj.vy+=n.y*75;}
 }
 function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.length;j++){const a=players[i],b=players[j];if(a.respawnT>0||b.respawnT>0||a.buriedT>0||b.buriedT>0||a.wallStickT>0||b.wallStickT>0||a.isAirborne()||b.isAirborne())continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d<min){const n=norm(dx,dy),push=(min-d)*.62;a.x-=n.x*push;b.x+=n.x*push;a.y-=n.y*push;b.y+=n.y*push;const repel=95+(min-d)*10,ar=a.dashArmorT>0?.18:1,br=b.dashArmorT>0?.18:1;a.vx-=n.x*repel*ar;b.vx+=n.x*repel*br;a.vy-=n.y*repel*ar;b.vy+=n.y*repel*br;if(a.frozen>0){a.vx-=n.x*360;a.vy-=n.y*360;}if(b.frozen>0){b.vx+=n.x*360;b.vy+=n.y*360;}}}
- for(const p of players){if(p.respawnT>0||p.buriedT>0||p.wallStickT>0||p.isAirborne())continue;const dx=slime.x-p.x,dy=slime.y-p.y,d=Math.hypot(dx,dy),min=p.r+slime.r;if(d<min){const n=norm(dx,dy),push=min-d;slime.x+=n.x*push;slime.y+=n.y*push;const boost=slime.frozen>0?430:80;slime.vx+=n.x*boost;slime.vy+=n.y*boost;slime.scared=.35;if(slime.frozen>0){message='凍ったスライムがツルーッ！';messageLife=.7;}}}
+ for(const p of players){if(p.respawnT>0||p.buriedT>0||p.wallStickT>0||p.isAirborne())continue;const dx=slime.x-p.x,dy=slime.y-p.y,d=Math.hypot(dx,dy),min=p.r+slime.r;if(d<min){const n=norm(dx,dy),push=min-d;slime.x+=n.x*push;slime.y+=n.y*push;const boost=(slime.frozen>0?430:80)/(slime.mass||1);slime.vx+=n.x*boost;slime.vy+=n.y*boost;slime.scared=.35;if(slime.frozen>0){message='凍ったスライムがツルーッ！';messageLife=.7;}}}
  const buried=players.filter(p=>p.buriedT>0&&p.respawnT<=0);
  for(const b of buried){
   for(const p of players){if(p===b||p.respawnT>0||p.buriedT>0||p.wallStickT>0||p.isAirborne())continue;pushOutOfBuried(p,b);}
@@ -904,10 +913,11 @@ function drawSlime(){
   ctx.beginPath();ctx.moveTo(slime.x-Math.sign(slime.vx)*72,slime.y-hop);ctx.lineTo(slime.x-Math.sign(slime.vx)*24,slime.y-hop);ctx.stroke();ctx.restore();
  }
  ctx.save();ctx.translate(slime.x,slime.y-hop);ctx.rotate(slime.airVolleyT>0?slime.airSpin:slime.wobble*.08);ctx.scale(1+squash+wob,1-squash-wob);
- const g=ctx.createRadialGradient(-10,-15,4,0,0,45);g.addColorStop(0,'#e8fbff');g.addColorStop(.35,'#61ccff');g.addColorStop(1,'#0874da');ctx.fillStyle=g;ctx.strokeStyle='#073d92';ctx.lineWidth=5;
+ const g=ctx.createRadialGradient(-10,-15,4,0,0,45);if(slime.type==='rock'){g.addColorStop(0,'#e0d4c1');g.addColorStop(.38,'#9a856c');g.addColorStop(1,'#55493d');}else{g.addColorStop(0,'#e8fbff');g.addColorStop(.35,'#61ccff');g.addColorStop(1,'#0874da');}ctx.fillStyle=g;ctx.strokeStyle=slime.type==='rock'?'#3d342c':'#073d92';ctx.lineWidth=5;
  ctx.beginPath();ctx.moveTo(-34,10);ctx.quadraticCurveTo(-42,-12,-22,-25);ctx.quadraticCurveTo(0,-42,23,-25);ctx.quadraticCurveTo(44,-10,34,13);ctx.quadraticCurveTo(0,34,-34,10);ctx.fill();ctx.stroke();
  ctx.fillStyle='#fff';ctx.globalAlpha=.85;ctx.beginPath();ctx.ellipse(-13,-18,10,7,-.5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
  ctx.fillStyle='#063a78';ctx.beginPath();if(slime.blinkT>0){ctx.ellipse(-10,-4,4,1,0,0,7);ctx.ellipse(10,-4,4,1,0,0,7);}else{const look=clamp(slime.vx/240,-2,2);ctx.arc(-10+look,-4,3,0,Math.PI*2);ctx.arc(10+look,-4,3,0,Math.PI*2);}ctx.fill();
+ if(slime.type==='rock'){ctx.fillStyle='#6c5c4d';ctx.strokeStyle='#3d342c';ctx.lineWidth=2;for(const [x,y,r] of [[-22,-18,8],[18,-21,7],[-25,6,6],[21,8,9],[0,-30,7]]){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.stroke();}}
  if(slime.type==='jumpy'){ctx.fillStyle='#ffe36a';ctx.strokeStyle='#7a5b00';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-9,-31);ctx.lineTo(-3,-44);ctx.lineTo(3,-31);ctx.lineTo(10,-45);ctx.lineTo(14,-27);ctx.closePath();ctx.fill();ctx.stroke();}
  ctx.strokeStyle='#063a78';ctx.lineWidth=3;ctx.beginPath();if(slime.scared>0){ctx.arc(0,7,5,0,Math.PI*2);}else{ctx.arc(0,4,7,.15,Math.PI-.15);}ctx.stroke();ctx.restore();if(slime.frozen>0){ctx.save();ctx.globalAlpha=.48;ctx.fillStyle='#bff7ff';ctx.strokeStyle='#edffff';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(slime.x-45,slime.y-hop-45,90,82,22);ctx.fill();ctx.stroke();ctx.restore();}
  // 本当に微かな臭い
