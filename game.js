@@ -106,7 +106,7 @@ class Player{
   }
   if(this.wallStickT>0){
    this.wallStickT=Math.max(0,this.wallStickT-dt);this.vx=this.vy=0;this.stun=Math.max(this.stun,.08);
-   if(this.wallStickT===0){this.stun=.28;const n=norm(FIELD.cx-this.x,FIELD.cy-this.y);this.vx=n.x*170;this.vy=n.y*170;burst(this.x,this.y,'#fff09a',18);message='壁からズルッと復帰！';messageLife=.65;}
+   if(this.wallStickT===0){this.stun=.28;this.wallSplatPending=0;const n=norm(FIELD.cx-this.x,FIELD.cy-this.y);this.vx=n.x*170;this.vy=n.y*170;burst(this.x,this.y,'#fff09a',18);message='壁からズルッと復帰！';messageLife=.65;}
    return;
   }
   this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);this.spinKick=Math.max(0,this.spinKick-dt);if(this.spinKick>0)this.spinAngle+=dt*19;if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
@@ -808,9 +808,15 @@ function closeClearSequence(){
 if(ui.clearNextBtn)ui.clearNextBtn.addEventListener('click',closeClearSequence);
 
 function backToMenu(){
- running=false;ui.controls.classList.add('hidden');ui.controls.style.display='none';
+ running=false;
+ ui.controls.classList.add('hidden');ui.controls.style.display='none';
  ui.result.classList.add('hidden');ui.result.style.display='none';
  ui.intro.classList.remove('hidden');ui.intro.style.display='grid';
+ if(ui.startBtn){
+  ui.startBtn.disabled=false;
+  ui.startBtn.classList.remove('disabled');
+  ui.startBtn.textContent='村長の合図で開始';
+ }
 }
 function nextStage(){
  currentStage=2;selectedSlime='jumpy';
