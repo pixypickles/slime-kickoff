@@ -74,7 +74,7 @@ class Player{
 }
 
 function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=selectedSpirit;b.spirit=selectedSpirit==='fire'?'ice':selectedSpirit==='ice'?'wind':'fire';}players.push(a,b);}slime={x:500,y:310,vx:0,vy:0,r:37,wobble:0,think:rand(1.5,3.5),hop:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0};if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
-function startGame(){score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];freeze=0;running=true;ui.intro.classList.add('hidden');ui.result.classList.add('hidden');ui.controls.classList.remove('hidden');reset();last=performance.now();requestAnimationFrame(loop);}
+function startGame(){score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];freeze=0;running=true;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';ui.controls.classList.remove('hidden');ui.controls.style.display='block';reset();last=performance.now();requestAnimationFrame(loop);}
 function endGame(){running=false;ui.controls.classList.add('hidden');ui.result.classList.remove('hidden');const win=score[0]>score[1],draw=score[0]===score[1];ui.resultTitle.textContent=draw?'引き分け！':win?'褒美獲得！':'スライムを押し付けられた…';ui.resultText.textContent=`あなたの村 ${score[0]} － ${score[1]} となり村`;}
 function update(dt){if(!running)return;timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=['押し返せー！','褒美は目の前だぞ！','臭いのは向こうへやれ！','靴を止めるなー！','おおっ、その調子だ！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*24);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
 function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt);slime.blink-=dt;slime.blinkT=Math.max(0,slime.blinkT-dt);slime.scared=Math.max(0,slime.scared-dt);slime.frozen=Math.max(0,(slime.frozen||0)-dt);if(slime.blink<=0){slime.blink=rand(1.5,4);slime.blinkT=.13;}if(slime.frozen>0){slime.vx*=Math.pow(.75,dt);slime.vy*=Math.pow(.75,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}return;}if(slime.startT>0){slime.startT=Math.max(0,slime.startT-dt);slime.hop=.45;const burstOut=1-slime.startT/.9;slime.y=slime.startY-Math.sin(burstOut*Math.PI)*42;slime.vx*=.8;slime.vy*=.8;return;}if(slime.think<=0){slime.think=rand(.9,2.7);const a=rand(0,Math.PI*2),f=rand(70,190);slime.vx+=Math.cos(a)*f;slime.vy+=Math.sin(a)*f;slime.wobble=rand(-3,3);slime.hop=.45;}
@@ -221,18 +221,48 @@ addEventListener('keydown',e=>{keys[e.key]=true;keys[e.key.toLowerCase()]=true;e
 // 一部の折りたたみ端末/WebViewでclickが落ちる場合に備え、pointerupも受ける。
 let startLock=false;
 function startFromIntro(e){
- if(e){e.preventDefault();e.stopPropagation();}
- if(startLock||running)return;
+ // Android WebViewや折りたたみ端末でも確実に開始できるよう、
+ // class切替だけに頼らず要素の表示状態を直接切り替える。
+ if(startLock||running)return false;
  startLock=true;
- const checked=document.querySelector('input[name="spirit"]:checked');
- if(checked)applySpirit(checked.value);
- startGame();
- setTimeout(()=>{startLock=false;},300);
+ try{
+  const checked=document.querySelector('input[name="spirit"]:checked');
+  if(checked)applySpirit(checked.value);
+  ui.startBtn.textContent='開始します…';
+  ui.startBtn.disabled=true;
+  ui.intro.classList.add('hidden');
+  ui.intro.style.display='none';
+  ui.result.classList.add('hidden');
+  ui.result.style.display='none';
+  ui.controls.classList.remove('hidden');
+  ui.controls.style.display='block';
+  // 画面切替を先に描画させてからゲーム初期化する。
+  setTimeout(()=>{
+   try{ startGame(); }
+   catch(err){
+    console.error(err);
+    running=false;
+    ui.intro.style.display='grid';
+    ui.intro.classList.remove('hidden');
+    ui.controls.style.display='none';
+    ui.controls.classList.add('hidden');
+    ui.startBtn.disabled=false;
+    ui.startBtn.textContent='もう一度開始する';
+    if(ui.loadingText)ui.loadingText.textContent='開始処理でエラーが発生しました。もう一度お試しください。';
+    startLock=false;
+   }
+  },0);
+ }catch(err){
+  console.error(err);
+  startLock=false;
+  ui.startBtn.disabled=false;
+ }
+ return false;
 }
 window.startSlimeGame=startFromIntro;
 ui.startBtn.disabled=false;
+// onclick/ontouchendはHTML側にも設定。ここはPC・新しいブラウザ用の保険。
 ui.startBtn.addEventListener('click',startFromIntro);
-ui.startBtn.addEventListener('pointerup',startFromIntro);
 ui.retryBtn.addEventListener('click',startGame);
 let stickId=null;function stickMove(e){const r=ui.stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=r.width*.32,d=Math.hypot(dx,dy)||1,k=Math.min(1,max/d);input.x=dx/d*k;input.y=dy/d*k;ui.knob.style.transform=`translate(${input.x*max}px,${input.y*max}px)`;}
 ui.stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;ui.stick.setPointerCapture(e.pointerId);stickMove(e);});ui.stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickMove(e);});ui.stick.addEventListener('pointerup',e=>{if(e.pointerId===stickId){stickId=null;input.x=input.y=0;ui.knob.style.transform='';}});document.querySelectorAll('[data-action]').forEach(b=>{b.addEventListener('pointerdown',e=>{input[b.dataset.action]=true;e.preventDefault();});b.addEventListener('pointerup',e=>{input[b.dataset.action]=false;e.preventDefault();});b.addEventListener('pointercancel',()=>{input[b.dataset.action]=false;});});
