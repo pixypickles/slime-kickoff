@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.44 STORY DISCLOSURE</title>
+  <title>スライム・キックオフ！ v0.45 STORY MODAL</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,18 +18,8 @@
           <h1>スライム・キックオフ！</h1>
           <p class="tagline">ちょっと臭いスライムを、となり村へ。</p>
           <div class="story-preview" aria-label="物語のあらすじ">
-            <p><strong>村の間に異次元ゲートが出現！</strong><br>少し臭いスライムを蹴って、相手村のゴールへ押し返す村対抗スポーツです。</p>
-            <details class="story-details">
-              <summary>📖 物語を全文読む</summary>
-              <div class="story story-full">
-                <p>ある日、隣り合う二つの村の間に、<br><strong>異次元へつながる空間</strong>が突然現れた。</p>
-                <p>地面と村の塀は円形にごっそり削られ、<br>不思議な力のせいで埋め戻すこともできない。</p>
-                <p>中心の小さなゲートから現れるのは、<br>意思もなく、人を襲いもしない無害なスライム。</p>
-                <p>放っておけば蒸発して消える。<br>ただし……<strong>ほんの少しだけ臭い。</strong></p>
-                <p>そこで両村の村長は、相手の村へスライムを押し返した者に<br><strong>褒美を与える</strong>ことにした。</p>
-                <p class="final-line">こうして今日も、村人たちの熱い押し付け合いが始まる！</p>
-              </div>
-            </details>
+            <p><strong>異次元ゲートから現れる、ちょっと臭いスライム。</strong><br>蹴って押して、相手村のゴールへ送り返そう！</p>
+            <label class="story-open" for="storyToggle">📖 物語を大きく読む</label>
           </div>
         </div>
         <div class="intro-footer">
@@ -74,8 +64,27 @@
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.44 STORY DISCLOSURE</small>
+          <small>v0.45 STORY MODAL</small>
         </div>
+      </div>
+      <input class="story-toggle" type="checkbox" id="storyToggle" aria-hidden="true">
+      <div class="story-modal" role="dialog" aria-modal="true" aria-labelledby="storyModalTitle">
+        <label class="story-backdrop" for="storyToggle" aria-label="物語を閉じる"></label>
+        <article class="story-modal-card">
+          <header class="story-modal-head">
+            <h2 id="storyModalTitle">スライム・キックオフ！の物語</h2>
+            <label class="story-close" for="storyToggle" aria-label="閉じる">×</label>
+          </header>
+          <div class="story story-full">
+            <p>ある日、隣り合う二つの村の間に、<br><strong>異次元へつながる空間</strong>が突然現れた。</p>
+            <p>地面と村の塀は円形にごっそり削られ、<br>不思議な力のせいで埋め戻すこともできない。</p>
+            <p>中心の小さなゲートから現れるのは、<br>意思もなく、人を襲いもしない無害なスライム。</p>
+            <p>放っておけば蒸発して消える。<br>ただし……<strong>ほんの少しだけ臭い。</strong></p>
+            <p>そこで両村の村長は、相手の村へスライムを押し返した者に<br><strong>褒美を与える</strong>ことにした。</p>
+            <p class="final-line">こうして今日も、村人たちの熱い押し付け合いが始まる！</p>
+          </div>
+          <label class="story-close-bottom" for="storyToggle">閉じて準備に戻る</label>
+        </article>
       </div>
     </section>
 

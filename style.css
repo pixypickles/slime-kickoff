@@ -455,3 +455,97 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
   .story-details summary{min-height:30px;padding:4px 11px;font-size:11px}
   .story-details .story-full{max-height:145px;font-size:11px;line-height:1.35}
 }
+
+/* v0.45 STORY MODAL: 説明を準備画面から切り離し、大きなポップアップで表示 */
+.story-preview{
+  width:min(660px,96%);
+  margin:4px auto 2px;
+  padding:7px 12px 8px;
+  border:2px solid #e8c865aa;
+  border-radius:14px;
+  background:linear-gradient(180deg,#172d38f5,#0c1a22f5);
+}
+.story-preview p{
+  display:block!important;
+  margin:0 0 6px!important;
+  color:#fff7d2;
+  font-size:clamp(11px,1.65vw,15px)!important;
+  line-height:1.32!important;
+  font-weight:800;
+}
+.story-preview .story-open{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:6px 17px;
+  border:1px solid #ffe48aaa;
+  border-radius:999px;
+  color:#fff;
+  background:#496f84;
+  box-shadow:inset 0 -3px 0 #0004,0 3px 8px #0005;
+  font-size:clamp(12px,1.65vw,15px);
+  font-weight:900;
+  cursor:pointer;
+  touch-action:manipulation!important;
+}
+.story-toggle{position:absolute;opacity:0;pointer-events:none}
+.intro-panel>.story-modal{
+  position:absolute;
+  inset:0;
+  z-index:200;
+  display:none;
+  place-items:center;
+  padding:clamp(8px,2vh,18px);
+  background:#061017e8;
+  backdrop-filter:blur(5px);
+  touch-action:manipulation!important;
+}
+.story-toggle:checked+.story-modal{display:grid}
+.story-backdrop{position:absolute;inset:0;cursor:pointer;touch-action:manipulation!important}
+.intro-panel>.story-modal .story-modal-card{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  width:min(720px,96%);
+  max-height:94%;
+  padding:clamp(14px,2.8vh,24px);
+  border:3px solid #d7b66e;
+  border-radius:22px;
+  background:linear-gradient(180deg,#294954,#14262e);
+  box-shadow:0 16px 48px #000c,inset 0 0 30px #0005;
+}
+.intro-panel>.story-modal .story-modal-head{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid #f0d58a66}
+.intro-panel>.story-modal .story-modal-head h2{flex:1;margin:0;font-size:clamp(20px,3.4vw,32px)}
+.intro-panel>.story-modal .story-close{
+  display:grid;place-items:center;flex:0 0 auto;width:44px;height:44px;border-radius:50%;
+  background:#87483b;color:#fff;font-size:30px;font-weight:900;cursor:pointer;touch-action:manipulation!important
+}
+.intro-panel>.story-modal .story-full{
+  flex:1 1 auto;min-height:0;overflow:auto;margin:10px 0;padding:4px 12px;
+  color:#fff;text-align:left;font-size:clamp(14px,2.15vw,19px);line-height:1.65;
+  -webkit-overflow-scrolling:touch;touch-action:pan-y!important
+}
+.intro-panel>.story-modal .story-full p{display:block!important;margin:10px 0!important}
+.intro-panel>.story-modal .story-close-bottom{
+  display:flex;align-items:center;justify-content:center;width:min(390px,94%);min-height:44px;
+  margin:2px auto 0;padding:9px 18px;border-radius:14px;background:#dc8128;color:#fff;
+  box-shadow:inset 0 -4px 0 #0004,0 4px 10px #0005;font-size:clamp(14px,2vw,18px);font-weight:900;cursor:pointer;
+  touch-action:manipulation!important
+}
+@media (max-height:520px){
+  .intro-scroll{padding-top:0}
+  .intro-scroll .crest{margin-bottom:1px}
+  .intro-scroll h1{font-size:clamp(26px,8vh,42px)}
+  .intro-scroll .tagline{display:none}
+  .story-preview{margin:2px auto 0;padding:5px 9px 6px}
+  .story-preview p{font-size:10.5px!important;line-height:1.22!important;margin-bottom:4px!important}
+  .story-preview .story-open{min-height:29px;padding:4px 13px;font-size:11px}
+  .intro-panel>.story-modal .story-modal-card{max-height:96%;padding:10px 14px}
+  .intro-panel>.story-modal .story-modal-head h2{font-size:19px}
+  .intro-panel>.story-modal .story-close{width:36px;height:36px;font-size:24px}
+  .intro-panel>.story-modal .story-full{margin:5px 0;font-size:12.5px;line-height:1.45}
+  .intro-panel>.story-modal .story-full p{margin:6px 0!important}
+  .intro-panel>.story-modal .story-close-bottom{min-height:36px;padding:6px 14px;font-size:13px}
+}
