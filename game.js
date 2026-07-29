@@ -300,6 +300,13 @@ function startGame(){selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';
  reset();last=performance.now();requestAnimationFrame(loop);}
 function endGame(){running=false;ui.controls.classList.add('hidden');ui.controls.style.display='none';const win=score[0]>score[1],draw=score[0]===score[1];
  if(win&&currentStage===1){showClearSequence();return;}
+ if(win&&currentStage===2){
+  ui.result.classList.remove('hidden');ui.result.style.display='grid';
+  ui.resultTitle.textContent='新たな異次元空間が発生！';
+  ui.resultText.textContent='次の接続先：🌪 さるびび村（準備中）';
+  if(ui.nextStageBtn){ui.nextStageBtn.hidden=true;}
+  return;
+ }
  ui.result.classList.remove('hidden');ui.result.style.display='grid';
  ui.resultTitle.textContent=draw?'引き分け！':win?'褒美獲得！':'スライムを押し付けられた…';
  ui.resultText.textContent=`${playerVillageName()} ${score[0]} － ${score[1]} ${enemyVillageName()}`;
@@ -418,62 +425,114 @@ function burst(x,y,color,n){for(let i=0;i<n;i++){const a=rand(0,7),s=rand(50,240
 function updateParticles(dt){for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;}particles=particles.filter(p=>p.life>0);}
 function draw(){ctx.save();if(shake)ctx.translate(rand(-shake,shake),rand(-shake,shake));drawField();drawChiefs();for(const p of players)p.draw();drawSlime();drawFireballs();drawIceWaves();drawRockBalls();drawHurricanes();drawGoalScene();for(const p of particles){ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
 function drawField(){
- // ステージごとの地面と村外周
  const isBrifo=currentStage===1;
- ctx.fillStyle=isBrifo?'#dff4fb':'#7c4938';ctx.fillRect(0,0,W,H);
- for(let y=0;y<H;y+=42){for(let x=(y/42%2)*24;x<W;x+=48){
+ const opponentBase=isBrifo?'#dff4fb':'#7c4938';
+ const opponentLight=isBrifo?'#edfaff':'#b97955';
+ const opponentMid=isBrifo?'#b9dce8':'#9c6248';
+ const opponentDark=isBrifo?'#7899aa':'#5c3027';
+
+ // 画面外周も左右それぞれの村の景色。
+ ctx.fillStyle='#d8d0ad';ctx.fillRect(0,0,W/2,H);
+ ctx.fillStyle=opponentBase;ctx.fillRect(W/2,0,W/2,H);
+
+ // 左：ぷれん村の素朴な地面模様
+ for(let y=0;y<H;y+=42)for(let x=(y/42%2)*24;x<W/2;x+=48){
+  ctx.fillStyle=((x+y)/48)%2?'#e8dfbc':'#cfc49d';ctx.fillRect(x,y,25,3);
+ }
+ // 右：対戦村の地面模様
+ for(let y=0;y<H;y+=42)for(let x=W/2+(y/42%2)*24;x<W;x+=48){
   ctx.fillStyle=isBrifo?(((x+y)/48)%2?'#c5e7f2':'#eefbff'):(((x+y)/48)%2?'#8f5843':'#6f3f31');
   ctx.fillRect(x,y,25,3);
- }}
+ }
+
  drawVillage(0,0);drawVillage(1,W);
 
- // 次元に削り取られた縁（氷崖 / 焼けた岩）
+ // 削り取られた外縁。左は土、右は氷崖または焼けた岩。
  ctx.save();ctx.translate(FIELD.cx,FIELD.cy);
- ctx.fillStyle=isBrifo?'#7899aa':'#5c3027';ctx.beginPath();
- for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,r=1+Math.sin(i*2.7)*.014+Math.sin(i*6.1)*.009;const x=Math.cos(a)*(FIELD.rx+25)*r,y=Math.sin(a)*(FIELD.ry+25)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
- ctx.strokeStyle=isBrifo?'#3b6479':'#2b1713';ctx.lineWidth=7;ctx.stroke();
- ctx.fillStyle=isBrifo?'#b9dce8':'#9c6248';ctx.beginPath();ctx.ellipse(0,0,FIELD.rx+8,FIELD.ry+8,0,0,Math.PI*2);ctx.fill();
- ctx.fillStyle=isBrifo?'#edfaff':'#b97955';ctx.beginPath();ctx.ellipse(0,0,FIELD.rx-4,FIELD.ry-4,0,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();ctx.ellipse(0,0,FIELD.rx+25,FIELD.ry+25,0,0,Math.PI*2);ctx.clip();
+
+ ctx.fillStyle='#8b724d';ctx.fillRect(-FIELD.rx-35,-FIELD.ry-35,FIELD.rx+35,(FIELD.ry+35)*2);
+ ctx.fillStyle=opponentDark;ctx.fillRect(0,-FIELD.ry-35,FIELD.rx+35,(FIELD.ry+35)*2);
+
+ ctx.strokeStyle='#493a26';ctx.lineWidth=7;ctx.beginPath();ctx.ellipse(0,0,FIELD.rx+25,FIELD.ry+25,0,0,Math.PI*2);ctx.stroke();
  ctx.restore();
 
- // 土壁の石・ひび
- ctx.fillStyle=isBrifo?'#8fc9dd':'#6c3c2d';for(let i=0;i<38;i++){const a=i/38*Math.PI*2;const x=FIELD.cx+Math.cos(a)*(FIELD.rx+18),y=FIELD.cy+Math.sin(a)*(FIELD.ry+18);ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.beginPath();ctx.roundRect(-12,-7,24,14,5);ctx.fill();ctx.restore();}
+ // コート内側も中央線で景色が切り替わる。
+ ctx.save();ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx+8,FIELD.ry+8,0,0,Math.PI*2);ctx.clip();
+ ctx.fillStyle='#c9bc8f';ctx.fillRect(FIELD.cx-FIELD.rx-12,FIELD.cy-FIELD.ry-12,FIELD.rx+12,(FIELD.ry+12)*2);
+ ctx.fillStyle=opponentMid;ctx.fillRect(FIELD.cx,FIELD.cy-FIELD.ry-12,FIELD.rx+12,(FIELD.ry+12)*2);
 
+ ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-4,FIELD.ry-4,0,0,Math.PI*2);ctx.clip();
+ ctx.fillStyle='#e7dfbd';ctx.fillRect(FIELD.cx-FIELD.rx,FIELD.cy-FIELD.ry,FIELD.rx,FIELD.ry*2);
+ ctx.fillStyle=opponentLight;ctx.fillRect(FIELD.cx,FIELD.cy-FIELD.ry,FIELD.rx,FIELD.ry*2);
 
- // ステージ固有の空気感
+ // ぷれん村側：草、白と黄色の花、踏み固められた土。
+ ctx.globalAlpha=.65;
+ for(let i=0;i<34;i++){
+  const x=110+(i*73)%380,y=135+(i*49)%360;
+  ctx.fillStyle=i%3===0?'#fff8d6':i%3===1?'#f2d44f':'#9da96b';
+  ctx.beginPath();ctx.arc(x,y,2+(i%2),0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+
+ // 対戦村側だけにステージ固有の空気感。
  if(isBrifo){
-  ctx.save();ctx.globalAlpha=.72;
-  for(let i=0;i<34;i++){const x=(i*83+portalTime*18)%W,y=(i*47+portalTime*28)%H;ctx.fillStyle=i%3?'#ffffff':'#c7efff';ctx.beginPath();ctx.arc(x,y,2+(i%3),0,Math.PI*2);ctx.fill();}
+  ctx.save();ctx.beginPath();ctx.rect(W/2,0,W/2,H);ctx.clip();ctx.globalAlpha=.74;
+  for(let i=0;i<30;i++){
+   const x=W/2+((i*83+portalTime*18)%(W/2)),y=(i*47+portalTime*28)%H;
+   ctx.fillStyle=i%3?'#ffffff':'#c7efff';ctx.beginPath();ctx.arc(x,y,2+(i%3),0,Math.PI*2);ctx.fill();
+  }
   ctx.restore();
   ctx.fillStyle='#bceeff';ctx.strokeStyle='#6ebbd2';ctx.lineWidth=2;
-  for(let i=0;i<12;i++){const x=104+i*72,top=i%2?92:104;ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x+9,top);ctx.lineTo(x+4,top+25+(i%3)*7);ctx.closePath();ctx.fill();ctx.stroke();}
+  for(let i=0;i<6;i++){const x=545+i*70,top=i%2?102:118;ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x+9,top);ctx.lineTo(x+4,top+25+(i%3)*7);ctx.closePath();ctx.fill();ctx.stroke();}
  }else{
-  // さるびえ村：火の粉、煙、焼けたレンガ
-  ctx.save();
-  for(let i=0;i<30;i++){
-   const x=(i*91+portalTime*(20+i%4*8))%W,y=H-((i*53+portalTime*(36+i%3*14))%H);
+  ctx.save();ctx.beginPath();ctx.rect(W/2,0,W/2,H);ctx.clip();
+  for(let i=0;i<26;i++){
+   const x=W/2+((i*91+portalTime*(20+i%4*8))%(W/2)),y=H-((i*53+portalTime*(36+i%3*14))%H);
    ctx.globalAlpha=.35+(i%4)*.12;ctx.fillStyle=i%3?'#ff9b3d':'#ffd36a';ctx.beginPath();ctx.arc(x,y,2+(i%3),0,Math.PI*2);ctx.fill();
   }
-  ctx.globalAlpha=.22;ctx.fillStyle='#2c1b1a';
-  for(let i=0;i<7;i++){const x=85+i*145+Math.sin(portalTime*.35+i)*18,y=100+(i%2)*35;ctx.beginPath();ctx.arc(x,y,28+i%3*8,0,Math.PI*2);ctx.fill();}
+  ctx.globalAlpha=.2;ctx.fillStyle='#2c1b1a';
+  for(let i=0;i<4;i++){const x=590+i*115+Math.sin(portalTime*.35+i)*14,y=105+(i%2)*38;ctx.beginPath();ctx.arc(x,y,27+i%2*8,0,Math.PI*2);ctx.fill();}
   ctx.restore();
-  ctx.strokeStyle='#4e2d25';ctx.lineWidth=3;
-  for(let y=130;y<520;y+=34)for(let x=100+(y/34%2)*18;x<900;x+=42){ctx.strokeRect(x,y,36,24);}
+  ctx.strokeStyle='#4e2d25';ctx.lineWidth=3;ctx.globalAlpha=.55;
+  for(let y=145;y<505;y+=34)for(let x=530+(y/34%2)*18;x<900;x+=42)ctx.strokeRect(x,y,36,24);
+  ctx.globalAlpha=1;
  }
+ ctx.restore();
+
+ // 縁の石も左右で材質を変える。
+ for(let i=0;i<38;i++){
+  const a=i/38*Math.PI*2,x=FIELD.cx+Math.cos(a)*(FIELD.rx+18),y=FIELD.cy+Math.sin(a)*(FIELD.ry+18);
+  ctx.save();ctx.translate(x,y);ctx.rotate(a);
+  ctx.fillStyle=x<FIELD.cx?'#9a8058':(isBrifo?'#8fc9dd':'#6c3c2d');
+  ctx.beginPath();ctx.roundRect(-12,-7,24,14,5);ctx.fill();ctx.restore();
+ }
+
  // 競技線
- ctx.strokeStyle='#fff8';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-24,FIELD.ry-24,0,0,Math.PI*2);ctx.stroke();
+ ctx.strokeStyle='#fff9';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-24,FIELD.ry-24,0,0,Math.PI*2);ctx.stroke();
  ctx.setLineDash([12,10]);ctx.beginPath();ctx.moveTo(500,112);ctx.lineTo(500,520);ctx.stroke();ctx.setLineDash([]);
  ctx.beginPath();ctx.arc(500,316,72,0,Math.PI*2);ctx.stroke();
 
  // 村へつながる破れた入口
  drawBrokenGate(0,FIELD.goalT,FIELD.goalB,0);drawBrokenGate(905,FIELD.goalT,FIELD.goalB,1);
 
- // 中心の小さな異次元ゲート
+ // 中心のゲートも左右の色が混ざる。
  const pulse=1+Math.sin(performance.now()/260)*.08;
  ctx.save();ctx.translate(500,316);ctx.scale(pulse,1/pulse);
- const glow=ctx.createRadialGradient(0,0,2,0,0,48);glow.addColorStop(0,'#fff');glow.addColorStop(.25,isBrifo?'#b8f7ff':'#ffd07b');glow.addColorStop(.58,isBrifo?'#4aa8dc':'#d94b28');glow.addColorStop(1,'#2b163d00');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,48,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle=isBrifo?'#dffcff':'#ffe2a6';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,24,10,0,0,Math.PI*2);ctx.stroke();for(let i=0;i<4;i++){const a=portalTime*(1.7+i*.24)+i*1.55,r=17+i*5;ctx.fillStyle=isBrifo?(i%2?'#e8fbff':'#62d6ff'):(i%2?'#ffd36a':'#ff6b32');ctx.globalAlpha=.65;ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*r*.42,3+i*.35,0,7);ctx.fill();}ctx.globalAlpha=1;ctx.restore();
- ctx.fillStyle='#553c67';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText('小さなゲート',500,374);
+ const glow=ctx.createRadialGradient(0,0,2,0,0,52);
+ glow.addColorStop(0,'#fff');
+ glow.addColorStop(.22,'#fff4aa');
+ glow.addColorStop(.48,isBrifo?'#a9efff':'#ffb35e');
+ glow.addColorStop(.72,isBrifo?'#4aa8dc':'#d94b28');
+ glow.addColorStop(1,'#2b163d00');
+ ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,52,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle=isBrifo?'#dffcff':'#ffe2a6';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,24,10,0,0,Math.PI*2);ctx.stroke();
+ for(let i=0;i<4;i++){
+  const a=portalTime*(1.7+i*.24)+i*1.55,r=17+i*5;
+  ctx.fillStyle=i%2?'#fff1a8':(isBrifo?'#62d6ff':'#ff6b32');ctx.globalAlpha=.8;
+  ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*r*.46,3+i*.45,0,Math.PI*2);ctx.fill();
+ }
+ ctx.restore();ctx.globalAlpha=1;
 }
 function drawVillage(team,edge){
  const left=team===0,x0=left?0:910;
