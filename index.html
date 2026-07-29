@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.20 RESULTS & STAGES</title>
-  <link rel="stylesheet" href="style.css">
+  <title>スライム・キックオフ！ v0.30 PROJECT REFACTOR</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <main id="gameWrap">
@@ -38,7 +38,14 @@
             <label for="spiritWind">🌪️ 風</label>
             <input type="radio" name="spirit" id="spiritEarth" value="earth">
             <label for="spiritEarth">🪨 土</label>
-            <strong id="spiritStatus" class="spirit-status" aria-live="polite">選択中：炎</strong>
+            <label class="slime-picker" for="slimeSelect">
+            スライム
+            <select id="slimeSelect">
+              <option value="normal">ノーマル</option>
+              <option value="jumpy">よく跳ねる</option>
+            </select>
+          </label>
+          <strong id="spiritStatus" class="spirit-status" aria-live="polite">選択中：炎</strong>
           </fieldset>
           <div class="intro-action" aria-live="polite">
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
@@ -52,7 +59,12 @@
     <section id="result" class="panel hidden">
       <h2 id="resultTitle">試合終了</h2>
       <p id="resultText"></p>
-      <button id="retryBtn">もう一度押し返す</button>
+      <div class="result-actions">
+        <button id="rematchBtn">再戦</button>
+        <button id="menuBtn">メニューへ戻る</button>
+        <button id="nextStageBtn" hidden>次のステージ</button>
+      </div>
+      <button id="retryBtn" class="legacy-retry" hidden>もう一度押し返す</button>
     </section>
 
     <div id="controls" class="hidden" aria-label="タッチ操作">
@@ -65,13 +77,16 @@
       </div>
     </div>
   </main>
-  <script src="game.js"></script>
+  <script src="js/polyfills.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/stages.js"></script>
+  <script src="js/game.js"></script>
 
-<div id="stageCard" style="display:none;position:fixed;inset:0;background:rgba(10,30,60,.82);color:#fff;z-index:9999;align-items:center;justify-content:center;flex-direction:column;font-family:sans-serif">
-<h1>❄ 異次元ゲート接続</h1>
-<h2>ぶりふぉ村</h2>
-<p>雪と氷に囲まれた静かな村。</p>
-<p>今日も少し臭いスライムを押し返す。</p>
-</div>
+  <div id="stageCard" class="stage-card hidden" aria-live="polite">
+    <h1 id="stageConnectTitle">❄ 異次元ゲート接続</h1>
+    <h2 id="stageName">ぶりふぉ村</h2>
+    <p id="stageDescription">雪と氷に囲まれた静かな村。</p>
+    <p>今日も少し臭いスライムを押し返す。</p>
+  </div>
 </body>
 </html>

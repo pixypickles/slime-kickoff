@@ -1,0 +1,32 @@
+[
+  {
+    "id": "brifo",
+    "name": "ぶりふぉ村",
+    "element": "ice",
+    "uniform": "水色×白ストライプ"
+  },
+  {
+    "id": "salubie",
+    "name": "さるびえ村",
+    "element": "fire",
+    "uniform": "エンジ"
+  },
+  {
+    "id": "salubibi",
+    "name": "さるびび村",
+    "element": "wind",
+    "uniform": "ターコイズ"
+  },
+  {
+    "id": "takezo",
+    "name": "たけぞ村",
+    "element": "earth",
+    "uniform": "ピンク×ネイビー太ボーダー"
+  },
+  {
+    "id": "chestapi-circus",
+    "name": "ちぇすたぴサーカス団",
+    "element": "thunder",
+    "uniform": "濃いネイビー"
+  }
+]

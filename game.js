@@ -1,18 +1,7 @@
 'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
-// 古いAndroid WebView向け互換処理。roundRect未対応でも描画処理を止めない。
-if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prototype.roundRect){
- CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
-  let radius=Array.isArray(r)?Number(r[0]||0):Number(r||0);
-  radius=Math.max(0,Math.min(radius,Math.abs(w)/2,Math.abs(h)/2));
-  this.moveTo(x+radius,y);this.lineTo(x+w-radius,y);this.quadraticCurveTo(x+w,y,x+w,y+radius);
-  this.lineTo(x+w,y+h-radius);this.quadraticCurveTo(x+w,y+h,x+w-radius,y+h);
-  this.lineTo(x+radius,y+h);this.quadraticCurveTo(x,y+h,x,y+h-radius);
-  this.lineTo(x,y+radius);this.quadraticCurveTo(x,y,x+radius,y);this.closePath();return this;
- };
-}
 const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),rematchBtn:document.getElementById('rematchBtn'),menuBtn:document.getElementById('menuBtn'),nextStageBtn:document.getElementById('nextStageBtn'),slimeSelect:document.getElementById('slimeSelect'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus')};
-const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
+const W=GAME_CONFIG.canvas.width,H=GAME_CONFIG.canvas.height,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
 let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],rockBalls=[],hurricanes=[],chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='fire',selectedSlime='normal',currentStage=1,gameReady=true;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
