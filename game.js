@@ -85,7 +85,7 @@ function insideEllipse(x,y,margin=0){const rx=FIELD.rx-margin,ry=FIELD.ry-margin
 function constrainToField(o){const inGate=o.y>FIELD.goalT&&o.y<FIELD.goalB;if(inGate&&o.x<FIELD.cx-FIELD.rx+o.r)return;if(inGate&&o.x>FIELD.cx+FIELD.rx-o.r)return;const rx=FIELD.rx-o.r,ry=FIELD.ry-o.r,dx=o.x-FIELD.cx,dy=o.y-FIELD.cy,q=(dx*dx)/(rx*rx)+(dy*dy)/(ry*ry);if(q>1){const k=1/Math.sqrt(q);o.x=FIELD.cx+dx*k;o.y=FIELD.cy+dy*k;const nx=dx/(rx*rx),ny=dy/(ry*ry),n=norm(nx,ny),dot=o.vx*n.x+o.vy*n.y;if(dot>0){o.vx-=1.75*dot*n.x;o.vy-=1.75*dot*n.y;}}}
 
 class Player{
- constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0,respawnT:0,spinKick:0,spinAngle:0,buriedT:0,airKO:null,aiMode:'slime',aiModeT:0,wallSplatPending:0,wallStickT:0,wallStickAngle:0,shockT:0,smokeT:0});}
+ constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0,respawnT:0,spinKick:0,spinAngle:0,buriedT:0,airKO:null,aiMode:'slime',aiModeT:0,wallSplatPending:0,wallStickT:0,wallStickAngle:0,shockT:0,smokeT:0,dashArmorT:0});}
  jumpHeight(){return this.jumpT>0?Math.sin((1-this.jumpT/.82)*Math.PI)*124:0;}
  isAirborne(){return this.jumpHeight()>34;}
  update(dt){
@@ -119,13 +119,13 @@ class Player{
    }
    return;
   }
-  this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.shockT=Math.max(0,this.shockT-dt);this.smokeT=Math.max(0,this.smokeT-dt);if(this.shockT>0)this.stun=Math.max(this.stun,.08);if(this.smokeT>0)this.stun=Math.max(this.stun,.08);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);this.spinKick=Math.max(0,this.spinKick-dt);if(this.spinKick>0)this.spinAngle+=dt*19;if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
+  this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.shockT=Math.max(0,this.shockT-dt);this.smokeT=Math.max(0,this.smokeT-dt);this.dashArmorT=Math.max(0,this.dashArmorT-dt);if(this.shockT>0)this.stun=Math.max(this.stun,.08);if(this.smokeT>0)this.stun=Math.max(this.stun,.08);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);this.spinKick=Math.max(0,this.spinKick-dt);if(this.spinKick>0)this.spinAngle+=dt*19;if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
   let ix=0,iy=0,actions={};
   if(this.isHuman){ix=input.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0);iy=input.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);actions={dash:input.dash||keys.Shift,kick:input.kick||keys.j,jump:input.jump||keys.k,skill:input.skill||keys.l};}
   else ({ix,iy,actions}=this.ai(dt));
   if(this.stun<=0&&this.frozen<=0){
    if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?590:205;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
-   if(actions.dash&&this.dashCd<=0){this.dashTime=.14;this.dashCd=.42;burst(this.x,this.y,teamColor(this.team),8);}
+   if(actions.dash&&this.dashCd<=0)this.shoulderDash();
    if(actions.jump&&this.jumpT<=0){this.jumpT=.82;burst(this.x,this.y+24,'#eee1bd',10);}
    if(actions.kick&&this.kickCd<=0)this.kick();
    if(actions.skill&&this.skillCd<=0&&this.index===0)this.skill();
@@ -192,6 +192,48 @@ class Player{
   const n=best?norm(best.x-this.x,best.y-this.y):norm(this.faceX,this.faceY);
   this.faceX=n.x;this.faceY=n.y;
   return n;
+ }
+ shoulderDash(){
+  this.dashCd=.78;this.dashTime=.2;
+  const n=norm(this.faceX||1,this.faceY||0),sx=this.x,sy=this.y;
+  const distance=185;
+  this.x+=n.x*distance;this.y+=n.y*distance;constrainToField(this);
+  const ex=this.x,ey=this.y;
+  let color='#fff1a3',label='ショルダーチャージ！';
+  if(this.spirit==='ice'){color='#bff7ff';label='アイスチャージ！';}
+  else if(this.spirit==='fire'){color='#ff8b2c';label='ファイアチャージ！';}
+  else if(this.spirit==='wind'){color='#c8ffd4';label='ウインドチャージ！';}
+  else if(this.spirit==='earth'){color='#d8b27a';label='アースチャージ！';this.dashArmorT=.55;this.stun=0;}
+  else if(this.spirit==='thunder'){color='#fff36a';label='サンダーチャージ！';}
+
+  for(const p of players){
+   if(p===this||p.team===this.team||p.respawnT>0||p.buriedT>0||p.wallStickT>0)continue;
+   if(segmentDistance(p.x,p.y,sx,sy,ex,ey)>p.r+28)continue;
+   p.vx+=n.x*(this.spirit==='wind'?980:this.spirit==='plain'?860:720);
+   p.vy+=n.y*(this.spirit==='wind'?980:this.spirit==='plain'?860:720);
+   p.stun=Math.max(p.stun,.5);
+   if(this.spirit==='fire'){p.burn=Math.max(p.burn,1.15);p.burnTick=0;}
+   if(this.spirit==='ice'){p.frozen=Math.max(p.frozen,1.15);p.stun=0;}
+   if(this.spirit==='earth'){p.stun=Math.max(p.stun,.9);p.vx+=n.x*240;p.vy+=n.y*240;}
+   if(this.spirit==='thunder')electrify(p,1.05,0);
+   burst(p.x,p.y,color,18);
+  }
+
+  if(slime&&segmentDistance(slime.x,slime.y,sx,sy,ex,ey)<slime.r+30){
+   slime.vx+=n.x*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760);
+   slime.vy+=n.y*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760);
+   slime.hop=Math.max(slime.hop,.62);slime.hopMax=Math.max(slime.hopMax||.58,slime.hop);
+   if(this.spirit==='fire'){slime.scared=1;slime.vx+=n.x*180;slime.vy+=n.y*180;}
+   if(this.spirit==='ice'){slime.frozen=Math.max(slime.frozen||0,1.15);}
+   if(this.spirit==='earth'){slime.vx+=n.x*260;slime.vy+=n.y*260;}
+   if(this.spirit==='thunder')electrify(slime,1.0,0);
+   burst(slime.x,slime.y,color,20);
+  }
+
+  for(let i=0;i<7;i++){
+   const t=i/6;burst(sx+(ex-sx)*t,sy+(ey-sy)*t,color,3);
+  }
+  message=label;messageLife=.65;shake=Math.max(shake,8);
  }
  kick(){
   this.kickCd=.34;this.kickTime=.22;const sliding=this.dashTime>0,air=this.isAirborne();let power=sliding?980:air?930:720;if(sliding&&air)power=1220;if(this.spirit==='plain')power*=1.22;
@@ -382,7 +424,7 @@ class Player{
    const kickAng=this.spinKick>0?this.spinAngle:ang;
    ctx.save();ctx.rotate(kickAng);ctx.translate(kickReach,5);ctx.rotate(.12);
    ctx.scale(1.28,1.12);ctx.beginPath();ctx.ellipse(0,0,24,14,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-   ctx.strokeStyle=this.spirit==='fire'?'#ff9a32':this.spirit==='ice'?'#bff7ff':this.spirit==='wind'?'#c8ffd4':this.spirit==='earth'?'#d8b27a':'#fff1a3';
+   ctx.strokeStyle=this.spirit==='fire'?'#ff9a32':this.spirit==='ice'?'#bff7ff':this.spirit==='wind'?'#c8ffd4':this.spirit==='earth'?'#d8b27a':this.spirit==='thunder'?'#fff36a':'#fff1a3';
    ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-32,0);ctx.lineTo(-10,0);ctx.stroke();ctx.restore();
   }else{
    ctx.beginPath();ctx.ellipse(12,39,20,12,.08,0,Math.PI*2);ctx.fill();ctx.stroke();
@@ -589,7 +631,7 @@ function pushOutOfBuried(obj,buried,extra=0){
  obj.x+=n.x*push;obj.y+=n.y*push;
  if('vx' in obj){const dot=(obj.vx||0)*n.x+(obj.vy||0)*n.y;if(dot<0){obj.vx-=dot*n.x*1.4;obj.vy-=dot*n.y*1.4;}obj.vx+=n.x*75;obj.vy+=n.y*75;}
 }
-function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.length;j++){const a=players[i],b=players[j];if(a.respawnT>0||b.respawnT>0||a.buriedT>0||b.buriedT>0||a.wallStickT>0||b.wallStickT>0||a.isAirborne()||b.isAirborne())continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d<min){const n=norm(dx,dy),push=(min-d)*.62;a.x-=n.x*push;b.x+=n.x*push;a.y-=n.y*push;b.y+=n.y*push;const repel=95+(min-d)*10;a.vx-=n.x*repel;b.vx+=n.x*repel;a.vy-=n.y*repel;b.vy+=n.y*repel;if(a.frozen>0){a.vx-=n.x*360;a.vy-=n.y*360;}if(b.frozen>0){b.vx+=n.x*360;b.vy+=n.y*360;}}}
+function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.length;j++){const a=players[i],b=players[j];if(a.respawnT>0||b.respawnT>0||a.buriedT>0||b.buriedT>0||a.wallStickT>0||b.wallStickT>0||a.isAirborne()||b.isAirborne())continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d<min){const n=norm(dx,dy),push=(min-d)*.62;a.x-=n.x*push;b.x+=n.x*push;a.y-=n.y*push;b.y+=n.y*push;const repel=95+(min-d)*10,ar=a.dashArmorT>0?.18:1,br=b.dashArmorT>0?.18:1;a.vx-=n.x*repel*ar;b.vx+=n.x*repel*br;a.vy-=n.y*repel*ar;b.vy+=n.y*repel*br;if(a.frozen>0){a.vx-=n.x*360;a.vy-=n.y*360;}if(b.frozen>0){b.vx+=n.x*360;b.vy+=n.y*360;}}}
  for(const p of players){if(p.respawnT>0||p.buriedT>0||p.wallStickT>0||p.isAirborne())continue;const dx=slime.x-p.x,dy=slime.y-p.y,d=Math.hypot(dx,dy),min=p.r+slime.r;if(d<min){const n=norm(dx,dy),push=min-d;slime.x+=n.x*push;slime.y+=n.y*push;const boost=slime.frozen>0?430:80;slime.vx+=n.x*boost;slime.vy+=n.y*boost;slime.scared=.35;if(slime.frozen>0){message='凍ったスライムがツルーッ！';messageLife=.7;}}}
  const buried=players.filter(p=>p.buriedT>0&&p.respawnT<=0);
  for(const b of buried){
@@ -927,7 +969,7 @@ const spiritNames={plain:'ぷれん',fire:'炎',ice:'氷',wind:'風',earth:'土'
 function applySpirit(value){
  if(!spiritNames[value])return;
  selectedSpirit=value;
- ui.skillBtn.textContent=value==='plain'?'気合い':value==='ice'?'冷気':value==='wind'?'竜巻':value==='earth'?'岩砲':value==='thunder'?'雷走':'火球';
+ ui.skillBtn.textContent=value==='plain'?'気合い':value==='ice'?'冷気':value==='wind'?'竜巻':value==='earth'?'岩砲':value==='thunder'?'パチッ':'火球';
  if(ui.spiritStatus)ui.spiritStatus.textContent='選択中：'+spiritNames[value];
 }
 const spiritRadios=document.querySelectorAll('input[name="spirit"]');
