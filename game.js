@@ -297,8 +297,8 @@ class Player{
     // simplified body during knockout
     ctx.fillStyle=teamColor(this.team);ctx.strokeStyle='#fff';ctx.lineWidth=3;
     ctx.beginPath();ctx.roundRect(-18,-8,36,38,10);ctx.fill();ctx.stroke();
-    ctx.fillStyle='#f2c895';ctx.strokeStyle='#5d3924';ctx.beginPath();ctx.arc(0,-24,17,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.fillStyle='#6a4328';ctx.beginPath();ctx.ellipse(-10,37,18,11,0,0,Math.PI*2);ctx.ellipse(10,37,18,11,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#f2c895';ctx.strokeStyle='#16120f';ctx.beginPath();ctx.arc(0,-24,17,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#6a4328';ctx.beginPath();ctx.ellipse(-10,37,18,11,0,0,Math.PI*2);ctx.ellipse(10,37,18,11,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#16120f';ctx.lineWidth=4;ctx.stroke();
     if(k.type==='fire'){
       ctx.fillStyle='#ff7a24';ctx.beginPath();ctx.moveTo(-14,43);ctx.lineTo(0,82+Math.sin(k.t*18)*8);ctx.lineTo(14,43);ctx.closePath();ctx.fill();
       ctx.fillStyle='#ffd24a';ctx.beginPath();ctx.moveTo(-7,43);ctx.lineTo(0,68);ctx.lineTo(7,43);ctx.closePath();ctx.fill();
@@ -320,17 +320,17 @@ class Player{
   }
   if(this.wallStickT>0){
    ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.wallStickAngle+Math.PI/2);ctx.scale(1.45,.42);
-   ctx.fillStyle=this.team===0?'#fffdf0':'#888';ctx.strokeStyle='#5b3c22';ctx.lineWidth=4;
+   ctx.fillStyle=this.team===0?'#fffdf0':'#888';ctx.strokeStyle='#16120f';ctx.lineWidth=4;
    ctx.beginPath();ctx.roundRect(-20,-30,40,62,13);ctx.fill();ctx.stroke();
    ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-38,18,0,Math.PI*2);ctx.fill();ctx.stroke();
-   ctx.fillStyle='#6a4328';ctx.beginPath();ctx.ellipse(-13,38,20,12,0,0,Math.PI*2);ctx.ellipse(13,38,20,12,0,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#6a4328';ctx.beginPath();ctx.ellipse(-13,38,20,12,0,0,Math.PI*2);ctx.ellipse(13,38,20,12,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#16120f';ctx.lineWidth=4;ctx.stroke();
    ctx.restore();return;
   }
   if(this.buriedT>0){
    ctx.save();ctx.translate(this.x,this.y);
    ctx.fillStyle='#8b5a32';ctx.strokeStyle='#4e321d';ctx.lineWidth=4;
    ctx.beginPath();ctx.ellipse(0,15,42,18,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-   ctx.fillStyle='#6a4328';ctx.strokeStyle='#29180e';
+   ctx.fillStyle='#6a4328';ctx.strokeStyle='#16120f';
    ctx.beginPath();ctx.ellipse(-12,-1,20,12,-.12,0,Math.PI*2);ctx.fill();ctx.stroke();
    ctx.beginPath();ctx.ellipse(13,-1,20,12,.12,0,Math.PI*2);ctx.fill();ctx.stroke();
    ctx.fillStyle='#6b482c';for(let i=0;i<7;i++){ctx.beginPath();ctx.arc(rand(-32,32),rand(5,22),rand(2,5),0,Math.PI*2);ctx.fill();}
@@ -344,13 +344,13 @@ class Player{
   // 胴体は常に上向き。片足は胴体の下へ固定し、もう片足だけ大きく蹴り出す。
   const isHomePlayer=this.team===0;
   const enemyBrifo=this.team===1&&currentStage===1;
-  ctx.fillStyle=isHomePlayer?'#fffdf0':(enemyBrifo?'#ffffff':currentStage===2?'#7b2438':currentStage===3?'#29b8b4':currentStage===4?'#ec73ad':'#111d3d');ctx.strokeStyle=this.isHuman?'#ffe45c':'#fff';ctx.lineWidth=this.isHuman?5:3;
+  ctx.fillStyle=isHomePlayer?'#fffdf0':(enemyBrifo?'#ffffff':currentStage===2?'#7b2438':currentStage===3?'#29b8b4':currentStage===4?'#ec73ad':'#111d3d');ctx.strokeStyle='#16120f';ctx.lineWidth=this.isHuman?6:4;
   ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.fill();ctx.stroke();
   if(isHomePlayer){ctx.fillStyle='#f2cf4a';ctx.fillRect(-20,7,40,10);}
   else if(enemyBrifo){ctx.save();ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.clip();ctx.fillStyle='#7fd5ef';for(let sx=-18;sx<22;sx+=12)ctx.fillRect(sx,-7,6,42);ctx.restore();}else if(this.team===1&&currentStage===4){ctx.fillStyle='#172c55';ctx.fillRect(-20,6,40,12);}
   ctx.fillStyle=this.team?'#803737':'#25688f';ctx.fillRect(-15,17,30,7);
   ctx.fillStyle='#d9b36c';ctx.fillRect(-13,25,9,12);ctx.fillRect(5,25,9,12);
-  ctx.fillStyle='#6a4328';ctx.strokeStyle='#29180e';ctx.lineWidth=4;
+  ctx.fillStyle='#6a4328';ctx.strokeStyle='#16120f';ctx.lineWidth=4;
   // 軸足
   ctx.beginPath();ctx.ellipse(-12,39,20,12,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
   // 蹴り足。通常時は胴体下、キック中だけ向いている方向へ大きく動く。
@@ -384,7 +384,7 @@ class Player{
   }
 
   // 頭・顔は画面上向きに固定。
-  ctx.fillStyle='#f2c895';ctx.strokeStyle='#5d3924';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-25,19,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f2c895';ctx.strokeStyle='#16120f';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-25,19,0,Math.PI*2);ctx.fill();ctx.stroke();
   ctx.fillStyle=this.spirit==='ice'?'#b7efff':this.spirit==='fire'?'#d9482f':this.spirit==='wind'?'#85d69a':this.spirit==='earth'?'#8a6844':'#53321f';ctx.beginPath();ctx.arc(0,-31,15,Math.PI,Math.PI*2);ctx.fill();if(this.spirit==='fire'){ctx.fillStyle='#ffcf45';ctx.beginPath();ctx.moveTo(-12,-39);ctx.quadraticCurveTo(-4,-58,1,-41);ctx.quadraticCurveTo(10,-58,13,-37);ctx.closePath();ctx.fill();}
   if(this.spirit==='ice'){ctx.fillStyle='#e9fdff';ctx.beginPath();ctx.moveTo(-14,-38);ctx.lineTo(-5,-55);ctx.lineTo(0,-40);ctx.lineTo(8,-56);ctx.lineTo(14,-37);ctx.closePath();ctx.fill();}
   if(this.spirit==='wind'){ctx.strokeStyle='#e2ffe9';ctx.lineWidth=5;ctx.beginPath();ctx.arc(-2,-39,15,Math.PI*1.05,Math.PI*1.9);ctx.stroke();ctx.beginPath();ctx.arc(5,-43,10,Math.PI*.9,Math.PI*1.75);ctx.stroke();}
@@ -670,6 +670,25 @@ function drawField(){
   ctx.beginPath();ctx.roundRect(-12,-7,24,14,5);ctx.fill();ctx.restore();
  }
 
+ // 異次元空間に削り取られた円の内側は、全ステージ共通の茶色い土。
+ ctx.save();
+ ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-4,FIELD.ry-4,0,0,Math.PI*2);ctx.clip();
+ const dirtGrad=ctx.createRadialGradient(FIELD.cx-90,FIELD.cy-80,40,FIELD.cx,FIELD.cy,FIELD.rx);
+ dirtGrad.addColorStop(0,'#a97548');dirtGrad.addColorStop(.62,'#8b5b38');dirtGrad.addColorStop(1,'#684126');
+ ctx.fillStyle=dirtGrad;ctx.fillRect(FIELD.cx-FIELD.rx,FIELD.cy-FIELD.ry,FIELD.rx*2,FIELD.ry*2);
+ // 土の粒、石、ひび割れ
+ for(let i=0;i<74;i++){
+  const a=i*2.399,r=Math.sqrt((i+3)/77),x=FIELD.cx+Math.cos(a)*FIELD.rx*.88*r,y=FIELD.cy+Math.sin(a)*FIELD.ry*.86*r;
+  ctx.fillStyle=i%4===0?'#5e3a24':i%3===0?'#c18b59':'#795033';
+  ctx.globalAlpha=.28+(i%4)*.1;ctx.beginPath();ctx.ellipse(x,y,3+(i%4),2+(i%3),a,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=.32;ctx.strokeStyle='#4f301f';ctx.lineWidth=2;
+ for(let i=0;i<10;i++){
+  const x=180+i*67,y=190+(i*53)%255;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+13,y+9);ctx.lineTo(x+7,y+19);ctx.stroke();
+ }
+ ctx.restore();ctx.globalAlpha=1;
+
  // 競技線
  ctx.strokeStyle='#fff9';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-24,FIELD.ry-24,0,0,Math.PI*2);ctx.stroke();
  ctx.setLineDash([12,10]);ctx.beginPath();ctx.moveTo(500,112);ctx.lineTo(500,520);ctx.stroke();ctx.setLineDash([]);
@@ -763,7 +782,7 @@ function drawVillage(team,edge){
 }
 function drawSpectator(x,y,team,i){
  const bounce=Math.sin(performance.now()/220+i*1.7)*3;ctx.save();ctx.translate(x,y+bounce);
- ctx.fillStyle=team===0?'#fff4a8':(currentStage===1?'#8edcff':currentStage===2?'#7b2438':currentStage===3?'#29b8b4':currentStage===4?'#ec73ad':'#111d3d');ctx.fillRect(-7,-2,14,18);ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-10,7,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=team===0?'#fff4a8':(currentStage===1?'#8edcff':currentStage===2?'#7b2438':currentStage===3?'#29b8b4':currentStage===4?'#ec73ad':'#111d3d');ctx.strokeStyle='#17120f';ctx.lineWidth=2;ctx.fillRect(-7,-2,14,18);ctx.strokeRect(-7,-2,14,18);ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-10,7,0,Math.PI*2);ctx.fill();ctx.stroke();
  ctx.strokeStyle='#51321f';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-5,3);ctx.lineTo(-12,-5);ctx.moveTo(5,3);ctx.lineTo(12,-7);ctx.stroke();ctx.restore();
 }
 function drawBrokenGate(x,top,bottom,team){
