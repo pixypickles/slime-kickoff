@@ -24,8 +24,8 @@ function insideEllipse(x,y,margin=0){const rx=FIELD.rx-margin,ry=FIELD.ry-margin
 function constrainToField(o){const inGate=o.y>FIELD.goalT&&o.y<FIELD.goalB;if(inGate&&o.x<FIELD.cx-FIELD.rx+o.r)return;if(inGate&&o.x>FIELD.cx+FIELD.rx-o.r)return;const rx=FIELD.rx-o.r,ry=FIELD.ry-o.r,dx=o.x-FIELD.cx,dy=o.y-FIELD.cy,q=(dx*dx)/(rx*rx)+(dy*dy)/(ry*ry);if(q>1){const k=1/Math.sqrt(q);o.x=FIELD.cx+dx*k;o.y=FIELD.cy+dy*k;const nx=dx/(rx*rx),ny=dy/(ry*ry),n=norm(nx,ny),dot=o.vx*n.x+o.vy*n.y;if(dot>0){o.vx-=1.75*dot*n.x;o.vy-=1.75*dot*n.y;}}}
 
 class Player{
- constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0,hitAirT:0,hitAirMax:0,respawnT:0,spinKick:0,spinAngle:0});}
- jumpHeight(){const jump=this.jumpT>0?Math.sin((1-this.jumpT/.82)*Math.PI)*124:0;const hit=this.hitAirT>0?Math.sin((1-this.hitAirT/Math.max(.01,this.hitAirMax))*Math.PI)*72:0;return Math.max(jump,hit);}
+ constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0,respawnT:0,spinKick:0,spinAngle:0,buriedT:0,aiMode:'slime',aiModeT:0});}
+ jumpHeight(){return this.jumpT>0?Math.sin((1-this.jumpT/.82)*Math.PI)*124:0;}
  isAirborne(){return this.jumpHeight()>34;}
  update(dt){
   if(this.respawnT>0){
@@ -33,7 +33,12 @@ class Player{
    if(this.respawnT===0){this.x=this.team?750:250;this.y=[225,310,395][this.index];this.stun=.28;burst(this.x,this.y,teamColor(this.team),16);}
    return;
   }
-  this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);this.hitAirT=Math.max(0,this.hitAirT-dt);this.spinKick=Math.max(0,this.spinKick-dt);if(this.spinKick>0)this.spinAngle+=dt*19;if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
+  if(this.buriedT>0){
+   this.buriedT=Math.max(0,this.buriedT-dt);this.vx=this.vy=0;this.stun=Math.max(this.stun,.08);
+   if(this.buriedT===0){this.stun=.22;burst(this.x,this.y,'#c99a62',18);message='地面から脱出！';messageLife=.55;}
+   return;
+  }
+  this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);this.spinKick=Math.max(0,this.spinKick-dt);if(this.spinKick>0)this.spinAngle+=dt*19;if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
   let ix=0,iy=0,actions={};
   if(this.isHuman){ix=input.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0);iy=input.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);actions={dash:input.dash||keys.Shift,kick:input.kick||keys.j,jump:input.jump||keys.k,skill:input.skill||keys.l};}
   else ({ix,iy,actions}=this.ai(dt));
@@ -49,9 +54,39 @@ class Player{
   if(throughGate){this.respawnT=1.15;this.vx=this.vy=0;message='村まで吹き飛ばされた！';messageLife=.9;shake=Math.max(shake,9);burst(clamp(this.x,25,W-25),this.y,teamColor(this.team),18);}
  }
  ai(dt){
-  this.aiThink-=dt;if(this.aiThink<=0){this.aiThink=rand(.1,.25);const target=this.index===2?players.find(p=>p.team!==this.team&&p.index===0):slime;let tx=target.x,ty=target.y;if(this.index===1){tx+=(this.team?1:-1)*120;ty+=this.team?90:-90;}const n=norm(tx-this.x,ty-this.y);this.aiX=n.x;this.aiY=n.y;}
-  const d=Math.hypot(slime.x-this.x,slime.y-this.y),enemyNear=players.some(p=>p.team!==this.team&&Math.hypot(p.x-this.x,p.y-this.y)<80);
-  return{ix:this.aiX,iy:this.aiY,actions:{dash:d>150&&Math.random()<.03,kick:(d<92||enemyNear)&&Math.random()<.16,jump:d<110&&Math.random()<.025,skill:this.index===0&&this.skillCd<=0&&d<430&&Math.random()<.012}};
+  this.aiModeT-=dt;
+  if(this.aiModeT<=0){
+   this.aiModeT=rand(1.8,4.2);
+   const roll=Math.random();
+   // 多くはスライムを追い、時々だけ妨害・守備・位置取りを行う。
+   this.aiMode=roll<.62?'slime':roll<.78?'defend':roll<.91?'intercept':'harass';
+  }
+  this.aiThink-=dt;
+  if(this.aiThink<=0){
+   this.aiThink=rand(.18,.38);
+   let tx=slime.x,ty=slime.y;
+   if(this.aiMode==='defend'){
+    tx=this.team?760:240;ty=clamp(slime.y,220,405);
+   }else if(this.aiMode==='intercept'){
+    tx=slime.x+(this.team?110:-110);ty=slime.y+rand(-65,65);
+   }else if(this.aiMode==='harass'){
+    const enemies=players.filter(p=>p.team!==this.team&&p.respawnT<=0&&p.buriedT<=0);
+    const target=enemies[(Math.random()*enemies.length)|0];
+    if(target){tx=target.x;ty=target.y;}
+   }else if(this.index===1){
+    tx+=(this.team?1:-1)*95;ty+=this.team?72:-72;
+   }
+   const n=norm(tx-this.x,ty-this.y);this.aiX=n.x;this.aiY=n.y;
+  }
+  const d=Math.hypot(slime.x-this.x,slime.y-this.y);
+  const enemyNear=players.some(p=>p.team!==this.team&&p.respawnT<=0&&p.buriedT<=0&&Math.hypot(p.x-this.x,p.y-this.y)<76);
+  const attackingPlayer=this.aiMode==='harass'&&enemyNear;
+  return{ix:this.aiX,iy:this.aiY,actions:{
+   dash:(d>145||attackingPlayer)&&Math.random()<.022,
+   kick:(d<94||attackingPlayer)&&Math.random()<.12,
+   jump:d<115&&Math.random()<.018,
+   skill:this.index===0&&this.skillCd<=0&&d<430&&Math.random()<.009
+  }};
  }
  autoAim(){
   const targets=[{x:slime.x,y:slime.y,kind:'slime'}];
@@ -73,13 +108,27 @@ class Player{
   if(this.spirit==='wind'){elementPower=1.22;elementColor='#c8ffd4';this.vx+=this.faceX*120;this.vy+=this.faceY*120;this.speedBoost=Math.max(this.speedBoost,.28);if(air){this.spinKick=.46;this.spinAngle=0;message='旋風脚！';messageLife=.7;burst(this.x,this.y-this.jumpHeight(),'#c8ffd4',22);}}
   if(this.spirit==='earth'){elementPower=1.34;elementColor='#d8b27a';}
   const fx=this.faceX,fy=this.faceY,dx=slime.x-this.x,dy=slime.y-this.y;
+  if(this.spirit==='earth'&&air){
+   let stompTarget=null,stompDist=Infinity;
+   for(const p of players){
+    if(p===this||p.team===this.team||p.respawnT>0||p.buriedT>0)continue;
+    const d=Math.hypot(p.x-this.x,p.y-this.y);
+    if(d<122&&d<stompDist){stompTarget=p;stompDist=d;}
+   }
+   if(stompTarget){
+    stompTarget.vx=0;stompTarget.vy=0;stompTarget.buriedT=1.35;stompTarget.stun=1.35;
+    this.jumpT=Math.min(this.jumpT,.16);this.vx*=.35;this.vy*=.35;
+    message='アーススタンプ！ 地面に埋まった！';messageLife=1.05;shake=Math.max(shake,17);
+    burst(stompTarget.x,stompTarget.y,'#9a673d',34);
+   }
+  }
   if(Math.hypot(dx,dy)<95+slime.r){const n=norm(dx+fx*25,dy+fy*25);slime.vx+=n.x*power*elementPower;slime.vy+=n.y*power*elementPower;slime.wobble+=rand(-2,2);slime.hop=Math.max(slime.hop,air||sliding?.68:.54);slime.hopMax=Math.max(slime.hopMax||.45,slime.hop);shake=Math.max(shake,sliding?10:6);burst(slime.x,slime.y,elementColor,16);
    if(this.spirit==='fire'){slime.vx+=fx*180;slime.vy+=fy*180;slime.scared=1;slime.hop=.58;slime.hopMax=.58;message='ファイアキック！';messageLife=.65;burst(slime.x,slime.y,'#ff8b2c',18);}
    if(this.spirit==='ice'){slime.frozen=Math.max(slime.frozen||0,1.8);slime.vx*=.72;slime.vy*=.72;message='アイスキック！';messageLife=.65;burst(slime.x,slime.y,'#bff7ff',20);}
    if(this.spirit==='wind'){message='ウインドキック！';messageLife=.6;}
    if(this.spirit==='earth'){message='アースキック！';messageLife=.6;shake=Math.max(shake,11);}
   }
-  for(const p of players){if(p===this||p.team===this.team)continue;const px=p.x-this.x,py=p.y-this.y,n=norm(px,py);if(Math.hypot(px,py)<88&&n.x*fx+n.y*fy>-.1){p.vx+=fx*power*1.08*elementPower;p.vy+=fy*power*1.08*elementPower;p.stun=Math.max(p.stun,sliding?.78:air?.58:.42);p.hitAirMax=air||sliding?.62:.48;p.hitAirT=Math.max(p.hitAirT,p.hitAirMax);shake=Math.max(shake,8);burst(p.x,p.y,elementColor,12);
+  for(const p of players){if(p===this||p.team===this.team)continue;const px=p.x-this.x,py=p.y-this.y,n=norm(px,py);if(Math.hypot(px,py)<88&&n.x*fx+n.y*fy>-.1){p.vx+=fx*power*1.28*elementPower;p.vy+=fy*power*1.28*elementPower;p.stun=Math.max(p.stun,sliding?.82:air?.62:.46);p.vx+=fx*(air||sliding?360:220);p.vy+=fy*(air||sliding?360:220);shake=Math.max(shake,8);burst(p.x,p.y,elementColor,12);
     if(this.spirit==='fire'){p.burn=Math.max(p.burn,air||sliding?1.7:1.3);p.burnTick=0;p.vx+=fx*(air||sliding?240:150);p.vy+=fy*(air||sliding?240:150);}
     if(this.spirit==='ice'){p.frozen=Math.max(p.frozen,air||sliding?1.75:1.35);p.stun=0;p.vx+=fx*(air||sliding?210:120);p.vy+=fy*(air||sliding?210:120);}
     if(this.spirit==='wind'){p.vx+=fx*(air||sliding?430:300);p.vy+=fy*(air||sliding?430:300);}
@@ -96,9 +145,19 @@ class Player{
   message='コールドブレス！';messageLife=.9;shake=Math.max(shake,3);burst(this.x+n.x*34,this.y+n.y*34,'#bff7ff',18);}
  draw(){
   if(this.respawnT>0)return;
+  if(this.buriedT>0){
+   ctx.save();ctx.translate(this.x,this.y);
+   ctx.fillStyle='#8b5a32';ctx.strokeStyle='#4e321d';ctx.lineWidth=4;
+   ctx.beginPath();ctx.ellipse(0,15,42,18,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.fillStyle='#6a4328';ctx.strokeStyle='#29180e';
+   ctx.beginPath();ctx.ellipse(-12,-1,20,12,-.12,0,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.beginPath();ctx.ellipse(13,-1,20,12,.12,0,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.fillStyle='#6b482c';for(let i=0;i<7;i++){ctx.beginPath();ctx.arc(rand(-32,32),rand(5,22),rand(2,5),0,Math.PI*2);ctx.fill();}
+   ctx.restore();return;
+  }
   const jump=this.jumpHeight();
   const ang=Math.atan2(this.faceY,this.faceX),kicking=this.kickTime>0;
-  ctx.save();ctx.translate(this.x,this.y-jump);if(this.spinKick>0)ctx.rotate(this.spinAngle);else if(this.burn>0)ctx.rotate(this.rollAngle);
+  ctx.save();ctx.translate(this.x,this.y-jump);if(this.burn>0)ctx.rotate(this.rollAngle);
   ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(0,30+jump,31,10,0,0,Math.PI*2);ctx.fill();
 
   // 胴体は常に上向き。片足は胴体の下へ固定し、もう片足だけ大きく蹴り出す。
@@ -112,7 +171,8 @@ class Player{
   // 蹴り足。通常時は胴体下、キック中だけ向いている方向へ大きく動く。
   if(kicking){
    const kickReach=this.isAirborne()?62:(this.dashTime>0?70:54);
-   ctx.save();ctx.rotate(ang);ctx.translate(kickReach,5);ctx.rotate(.12);
+   const kickAng=this.spinKick>0?this.spinAngle:ang;
+   ctx.save();ctx.rotate(kickAng);ctx.translate(kickReach,5);ctx.rotate(.12);
    ctx.scale(1.28,1.12);ctx.beginPath();ctx.ellipse(0,0,24,14,0,0,Math.PI*2);ctx.fill();ctx.stroke();
    ctx.strokeStyle=this.spirit==='fire'?'#ff9a32':this.spirit==='ice'?'#bff7ff':this.spirit==='wind'?'#c8ffd4':this.spirit==='earth'?'#d8b27a':'#fff1a3';
    ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-32,0);ctx.lineTo(-10,0);ctx.stroke();ctx.restore();
@@ -121,9 +181,10 @@ class Player{
   }
 
   if(this.spinKick>0){
-   ctx.save();ctx.globalAlpha=.55;ctx.strokeStyle='#dffff0';ctx.lineWidth=6;
-   ctx.beginPath();ctx.ellipse(0,8,62,20,-this.spinAngle*.25,0,Math.PI*2);ctx.stroke();
-   ctx.beginPath();ctx.ellipse(0,8,43,13,this.spinAngle*.35,0,Math.PI*2);ctx.stroke();ctx.restore();
+   ctx.save();ctx.globalAlpha=.62;ctx.strokeStyle='#dffff0';ctx.lineWidth=6;
+   ctx.beginPath();ctx.ellipse(0,8,68,20,0,0,Math.PI*2);ctx.stroke();
+   ctx.globalAlpha=.42;ctx.lineWidth=4;ctx.setLineDash([16,12]);ctx.lineDashOffset=-this.spinAngle*12;
+   ctx.beginPath();ctx.ellipse(0,8,52,15,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.restore();
   }
 
   // 頭・顔は画面上向きに固定。
@@ -171,7 +232,7 @@ function updateFireballs(dt,stopped){
   for(const target of players){
    if(target.team===f.team||target===f.owner)continue;
    if(Math.abs(target.jumpHeight()-f.z)>76)continue;
-   if(Math.hypot(target.x-f.x,target.y-f.y)<target.r+f.r+7){const n=norm(f.vx,f.vy);target.vx+=n.x*650;target.vy+=n.y*650;target.burn=1.9;target.burnTick=0;target.stun=.32;target.hitAirMax=.58;target.hitAirT=.58;f.life=0;message='燃えた！ コロコロ消火中！';messageLife=1;shake=11;burst(target.x,target.y-target.jumpHeight(),'#ff7a24',28);break;}
+   if(Math.hypot(target.x-f.x,target.y-f.y)<target.r+f.r+7){const n=norm(f.vx,f.vy);target.vx+=n.x*650;target.vy+=n.y*650;target.burn=1.9;target.burnTick=0;target.stun=.38;target.vx+=n.x*240;target.vy+=n.y*240;f.life=0;message='燃えた！ コロコロ消火中！';messageLife=1;shake=11;burst(target.x,target.y-target.jumpHeight(),'#ff7a24',28);break;}
   }
  }
  fireballs=fireballs.filter(f=>f.life>0);
@@ -240,8 +301,8 @@ function drawIceWaves(){for(const w of iceWaves){const p=1-w.life/w.maxLife,a=Ma
 function drawFireballs(){for(const f of fireballs){const a=Math.atan2(f.vy,f.vx);ctx.save();ctx.translate(f.x,f.y-(f.z||0));ctx.rotate(a);ctx.globalAlpha=.35;ctx.fillStyle='#ff6b1f';ctx.beginPath();ctx.ellipse(-f.r*1.35,0,f.r*1.75,f.r*.65,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;const g=ctx.createRadialGradient(-5,-6,3,0,0,f.r+5);g.addColorStop(0,'#fff7ba');g.addColorStop(.35,'#ffd447');g.addColorStop(1,'#f0441d');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,f.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
 
 function goal(team){goalScene={team,life:1.1};message='押し込み成功！';messageLife=1.3;chiefLine=team===0?'見事だ！ 褒美に近づいたぞ！':'押し返せー！ まだ終わっておらん！';chiefLife=2.2;shake=18;if(Math.max(...score)>=3)return endGame();reset(true);}
-function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.length;j++){const a=players[i],b=players[j];if(a.respawnT>0||b.respawnT>0||a.isAirborne()||b.isAirborne())continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d<min){const n=norm(dx,dy),push=(min-d)*.62;a.x-=n.x*push;b.x+=n.x*push;a.y-=n.y*push;b.y+=n.y*push;const repel=95+(min-d)*10;a.vx-=n.x*repel;b.vx+=n.x*repel;a.vy-=n.y*repel;b.vy+=n.y*repel;if(a.frozen>0){a.vx-=n.x*360;a.vy-=n.y*360;}if(b.frozen>0){b.vx+=n.x*360;b.vy+=n.y*360;}}}
- for(const p of players){if(p.respawnT>0||p.isAirborne())continue;const dx=slime.x-p.x,dy=slime.y-p.y,d=Math.hypot(dx,dy),min=p.r+slime.r;if(d<min){const n=norm(dx,dy),push=min-d;slime.x+=n.x*push;slime.y+=n.y*push;const boost=slime.frozen>0?430:80;slime.vx+=n.x*boost;slime.vy+=n.y*boost;slime.scared=.35;if(slime.frozen>0){message='凍ったスライムがツルーッ！';messageLife=.7;}}}}
+function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.length;j++){const a=players[i],b=players[j];if(a.respawnT>0||b.respawnT>0||a.buriedT>0||b.buriedT>0||a.isAirborne()||b.isAirborne())continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d<min){const n=norm(dx,dy),push=(min-d)*.62;a.x-=n.x*push;b.x+=n.x*push;a.y-=n.y*push;b.y+=n.y*push;const repel=95+(min-d)*10;a.vx-=n.x*repel;b.vx+=n.x*repel;a.vy-=n.y*repel;b.vy+=n.y*repel;if(a.frozen>0){a.vx-=n.x*360;a.vy-=n.y*360;}if(b.frozen>0){b.vx+=n.x*360;b.vy+=n.y*360;}}}
+ for(const p of players){if(p.respawnT>0||p.buriedT>0||p.isAirborne())continue;const dx=slime.x-p.x,dy=slime.y-p.y,d=Math.hypot(dx,dy),min=p.r+slime.r;if(d<min){const n=norm(dx,dy),push=min-d;slime.x+=n.x*push;slime.y+=n.y*push;const boost=slime.frozen>0?430:80;slime.vx+=n.x*boost;slime.vy+=n.y*boost;slime.scared=.35;if(slime.frozen>0){message='凍ったスライムがツルーッ！';messageLife=.7;}}}}
 function burst(x,y,color,n){for(let i=0;i<n;i++){const a=rand(0,7),s=rand(50,240);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.25,.7),color});}}
 function updateParticles(dt){for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;}particles=particles.filter(p=>p.life>0);}
 function draw(){ctx.save();if(shake)ctx.translate(rand(-shake,shake),rand(-shake,shake));drawField();drawChiefs();for(const p of players)p.draw();drawSlime();drawFireballs();drawIceWaves();drawRockBalls();drawHurricanes();drawGoalScene();for(const p of particles){ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
