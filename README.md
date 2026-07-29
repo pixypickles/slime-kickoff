@@ -11,3 +11,6 @@
 - Elemental shoulder-charge effects tuned for ice, fire, wind, earth, thunder, and plain.
 - Team leaders now wear a small village hat instead of horn-like elemental head decorations.
 - Added a heavy Rock Slime option with reduced knockback, low hops, slower movement, and a rocky appearance.
+
+
+v0.39: 雲スライム（ふわふわ）を追加。常時浮遊し、軽く押されやすく、慣性で漂いやすい特殊スライム。
