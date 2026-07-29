@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.36 ATTRIBUTE DASH & PACHI</title>
+  <title>スライム・キックオフ！ v0.37 FREE MATCH & RESPONSIVE</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -51,11 +51,21 @@
           </label>
             <strong id="spiritStatus" class="spirit-status" aria-live="polite">選択中：炎</strong>
           </fieldset>
+          <div class="match-setup">
+            <label for="matchMode">遊び方
+              <select id="matchMode"><option value="campaign">物語を進める</option><option value="free">練習試合</option></select>
+            </label>
+            <label id="freeOpponentWrap" class="hidden" for="freeOpponent">対戦相手
+              <select id="freeOpponent">
+                <option value="1">❄ ぶりふぉ村</option><option value="2">🔥 さるびえ村</option><option value="3">🌪 さるびび村</option><option value="4">🪨 たけぞ村</option><option value="5">⚡ ちぇすたぴサーカス団</option>
+              </select>
+            </label>
+          </div>
           <div class="intro-action" aria-live="polite">
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.32 DIRT ARENA & BLACK OUTLINE</small>
+          <small>v0.37 FREE MATCH & RESPONSIVE</small>
         </div>
       </div>
     </section>
