@@ -91,22 +91,19 @@ class Player{
    }
    return;
   }
-  if(this.wallStickT>0){
-   ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.wallStickAngle+Math.PI/2);ctx.scale(1.45,.42);
-   ctx.fillStyle=this.team===0?'#fffdf0':'#888';ctx.strokeStyle='#5b3c22';ctx.lineWidth=4;
-   ctx.beginPath();ctx.roundRect(-20,-30,40,62,13);ctx.fill();ctx.stroke();
-   ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-38,18,0,Math.PI*2);ctx.fill();ctx.stroke();
-   ctx.fillStyle='#6a4328';ctx.beginPath();ctx.ellipse(-13,38,20,12,0,0,Math.PI*2);ctx.ellipse(13,38,20,12,0,0,Math.PI*2);ctx.fill();
-   ctx.restore();return;
-  }
   if(this.buriedT>0){
    this.buriedT=Math.max(0,this.buriedT-dt);this.vx=this.vy=0;this.stun=Math.max(this.stun,.08);
    if(this.buriedT===0){this.stun=.22;burst(this.x,this.y,'#c99a62',18);message='地面から脱出！';messageLife=.55;}
    return;
   }
   if(this.wallStickT>0){
-   this.wallStickT=Math.max(0,this.wallStickT-dt);this.vx=this.vy=0;this.stun=Math.max(this.stun,.08);
-   if(this.wallStickT===0){this.stun=.28;this.wallSplatPending=0;const n=norm(FIELD.cx-this.x,FIELD.cy-this.y);this.vx=n.x*170;this.vy=n.y*170;burst(this.x,this.y,'#fff09a',18);message='壁からズルッと復帰！';messageLife=.65;}
+   this.wallStickT-=dt;this.vx=this.vy=0;this.stun=Math.max(this.stun,.08);
+   if(this.wallStickT<=0){
+    this.wallStickT=0;this.wallSplatPending=0;this.stun=.28;
+    const n=norm(FIELD.cx-this.x,FIELD.cy-this.y);
+    this.x+=n.x*18;this.y+=n.y*18;this.vx=n.x*210;this.vy=n.y*210;
+    burst(this.x,this.y,'#fff09a',18);message='壁からズルッと復帰！';messageLife=.65;
+   }
    return;
   }
   this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);this.spinKick=Math.max(0,this.spinKick-dt);if(this.spinKick>0)this.spinAngle+=dt*19;if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
@@ -281,6 +278,14 @@ class Player{
     ctx.restore();
    }
    return;
+  }
+  if(this.wallStickT>0){
+   ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.wallStickAngle+Math.PI/2);ctx.scale(1.45,.42);
+   ctx.fillStyle=this.team===0?'#fffdf0':'#888';ctx.strokeStyle='#5b3c22';ctx.lineWidth=4;
+   ctx.beginPath();ctx.roundRect(-20,-30,40,62,13);ctx.fill();ctx.stroke();
+   ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-38,18,0,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.fillStyle='#6a4328';ctx.beginPath();ctx.ellipse(-13,38,20,12,0,0,Math.PI*2);ctx.ellipse(13,38,20,12,0,0,Math.PI*2);ctx.fill();
+   ctx.restore();return;
   }
   if(this.buriedT>0){
    ctx.save();ctx.translate(this.x,this.y);
