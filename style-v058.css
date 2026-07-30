@@ -1,0 +1,554 @@
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d151c;color:#fff;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
+body{display:grid;place-items:center}
+#gameWrap{position:relative;width:min(100vw,calc(100vh*1.6667));height:min(100vh,calc(100vw*.6));max-width:1000px;max-height:600px;background:#17222c;overflow:hidden;box-shadow:0 0 40px #0008}
+canvas{display:block;width:100%;height:100%}
+.panel{position:absolute;inset:0;display:grid;place-content:center;text-align:center;background:linear-gradient(#10212eea,#10151df2);gap:14px;padding:24px}
+.story-card{width:min(820px,94vw);max-height:94%;overflow:auto;padding:20px 32px;border:3px solid #d7b66e;border-radius:24px;background:#1d2d36e8;box-shadow:0 12px 40px #0008,inset 0 0 30px #0004}
+.panel h1,.panel h2{margin:0;font-size:clamp(30px,5.4vw,58px);text-shadow:0 4px 0 #0007}
+.tagline{margin:5px 0 14px;color:#ffe59b;font-weight:800;font-size:clamp(15px,2.2vw,23px)}
+.story{font-size:clamp(13px,1.85vw,19px);line-height:1.55}
+.story p{margin:8px 0}.story strong{color:#b8f0ff}.story .final-line{font-weight:900;color:#fff1a8}
+.loading{min-height:28px;margin-top:12px;color:#bdeeff;font-weight:900;letter-spacing:.06em;animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{to{opacity:.55}}
+button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a;box-shadow:inset 0 -5px 0 #0004,0 5px 12px #0005}
+.panel button{font-size:22px;padding:14px 36px;margin:12px auto 4px;background:#e58b2f;cursor:pointer}
+.panel small{display:block;color:#dbe8eea8}.hidden{display:none!important}
+#controls{position:absolute;inset:0;pointer-events:none}
+#stick{position:absolute;left:4%;bottom:6%;width:20%;aspect-ratio:1;border-radius:50%;background:#ffffff24;border:3px solid #ffffff5a;pointer-events:auto}
+#knob{position:absolute;left:31%;top:31%;width:38%;height:38%;border-radius:50%;background:#fff9;box-shadow:0 2px 10px #0007}
+.buttons{position:absolute;right:3%;bottom:4%;width:34%;height:40%;pointer-events:none}.buttons button{position:absolute;width:30%;aspect-ratio:1;border-radius:50%;font-size:clamp(10px,1.8vw,18px);pointer-events:auto}.kick{right:0;bottom:18%;background:#e55442}.dash{right:30%;bottom:0;background:#3f8ee8}.jump{right:31%;bottom:48%;background:#51a95b}.skill{right:62%;bottom:26%;background:#a15de2}
+@media (orientation:portrait){
+#gameWrap{width:min(100dvh,calc(100dvw / .6));height:min(60dvh,100dvw);max-width:none;max-height:none;transform:rotate(90deg);transform-origin:center}
+.story-card{max-height:92%;padding:14px 25px}.story{font-size:12px;line-height:1.35}.story p{margin:5px 0}.panel h1{font-size:28px}
+}
+/* v0.04 WORLD */
+.crest{display:inline-block;margin:0 auto 7px;padding:5px 14px;border:1px solid #e8ce8c88;border-radius:999px;color:#ead8aa;background:#3b2a1d99;font-size:clamp(10px,1.4vw,14px);font-weight:800;letter-spacing:.08em}
+.story-card{background:linear-gradient(180deg,#233a43f2,#17262df5);border-color:#cda95f}
+.story strong{color:#ffd888}
+
+/* v0.08 ICE SPIRIT */
+.spirit-select{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 2px;font-weight:900;color:#e9f7ff}
+.spirit-select button{padding:8px 15px;border-radius:13px;font-size:15px;background:#31495b;box-shadow:inset 0 -3px 0 #0004;cursor:pointer}
+.spirit-select button.selected{outline:3px solid #ffe36d;transform:translateY(-2px)}
+
+
+/* v0.09 WIND SPIRIT / narrow-screen start button fix */
+.intro-panel{place-content:stretch;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+.intro-panel .story-card{display:flex;flex-direction:column;width:min(820px,100%);height:100%;max-height:100%;margin:auto;padding:clamp(10px,2.2vh,20px) clamp(14px,3vw,32px);overflow:auto;overscroll-behavior:contain}
+.intro-action{position:sticky;bottom:-1px;z-index:5;margin-top:auto;padding:8px 4px max(8px,env(safe-area-inset-bottom));background:linear-gradient(180deg,#17262d00 0%,#17262df2 30%,#17262d 100%)}
+.intro-action .loading{margin:0;min-height:22px;font-size:clamp(12px,1.7vw,16px)}
+.intro-action #startBtn{display:block;width:min(430px,94%);min-height:48px;margin:6px auto 0;padding:10px 18px;font-size:clamp(16px,2.4vw,22px)}
+.spirit-select{flex-wrap:wrap;flex:0 0 auto}
+@media (max-height:520px),(max-width:720px){
+ .intro-panel .story-card{border-radius:14px;padding:8px 14px}
+ .crest{margin-bottom:2px;padding:3px 10px}
+ .panel h1{font-size:clamp(22px,7vh,38px)}
+ .tagline{margin:1px 0 5px}
+ .story{font-size:clamp(10px,2.7vh,14px);line-height:1.28}
+ .story p{margin:3px 0}
+ .spirit-select{gap:5px;margin:4px 0 0;font-size:12px}
+ .spirit-select button{padding:5px 9px;font-size:12px}
+ .panel small{font-size:9px}
+}
+@media (max-height:390px){
+ .story p:nth-child(2),.story p:nth-child(3){display:none}
+ .intro-action #startBtn{min-height:42px;padding:7px 14px}
+}
+
+/* v0.09.1 UI FIX: start controls are always reachable */
+.intro-panel .story-card{overflow:hidden;min-height:0}
+.intro-scroll{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 4px}
+.intro-footer{flex:0 0 auto;position:relative;z-index:20;padding-top:4px;background:linear-gradient(180deg,#17262d00,#17262de8 14%,#17262d 42%)}
+.intro-footer .spirit-select{position:relative;z-index:22}
+.intro-footer .spirit-select button{touch-action:manipulation;pointer-events:auto;min-width:64px;min-height:38px;margin:0}
+.intro-footer .intro-action{position:relative;bottom:auto;z-index:21;margin:0;padding:4px 4px max(5px,env(safe-area-inset-bottom));background:none}
+.intro-footer #startBtn{display:block!important;visibility:visible!important;pointer-events:auto;touch-action:manipulation;width:min(430px,94%);min-height:46px;margin:4px auto 0}
+.intro-footer #startBtn:disabled{opacity:.65;filter:saturate(.6)}
+@media (max-height:390px){
+ .intro-scroll .story p:nth-child(2),.intro-scroll .story p:nth-child(3){display:none}
+ .intro-footer .loading{display:none}
+ .intro-footer .spirit-select{margin:1px 0}
+ .intro-footer #startBtn{min-height:40px;margin-top:2px;padding:6px 12px}
+ .intro-footer small{display:none}
+}
+
+
+/* v0.09.2 TOUCH FIX: scroll and spirit selection */
+.intro-scroll{
+  touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:stable;
+  cursor:grab;
+}
+.intro-scroll:active{cursor:grabbing}
+.intro-scroll *{touch-action:pan-y!important}
+.scroll-hint{
+  position:sticky;top:0;z-index:3;
+  display:inline-block;
+  margin:0 auto 5px;padding:3px 10px;
+  border-radius:999px;
+  background:#0d1821d9;color:#d9f4ff;
+  font-size:clamp(10px,1.5vw,13px);font-weight:800;
+  pointer-events:none;
+}
+.intro-footer,.intro-footer *{touch-action:manipulation!important}
+#spiritSelect{pointer-events:auto!important;isolation:isolate}
+#spiritSelect button{
+  position:relative;z-index:30;
+  pointer-events:auto!important;
+  user-select:none;-webkit-user-select:none;
+}
+#spiritSelect button.selected{
+  background:#735b20;
+  outline:3px solid #ffe36d;
+  box-shadow:inset 0 -3px 0 #0004,0 0 0 3px #0006;
+}
+#spiritSelect button:active{transform:translateY(1px) scale(.97)}
+@media (max-height:390px){.scroll-hint{font-size:9px;padding:2px 7px}}
+
+
+/* v0.09.3 SPIRIT SELECT FIX */
+#spiritSelect button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  min-width:74px;
+  min-height:42px;
+  margin:0!important;
+  cursor:pointer;
+  touch-action:manipulation!important;
+}
+#spiritSelect button.selected{
+  background:#8a681f!important;
+  color:#fff!important;
+  outline:3px solid #fff06a!important;
+  box-shadow:inset 0 -3px 0 #0004,0 0 0 3px #1119,0 0 14px #ffe66a99!important;
+}
+.spirit-status{
+  flex:0 0 100%;
+  min-height:20px;
+  color:#fff2a3;
+  font-size:13px;
+  text-align:center;
+}
+
+
+/* v0.09.4 NATIVE SPIRIT SELECT
+   ネイティブのラジオボタン＋labelを使い、特殊なタッチイベントに依存しない。 */
+#spiritSelect{
+  border:0;
+  padding:0;
+  min-width:0;
+  margin:5px 0 1px;
+}
+#spiritSelect legend{
+  width:100%;
+  margin:0 0 4px;
+  padding:0;
+  color:#e9f7ff;
+  font-size:13px;
+  font-weight:900;
+  text-align:center;
+}
+#spiritSelect input[type="radio"]{
+  position:absolute;
+  width:1px;
+  height:1px;
+  margin:-1px;
+  padding:0;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+#spiritSelect label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  min-width:78px;
+  min-height:43px;
+  padding:7px 14px;
+  border-radius:13px;
+  background:#31495b;
+  color:#fff;
+  box-shadow:inset 0 -3px 0 #0004;
+  font-size:15px;
+  font-weight:900;
+  cursor:pointer;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  user-select:none;
+  -webkit-user-select:none;
+}
+#spiritSelect input[type="radio"]:checked + label{
+  background:#8a681f;
+  outline:3px solid #fff06a;
+  transform:translateY(-2px);
+  box-shadow:inset 0 -3px 0 #0004,0 0 0 3px #1119,0 0 14px #ffe66a99;
+}
+#spiritSelect input[type="radio"]:focus-visible + label{
+  outline:4px solid #bdeeff;
+}
+#spiritSelect label:active{transform:translateY(1px) scale(.97)}
+@media (max-height:390px){
+ #spiritSelect legend{display:none}
+ #spiritSelect label{min-width:66px;min-height:36px;padding:4px 9px;font-size:12px}
+}
+
+
+/* v0.09.5 START FIX: start button must remain the topmost tappable control */
+#startBtn{
+  position:relative!important;
+  z-index:999!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.intro-action{pointer-events:auto!important;z-index:998!important}
+
+
+/* v0.09.7 COMPATIBILITY FIX
+   選択状態が端末依存で見えなくならないよう、ネイティブの丸いラジオを常時表示する。 */
+#spiritSelect input[type="radio"]{
+ position:static!important;
+ width:20px!important;
+ height:20px!important;
+ margin:0 2px 0 7px!important;
+ padding:0!important;
+ overflow:visible!important;
+ clip:auto!important;
+ clip-path:none!important;
+ white-space:normal!important;
+ appearance:auto!important;
+ -webkit-appearance:radio!important;
+ accent-color:#ffd84d;
+ flex:0 0 auto;
+ pointer-events:auto!important;
+}
+#spiritSelect label{min-width:58px;padding:7px 10px}
+#spiritSelect input[type="radio"]:checked + label{
+ background:#8a681f!important;
+ outline:3px solid #fff06a!important;
+ transform:none!important;
+}
+
+
+/* v0.10 EARTH SPIRIT */
+#spiritSelect label[for="spiritEarth"]{--spirit-accent:#c99a62}
+#spiritSelect input:checked+label[for="spiritEarth"]{background:#6d5034;border-color:#f0c58b;box-shadow:0 0 0 3px #f0c58b55}
+
+/* v0.11 HIGH JUMP & ELEMENT KICK */
+.buttons .jump{outline:3px solid #d9ffd9;box-shadow:inset 0 -5px 0 #0004,0 0 14px #aaffaa77}
+
+.result-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.result-actions button{min-width:150px;padding:14px 18px;border-radius:14px;border:3px solid #4a2e1d;background:#ffe8a8;font-weight:900;font-size:16px;box-shadow:0 5px 0 #7a4d2a}
+.result-actions button:active{transform:translateY(3px);box-shadow:0 2px 0 #7a4d2a}
+.slime-picker{display:flex;align-items:center;gap:8px;justify-content:center;font-weight:900}
+.slime-picker select{font:inherit;padding:8px 12px;border-radius:10px;border:3px solid #5a3b25;background:#fff8d9}
+@media (max-height:420px) and (orientation:landscape){
+ .result-actions{gap:8px;margin-top:8px}
+ .result-actions button{min-width:130px;padding:10px 12px;font-size:14px}
+}
+
+.stage-card{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at center,rgba(90,190,230,.55),rgba(8,27,52,.94));color:#fff;text-align:center}
+.stage-card.hidden{display:none}
+.stage-card-inner{max-width:560px;padding:28px 34px;border:3px solid #dffcff;border-radius:24px;background:rgba(26,76,108,.82);box-shadow:0 0 38px rgba(146,231,255,.65)}
+.stage-card h2{font-size:clamp(36px,8vw,68px);margin:8px 0 14px}
+.stage-card p{margin:7px 0;font-size:clamp(16px,3vw,23px)}
+.stage-kicker{font-weight:900;color:#c9f5ff;letter-spacing:.08em}
+@media(max-height:420px) and (orientation:landscape){.stage-card-inner{padding:16px 24px}.stage-card h2{font-size:38px;margin:4px 0}.stage-card p{font-size:15px;margin:3px 0}}
+
+.clear-card{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at center,rgba(196,55,33,.55),rgba(20,7,12,.96));color:#fff;text-align:center}
+.clear-card.hidden{display:none}
+.clear-card-inner{max-width:600px;padding:28px 34px;border:3px solid #ffb06f;border-radius:24px;background:rgba(83,24,27,.9);box-shadow:0 0 45px rgba(255,92,40,.65)}
+.clear-card h2{font-size:clamp(28px,6vw,50px);margin:10px 0;color:#ffe4bf}
+.reward-line{font-size:clamp(18px,3vw,25px);font-weight:900;color:#fff5c7}
+.gate-flash{font-size:52px;animation:gatePulse .7s infinite alternate}
+.next-village{margin:18px 0;font-size:22px;color:#ffd0aa}
+.next-village strong{font-size:40px;color:#fff}
+.clear-card button{padding:13px 24px;border-radius:14px;border:3px solid #5e231e;background:#ffd68b;font-weight:900;font-size:18px}
+@keyframes gatePulse{from{transform:scale(.8);opacity:.55}to{transform:scale(1.25);opacity:1}}
+@media(max-height:420px) and (orientation:landscape){.clear-card-inner{padding:16px 24px}.clear-card h2{font-size:30px}.gate-flash{font-size:34px}.next-village{margin:8px 0;font-size:17px}.next-village strong{font-size:28px}}
+
+.spirit-select input:disabled+label{opacity:.38;filter:grayscale(1);cursor:not-allowed}
+.spirit-select label.locked::after{content:' 🔒';font-size:.82em}
+
+.match-setup{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:6px auto 2px;color:#fff;font-weight:900}
+.match-setup label{display:flex;align-items:center;gap:7px}.match-setup select{max-width:235px;padding:7px 10px;border:2px solid #d7b66e;border-radius:10px;background:#f8f2dc;color:#2c241d;font:inherit;font-weight:800}
+@media (orientation:portrait){html,body{width:100dvw;height:100dvh;min-height:100dvh}#gameWrap{position:absolute;left:50%;top:50%;translate:-50% -50%}}
+@media (max-width:430px) and (orientation:portrait){.buttons{right:2%;bottom:3%;width:35%;height:42%}#stick{left:3%;bottom:5%;width:21%}.buttons button{font-size:clamp(10px,2.5dvw,15px)}}
+
+/* v0.43 STORY PANEL: あらすじを常時表示し、全文は読みやすいパネルで開く */
+.story-preview{
+  width:min(650px,96%);
+  margin:8px auto 4px;
+  padding:9px 12px;
+  border:1px solid #e4c87a88;
+  border-radius:14px;
+  background:#0e1c24b8;
+  box-shadow:inset 0 0 18px #0004;
+}
+.story-preview p{
+  margin:0 0 7px;
+  color:#fff4c4;
+  font-size:clamp(11px,1.65vw,16px);
+  line-height:1.45;
+  font-weight:800;
+}
+.story-preview .story-open{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  margin:0;
+  padding:6px 16px;
+  border:1px solid #ffe48a99;
+  border-radius:999px;
+  background:#496678;
+  box-shadow:inset 0 -3px 0 #0004,0 3px 8px #0005;
+  font-size:clamp(11px,1.55vw,15px);
+  touch-action:manipulation!important;
+  pointer-events:auto;
+}
+.story-modal{
+  position:absolute;
+  inset:clamp(5px,1.5vh,12px);
+  z-index:100;
+  display:grid;
+  place-items:center;
+  padding:8px;
+  border-radius:18px;
+  background:#071017e8;
+  backdrop-filter:blur(4px);
+  touch-action:manipulation!important;
+}
+.story-modal-card{
+  display:flex;
+  flex-direction:column;
+  width:min(720px,100%);
+  max-height:100%;
+  padding:clamp(12px,2.4vh,22px);
+  border:3px solid #d7b66e;
+  border-radius:20px;
+  background:linear-gradient(180deg,#27434df8,#14252cfb);
+  box-shadow:0 14px 40px #000b,inset 0 0 28px #0005;
+}
+.story-modal-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:0 0 auto;
+  border-bottom:1px solid #f0d58a55;
+  padding-bottom:7px;
+}
+.story-modal-head h2{
+  flex:1;
+  margin:0;
+  font-size:clamp(18px,3.2vw,30px);
+  text-shadow:0 3px 0 #0007;
+}
+.story-modal .story-close{
+  flex:0 0 auto;
+  width:42px;
+  height:42px;
+  margin:0;
+  padding:0;
+  border-radius:50%;
+  background:#824639;
+  font-size:27px;
+  line-height:1;
+  touch-action:manipulation!important;
+}
+.story-full{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  margin:8px 0;
+  padding:2px 8px;
+  font-size:clamp(13px,2vw,18px);
+  line-height:1.58;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y!important;
+}
+.story-full p{margin:9px 0}
+.story-close-bottom{
+  flex:0 0 auto;
+  width:min(360px,94%);
+  min-height:42px;
+  margin:2px auto 0!important;
+  padding:8px 18px!important;
+  background:#d77f28!important;
+  font-size:clamp(14px,2vw,18px)!important;
+  touch-action:manipulation!important;
+}
+@media (max-height:460px){
+  .story-preview{margin:3px auto 1px;padding:5px 9px}
+  .story-preview p{margin-bottom:4px;font-size:10px;line-height:1.25}
+  .story-preview .story-open{min-height:27px;padding:3px 11px;font-size:10px}
+  .story-modal-card{padding:8px 12px}
+  .story-modal-head h2{font-size:17px}
+  .story-modal .story-close{width:34px;height:34px;font-size:22px}
+  .story-full{margin:4px 0;font-size:12px;line-height:1.38}
+  .story-full p{margin:5px 0}
+  .story-close-bottom{min-height:34px!important;padding:5px 12px!important;font-size:12px!important}
+}
+
+/* v0.44 STORY DISCLOSURE: JSに依存しない、確実に開く物語表示 */
+.story-preview{
+  flex:0 0 auto;
+  width:min(690px,98%);
+  margin:7px auto 5px;
+  padding:9px 13px 10px;
+  border:2px solid #e8c865aa;
+  background:linear-gradient(180deg,#172d38f2,#0c1a22f2);
+}
+.story-preview p{
+  display:block!important;
+  margin:0 0 8px!important;
+  color:#fff7d2;
+  font-size:clamp(12px,1.9vw,17px);
+  line-height:1.42;
+}
+.story-preview p strong{color:#ffe17e}
+.story-details{width:100%;touch-action:manipulation!important}
+.story-details summary{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:38px;
+  padding:7px 16px;
+  border:1px solid #ffe48aaa;
+  border-radius:999px;
+  color:#fff;
+  background:#496f84;
+  box-shadow:inset 0 -3px 0 #0004,0 3px 8px #0005;
+  font-size:clamp(12px,1.7vw,16px);
+  font-weight:900;
+  cursor:pointer;
+  list-style:none;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:manipulation!important;
+}
+.story-details summary::-webkit-details-marker{display:none}
+.story-details summary::after{content:'▼';margin-left:9px;font-size:.8em}
+.story-details[open] summary::after{content:'▲'}
+.story-details[open] summary{background:#345669}
+.story-details .story-full{
+  max-height:min(240px,35vh);
+  overflow:auto;
+  margin:8px 0 0;
+  padding:9px 12px;
+  border-radius:12px;
+  background:#08151dcc;
+  text-align:left;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y!important;
+}
+@media (max-height:460px){
+  .story-preview{margin:3px auto;padding:5px 9px 6px}
+  .story-preview p{font-size:11px!important;line-height:1.28!important;margin-bottom:5px!important}
+  .story-details summary{min-height:30px;padding:4px 11px;font-size:11px}
+  .story-details .story-full{max-height:145px;font-size:11px;line-height:1.35}
+}
+
+/* v0.45 STORY MODAL: 説明を準備画面から切り離し、大きなポップアップで表示 */
+.story-preview{
+  width:min(660px,96%);
+  margin:4px auto 2px;
+  padding:7px 12px 8px;
+  border:2px solid #e8c865aa;
+  border-radius:14px;
+  background:linear-gradient(180deg,#172d38f5,#0c1a22f5);
+}
+.story-preview p{
+  display:block!important;
+  margin:0 0 6px!important;
+  color:#fff7d2;
+  font-size:clamp(11px,1.65vw,15px)!important;
+  line-height:1.32!important;
+  font-weight:800;
+}
+.story-preview .story-open{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:6px 17px;
+  border:1px solid #ffe48aaa;
+  border-radius:999px;
+  color:#fff;
+  background:#496f84;
+  box-shadow:inset 0 -3px 0 #0004,0 3px 8px #0005;
+  font-size:clamp(12px,1.65vw,15px);
+  font-weight:900;
+  cursor:pointer;
+  touch-action:manipulation!important;
+}
+.story-toggle{position:absolute;opacity:0;pointer-events:none}
+.intro-panel>.story-modal{
+  position:absolute;
+  inset:0;
+  z-index:200;
+  display:none;
+  place-items:center;
+  padding:clamp(8px,2vh,18px);
+  background:#061017e8;
+  backdrop-filter:blur(5px);
+  touch-action:manipulation!important;
+}
+.story-toggle:checked+.story-modal{display:grid}
+.story-backdrop{position:absolute;inset:0;cursor:pointer;touch-action:manipulation!important}
+.intro-panel>.story-modal .story-modal-card{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  width:min(720px,96%);
+  max-height:94%;
+  padding:clamp(14px,2.8vh,24px);
+  border:3px solid #d7b66e;
+  border-radius:22px;
+  background:linear-gradient(180deg,#294954,#14262e);
+  box-shadow:0 16px 48px #000c,inset 0 0 30px #0005;
+}
+.intro-panel>.story-modal .story-modal-head{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid #f0d58a66}
+.intro-panel>.story-modal .story-modal-head h2{flex:1;margin:0;font-size:clamp(20px,3.4vw,32px)}
+.intro-panel>.story-modal .story-close{
+  display:grid;place-items:center;flex:0 0 auto;width:44px;height:44px;border-radius:50%;
+  background:#87483b;color:#fff;font-size:30px;font-weight:900;cursor:pointer;touch-action:manipulation!important
+}
+.intro-panel>.story-modal .story-full{
+  flex:1 1 auto;min-height:0;overflow:auto;margin:10px 0;padding:4px 12px;
+  color:#fff;text-align:left;font-size:clamp(14px,2.15vw,19px);line-height:1.65;
+  -webkit-overflow-scrolling:touch;touch-action:pan-y!important
+}
+.intro-panel>.story-modal .story-full p{display:block!important;margin:10px 0!important}
+.intro-panel>.story-modal .story-close-bottom{
+  display:flex;align-items:center;justify-content:center;width:min(390px,94%);min-height:44px;
+  margin:2px auto 0;padding:9px 18px;border-radius:14px;background:#dc8128;color:#fff;
+  box-shadow:inset 0 -4px 0 #0004,0 4px 10px #0005;font-size:clamp(14px,2vw,18px);font-weight:900;cursor:pointer;
+  touch-action:manipulation!important
+}
+@media (max-height:520px){
+  .intro-scroll{padding-top:0}
+  .intro-scroll .crest{margin-bottom:1px}
+  .intro-scroll h1{font-size:clamp(26px,8vh,42px)}
+  .intro-scroll .tagline{display:none}
+  .story-preview{margin:2px auto 0;padding:5px 9px 6px}
+  .story-preview p{font-size:10.5px!important;line-height:1.22!important;margin-bottom:4px!important}
+  .story-preview .story-open{min-height:29px;padding:4px 13px;font-size:11px}
+  .intro-panel>.story-modal .story-modal-card{max-height:96%;padding:10px 14px}
+  .intro-panel>.story-modal .story-modal-head h2{font-size:19px}
+  .intro-panel>.story-modal .story-close{width:36px;height:36px;font-size:24px}
+  .intro-panel>.story-modal .story-full{margin:5px 0;font-size:12.5px;line-height:1.45}
+  .intro-panel>.story-modal .story-full p{margin:6px 0!important}
+  .intro-panel>.story-modal .story-close-bottom{min-height:36px;padding:6px 14px;font-size:13px}
+}
+
+/* v0.51: story difficulty selector */
+#storyDifficultyWrap select{min-width:108px}
