@@ -91,7 +91,7 @@ function insideEllipse(x,y,margin=0){const rx=FIELD.rx-margin,ry=FIELD.ry-margin
 function constrainToField(o){const inGate=o.y>FIELD.goalT&&o.y<FIELD.goalB;if(inGate&&o.x<FIELD.cx-FIELD.rx+o.r)return;if(inGate&&o.x>FIELD.cx+FIELD.rx-o.r)return;const rx=FIELD.rx-o.r,ry=FIELD.ry-o.r,dx=o.x-FIELD.cx,dy=o.y-FIELD.cy,q=(dx*dx)/(rx*rx)+(dy*dy)/(ry*ry);if(q>1){const k=1/Math.sqrt(q);o.x=FIELD.cx+dx*k;o.y=FIELD.cy+dy*k;const nx=dx/(rx*rx),ny=dy/(ry*ry),n=norm(nx,ny),dot=o.vx*n.x+o.vy*n.y;if(dot>0){o.vx-=1.75*dot*n.x;o.vy-=1.75*dot*n.y;}}}
 
 class Player{
- constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0,respawnT:0,spinKick:0,spinAngle:0,buriedT:0,airKO:null,aiMode:'slime',aiModeT:0,wallSplatPending:0,wallStickT:0,wallStickAngle:0,shockT:0,smokeT:0,dashArmorT:0});}
+ constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0,respawnT:0,spinKick:0,spinAngle:0,buriedT:0,airKO:null,aiMode:'slime',aiModeT:0,wallSplatPending:0,wallStickT:0,wallStickAngle:0,shockT:0,smokeT:0,dashArmorT:0,dashSlimeContactT:0,dashContactX:0,dashContactY:0});}
  jumpHeight(){return this.jumpT>0?Math.sin((1-this.jumpT/.82)*Math.PI)*124:0;}
  isAirborne(){return this.jumpHeight()>34;}
  update(dt){
@@ -125,15 +125,16 @@ class Player{
    }
    return;
   }
-  this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.shockT=Math.max(0,this.shockT-dt);this.smokeT=Math.max(0,this.smokeT-dt);this.dashArmorT=Math.max(0,this.dashArmorT-dt);if(this.shockT>0)this.stun=Math.max(this.stun,.08);if(this.smokeT>0)this.stun=Math.max(this.stun,.08);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);this.spinKick=Math.max(0,this.spinKick-dt);if(this.spinKick>0)this.spinAngle+=dt*19;if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
+  this.dashCd=Math.max(0,this.dashCd-dt);this.kickCd=Math.max(0,this.kickCd-dt);this.skillCd=Math.max(0,this.skillCd-dt);this.stun=Math.max(0,this.stun-dt);this.shockT=Math.max(0,this.shockT-dt);this.smokeT=Math.max(0,this.smokeT-dt);this.dashArmorT=Math.max(0,this.dashArmorT-dt);this.dashSlimeContactT=Math.max(0,this.dashSlimeContactT-dt);if(this.shockT>0)this.stun=Math.max(this.stun,.08);if(this.smokeT>0)this.stun=Math.max(this.stun,.08);this.burn=Math.max(0,this.burn-dt);this.frozen=Math.max(0,this.frozen-dt);this.speedBoost=Math.max(0,this.speedBoost-dt);this.kickTime=Math.max(0,this.kickTime-dt);this.jumpT=Math.max(0,this.jumpT-dt);this.spinKick=Math.max(0,this.spinKick-dt);if(this.spinKick>0)this.spinAngle+=dt*19;if(this.burn>0){this.rollAngle+=dt*14;this.stun=Math.max(this.stun,.08);this.burnTick-=dt;if(this.burnTick<=0){this.burnTick=.12;const a=rand(0,Math.PI*2);this.vx+=Math.cos(a)*95;this.vy+=Math.sin(a)*95;burst(this.x+rand(-12,12),this.y-18,'#ff8b2c',2);}}
   let ix=0,iy=0,actions={};
   if(this.isHuman){ix=input.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0);iy=input.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);actions={dash:input.dash||keys.Shift,kick:input.kick||keys.j,jump:input.jump||keys.k,skill:input.skill||keys.l};}
   else ({ix,iy,actions}=this.ai(dt));
   if(this.stun<=0&&this.frozen<=0){
    if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?590:205;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
-   if(actions.dash&&this.dashCd<=0&&this.index===0)this.shoulderDash();
+   let dashKickUsed=false;
+   if(actions.dash&&this.dashCd<=0&&this.index===0)dashKickUsed=this.shoulderDash(!!actions.kick);
    if(actions.jump&&this.jumpT<=0){this.jumpT=.82;burst(this.x,this.y+24,'#eee1bd',10);}
-   if(actions.kick&&this.kickCd<=0)this.kick();
+   if(actions.kick&&this.kickCd<=0&&!dashKickUsed)this.kick();
    if(actions.skill&&this.skillCd<=0&&this.index===0)this.skill();
   }
   this.dashTime=Math.max(0,this.dashTime-dt);const drag=Math.pow(.0008,dt);this.vx*=drag;this.vy*=drag;this.x+=this.vx*dt;this.y+=this.vy*dt;
@@ -199,11 +200,11 @@ class Player{
   this.faceX=n.x;this.faceY=n.y;
   return n;
  }
- shoulderDash(){
+ shoulderDash(kickPressed=false){
   if(this.index!==0)return; // ダッシュは各チームのリーダー専用
   this.dashCd=.4;this.dashTime=.16;
   const n=norm(this.faceX||1,this.faceY||0),sx=this.x,sy=this.y;
-  const distance=128; // 約2.5人分
+  const distance=146; // 追走時にもう半歩届くよう、従来より少し延長
   this.x+=n.x*distance;this.y+=n.y*distance;constrainToField(this);
   const ex=this.x,ey=this.y;
   let color='#fff1a3',label='ショルダーチャージ！';
@@ -226,23 +227,43 @@ class Player{
    burst(p.x,p.y,color,18);
   }
 
+  let dashKickUsed=false;
   if(slime&&segmentDistance(slime.x,slime.y,sx,sy,ex,ey)<slime.r+30){
-   const dashPush=slime.type==='rock'?.58:(slime.type==='cloud'?1.28:(slime.type==='speedy'?1.42:1));
-   slime.vx+=n.x*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760)*dashPush;
-   slime.vy+=n.y*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760)*dashPush;
-   slime.hop=Math.max(slime.hop,.62);slime.hopMax=Math.max(slime.hopMax||.58,slime.hop);
-   if(this.spirit==='fire'){slime.scared=1;slime.vx+=n.x*180;slime.vy+=n.y*180;}
-   if(this.spirit==='ice'){slime.frozen=Math.max(slime.frozen||0,.72);}
-   if(this.spirit==='earth'){slime.vx+=n.x*260;slime.vy+=n.y*260;}
-   if(this.spirit==='thunder')electrify(slime,1.0,0);
-   burst(slime.x,slime.y,color,20);
+   this.dashSlimeContactT=.2;this.dashContactX=n.x;this.dashContactY=n.y;
+   if(kickPressed){
+    this.dashBackKick(n.x,n.y);dashKickUsed=true;
+   }else{
+    const dashPush=slime.type==='rock'?.58:(slime.type==='cloud'?1.28:(slime.type==='speedy'?1.42:1));
+    slime.vx+=n.x*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760)*dashPush;
+    slime.vy+=n.y*(this.spirit==='wind'?1050:this.spirit==='plain'?900:760)*dashPush;
+    slime.hop=Math.max(slime.hop,.62);slime.hopMax=Math.max(slime.hopMax||.58,slime.hop);
+    if(this.spirit==='fire'){slime.scared=1;slime.vx+=n.x*180;slime.vy+=n.y*180;}
+    if(this.spirit==='ice'){slime.frozen=Math.max(slime.frozen||0,.72);}
+    if(this.spirit==='earth'){slime.vx+=n.x*260;slime.vy+=n.y*260;}
+    if(this.spirit==='thunder')electrify(slime,1.0,0);
+    burst(slime.x,slime.y,color,20);
+   }
   }
 
   // v0.47: ダッシュ後のキラキラを廃止し、進行方向へ一本だけ残像線を出す。
   particles.push({type:'dashLine',x1:sx,y1:sy,x2:ex,y2:ey,life:.14,maxLife:.14,color});
-  message=label;messageLife=.65;shake=Math.max(shake,8);
+  if(!dashKickUsed){message=label;messageLife=.65;shake=Math.max(shake,8);}
+  return dashKickUsed;
+ }
+ dashBackKick(dx,dy){
+  const d=norm(dx||this.faceX||1,dy||this.faceY||0);
+  // 進行方向の反対へ戻しつつ、コート中央側へ斜めに逃がす。
+  const side=slime.y<FIELD.cy?1:-1;
+  const bx=-d.x*.82+(-d.y)*side*.58,by=-d.y*.82+d.x*side*.58;
+  const n=norm(bx,by),push=slime.type==='rock'?930:(slime.type==='cloud'?1420:(slime.type==='speedy'?1510:1220));
+  slime.vx=n.x*push;slime.vy=n.y*push;
+  slime.hop=Math.max(slime.hop,.7);slime.hopMax=Math.max(slime.hopMax||.58,slime.hop);
+  slime.scared=1;slime.wobble+=rand(-3,3);slime.goalAssistT=0;slime.lastKickTeam=null;
+  this.kickCd=.34;this.kickTime=.22;this.dashSlimeContactT=0;
+  burst(slime.x,slime.y,'#fff4b5',22);message='ダッシュ迎撃！ 斜め後ろへクリア！';messageLife=.9;shake=Math.max(shake,9);
  }
  kick(){
+  if(this.dashSlimeContactT>0){this.dashBackKick(this.dashContactX,this.dashContactY);return;}
   this.kickCd=.34;this.kickTime=.22;const sliding=this.dashTime>0,air=this.isAirborne();let power=sliding?980:air?930:720;if(sliding&&air)power=1220;if(this.spirit==='plain')power*=1.22;
   let elementPower=1,elementColor='#fff1a3';
   if(this.spirit==='wind'){elementPower=1.22;elementColor='#c8ffd4';this.vx+=this.faceX*120;this.vy+=this.faceY*120;this.speedBoost=Math.max(this.speedBoost,.28);if(air){this.spinKick=.46;this.spinAngle=0;message='旋風脚！';messageLife=.7;burst(this.x,this.y-this.jumpHeight(),'#c8ffd4',22);}}
