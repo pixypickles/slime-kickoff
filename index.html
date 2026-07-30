@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.54 CHIEF MODE</title>
-  <link rel="stylesheet" href="style-v055.css">
+  <title>スライム・キックオフ！ v0.56 SALUBIE CHIEF</title>
+  <link rel="stylesheet" href="style-v056.css">
 </head>
 <body>
   <main id="gameWrap">
@@ -62,12 +62,18 @@
                 <option value="1">❄ ぶりふぉ村</option><option value="2">🔥 さるびえ村</option><option value="3">🌪 さるびび村</option><option value="4">🪨 たけぞ村</option><option value="5">⚡ ちぇすたぴサーカス団</option>
               </select>
             </label>
+            <label id="chiefSelectWrap" class="hidden" for="chiefSelect">参戦する村長
+              <select id="chiefSelect">
+                <option value="brifo">❄ ぶりふぉ村村長</option>
+                <option value="salubie">🔥 さるびえ村村長</option>
+              </select>
+            </label>
           </div>
           <div class="intro-action" aria-live="polite">
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.54 BRIFO CHIEF MODE</small>
+          <small>v0.56 SALUBIE CHIEF MODE</small>
         </div>
       </div>
       <input class="story-toggle" type="checkbox" id="storyToggle" aria-hidden="true">
@@ -133,6 +139,6 @@
   </div>
 </div>
 
-  <script src="game-v055.js"></script>
+  <script src="game-v056.js"></script>
 </body>
 </html>
