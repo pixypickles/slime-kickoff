@@ -11,15 +11,16 @@ if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prot
   this.lineTo(x,y+radius);this.quadraticCurveTo(x,y,x+radius,y);this.closePath();return this;
  };
 }
-const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),rematchBtn:document.getElementById('rematchBtn'),menuBtn:document.getElementById('menuBtn'),nextStageBtn:document.getElementById('nextStageBtn'),slimeSelect:document.getElementById('slimeSelect'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus'),stageCard:document.getElementById('stageCard'),clearCard:document.getElementById('clearCard'),clearNextBtn:document.getElementById('clearNextBtn'),matchMode:document.getElementById('matchMode'),freeOpponent:document.getElementById('freeOpponent'),freeOpponentWrap:document.getElementById('freeOpponentWrap')};
+const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),rematchBtn:document.getElementById('rematchBtn'),menuBtn:document.getElementById('menuBtn'),nextStageBtn:document.getElementById('nextStageBtn'),slimeSelect:document.getElementById('slimeSelect'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus'),stageCard:document.getElementById('stageCard'),clearCard:document.getElementById('clearCard'),clearNextBtn:document.getElementById('clearNextBtn'),matchMode:document.getElementById('matchMode'),freeOpponent:document.getElementById('freeOpponent'),freeOpponentWrap:document.getElementById('freeOpponentWrap'),storyDifficulty:document.getElementById('storyDifficulty'),storyDifficultyWrap:document.getElementById('storyDifficultyWrap')};
 const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
 const PLAYER_VISUAL_SCALE=.9; // v0.46: 人物は当たり判定を変えず、見た目だけ少し小さくする
-let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],rockBalls=[],pebbles=[],hurricanes=[],chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='plain',selectedSlime='normal',currentStage=1,campaignStage=1,stageIntroT=0,clearSequence=false,gameReady=true,matchMode='campaign';
+let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],rockBalls=[],pebbles=[],hurricanes=[],chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='plain',selectedSlime='normal',currentStage=1,campaignStage=1,stageIntroT=0,clearSequence=false,gameReady=true,matchMode='campaign',storyDifficulty='normal';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const norm=(x,y)=>{const d=Math.hypot(x,y)||1;return{x:x/d,y:y/d}};
 const rand=(a,b)=>a+Math.random()*(b-a);
 const teamColor=t=>t?'#d95757':'#3e9cdc';
+const isEasyStory=()=>matchMode==='campaign'&&storyDifficulty==='easy';
 
 function opponentVillageName(){return currentStage===1?'ぶりふぉ村':currentStage===2?'さるびえ村':currentStage===3?'さるびび村':currentStage===4?'たけぞ村':'ちぇすたぴサーカス団';}
 function opponentElement(){return currentStage===1?'ice':currentStage===2?'fire':currentStage===3?'wind':currentStage===4?'earth':'thunder';}
@@ -130,7 +131,7 @@ class Player{
   if(this.isHuman){ix=input.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0);iy=input.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);actions={dash:input.dash||keys.Shift,kick:input.kick||keys.j,jump:input.jump||keys.k,skill:input.skill||keys.l};}
   else ({ix,iy,actions}=this.ai(dt));
   if(this.stun<=0&&this.frozen<=0){
-   if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?590:205;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
+   if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?590:205;if(isEasyStory()&&this.team===1)sp*=.84;if(isEasyStory()&&this.team===0)sp*=1.04;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
    let dashKickUsed=false;
    if(actions.dash&&this.dashCd<=0&&this.index===0)dashKickUsed=this.shoulderDash(!!actions.kick);
    if(actions.jump&&this.jumpT<=0){this.jumpT=.82;burst(this.x,this.y+24,'#eee1bd',10);}
@@ -161,7 +162,7 @@ class Player{
   }
   this.aiThink-=dt;
   if(this.aiThink<=0){
-   this.aiThink=rand(.18,.38);
+   this.aiThink=isEasyStory()&&this.team===1?rand(.32,.58):rand(.18,.38);
    let tx=slime.x,ty=slime.y;
    if(this.aiMode==='defend'){
     tx=this.team?760:240;ty=clamp(slime.y,220,405);
@@ -180,10 +181,10 @@ class Player{
   const enemyNear=players.some(p=>p.team!==this.team&&p.respawnT<=0&&p.buriedT<=0&&Math.hypot(p.x-this.x,p.y-this.y)<76);
   const attackingPlayer=this.aiMode==='harass'&&enemyNear;
   return{ix:this.aiX,iy:this.aiY,actions:{
-   dash:this.index===0&&(d>145||attackingPlayer)&&Math.random()<.022,
-   kick:(d<94||attackingPlayer)&&Math.random()<.12,
-   jump:d<115&&Math.random()<.018,
-   skill:this.index===0&&this.skillCd<=0&&d<430&&Math.random()<.009
+   dash:this.index===0&&(d>145||attackingPlayer)&&Math.random()<(isEasyStory()&&this.team===1?.011:.022),
+   kick:(d<94||attackingPlayer)&&Math.random()<(isEasyStory()&&this.team===1?.068:.12),
+   jump:d<115&&Math.random()<(isEasyStory()&&this.team===1?.010:.018),
+   skill:this.index===0&&this.skillCd<=0&&d<430&&Math.random()<(isEasyStory()&&this.team===1?.0045:.009)
   }};
  }
  autoAim(){
@@ -264,7 +265,7 @@ class Player{
  }
  kick(){
   if(this.dashSlimeContactT>0){this.dashBackKick(this.dashContactX,this.dashContactY);return;}
-  this.kickCd=.34;this.kickTime=.22;const sliding=this.dashTime>0,air=this.isAirborne();let power=sliding?980:air?930:720;if(sliding&&air)power=1220;if(this.spirit==='plain')power*=1.22;
+  this.kickCd=.34;this.kickTime=.22;const sliding=this.dashTime>0,air=this.isAirborne();let power=sliding?980:air?930:720;if(sliding&&air)power=1220;if(this.spirit==='plain')power*=1.22;if(isEasyStory())power*=this.team===0?1.16:.86;
   let elementPower=1,elementColor='#fff1a3';
   if(this.spirit==='wind'){elementPower=1.22;elementColor='#c8ffd4';this.vx+=this.faceX*120;this.vy+=this.faceY*120;this.speedBoost=Math.max(this.speedBoost,.28);if(air){this.spinKick=.46;this.spinAngle=0;message='旋風脚！';messageLife=.7;burst(this.x,this.y-this.jumpHeight(),'#c8ffd4',22);}}
   if(this.spirit==='earth'){elementPower=1.34;elementColor='#d8b27a';}
@@ -521,7 +522,7 @@ function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Play
  const jumpy=selectedSlime==='jumpy',rock=selectedSlime==='rock',cloud=selectedSlime==='cloud',split=selectedSlime==='split',speedy=selectedSlime==='speedy';
  slime={x:500,y:310,vx:0,vy:0,r:rock?42:(cloud?35:(split?38:(speedy?35:(jumpy?34:37)))),wobble:0,think:rock?rand(.9,1.8):(cloud?rand(.8,1.5):(speedy?rand(.12,.25):(jumpy?rand(.35,.8):rand(.7,1.6)))),hop:0,hopMax:rock?.34:(cloud?.2:(speedy?.24:(jumpy?.82:.58))),airSpin:0,airSpinSpeed:0,airVolleyT:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0,shockT:0,type:selectedSlime,mass:rock?1.75:(cloud?.62:(speedy?.56:1)),floatPhase:rand(0,Math.PI*2),split:false,splitTimer:split?rand(3.5,6.5):0,mergeTimer:0,pieces:[]};
  if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
-function startGame(){startLock=false;markStageSeen(currentStage);selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];pebbles=[];hurricanes=[];freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';if(ui.clearCard){ui.clearCard.classList.add('hidden');ui.clearCard.style.display='none';}ui.controls.classList.add('hidden');ui.controls.style.display='none';
+function startGame(){startLock=false;markStageSeen(currentStage);selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=isEasyStory()?95:75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];pebbles=[];hurricanes=[];freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';if(ui.clearCard){ui.clearCard.classList.add('hidden');ui.clearCard.style.display='none';}ui.controls.classList.add('hidden');ui.controls.style.display='none';
  if(ui.stageCard){
   const title=ui.stageCard.querySelector('h2'),kicker=ui.stageCard.querySelector('.stage-kicker'),paras=ui.stageCard.querySelectorAll('p'),quote=ui.stageCard.querySelector('strong');
   if(currentStage===1){kicker.textContent='❄ 異次元ゲート接続';title.textContent='ぶりふぉ村';paras[0].textContent='雪と氷に囲まれた静かな村。';paras[1].textContent='ぷれん村の前に、氷の村への道が開いた。';quote.textContent='村長「新しい村が相手だ！ 臭いのは向こうへ返すんだ！」';}
@@ -983,7 +984,7 @@ function drawHud(){
  ctx.fillStyle='#8ed7ff';ctx.textAlign='right';ctx.font='900 16px sans-serif';ctx.fillText(playerVillageName(),420,28);
  ctx.fillStyle='#ffaaaa';ctx.textAlign='left';ctx.fillText(enemyVillageName(),580,28);
  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='900 30px sans-serif';ctx.fillText(`${score[0]} － ${score[1]}`,500,38);
- ctx.font='bold 13px sans-serif';ctx.fillStyle='#ffeeb0';ctx.fillText(`押し付け数　　残り ${Math.ceil(timeLeft)}秒　　3回で褒美！`,500,58);
+ ctx.font='bold 13px sans-serif';ctx.fillStyle='#ffeeb0';ctx.fillText(`押し付け数　　残り ${Math.ceil(timeLeft)}秒　　3回で褒美！${isEasyStory()?'　🌱やさしい':''}`,500,58);
  // 褒美までの簡易印
  for(let team=0;team<2;team++)for(let i=0;i<3;i++){ctx.fillStyle=i<score[team]?'#ffd85a':'#ffffff33';ctx.beginPath();ctx.arc(team===0?265-i*18:735+i*18,37,6,0,Math.PI*2);ctx.fill();}
  if(messageLife>0){ctx.fillStyle='#fff4a3';ctx.font='900 36px sans-serif';ctx.fillText(message,500,145);}if(freeze>0){ctx.fillStyle='#b9efff';ctx.font='900 25px sans-serif';ctx.fillText(`TIME STOP ${freeze.toFixed(1)}`,500,174);}
@@ -1004,6 +1005,7 @@ function startFromIntro(e){
   const checked=document.querySelector('input[name="spirit"]:checked');
   if(checked)applySpirit(checked.value);
   matchMode=ui.matchMode?ui.matchMode.value:'campaign';
+  storyDifficulty=ui.storyDifficulty?ui.storyDifficulty.value:'normal';
   if(matchMode==='free')currentStage=clamp(Number(ui.freeOpponent&&ui.freeOpponent.value)||1,1,highestStageSeen);
   else currentStage=campaignStage;
   ui.startBtn.textContent='開始します…';
@@ -1122,7 +1124,8 @@ if(ui.rematchBtn)ui.rematchBtn.addEventListener('click',startGame);
 if(ui.menuBtn)ui.menuBtn.addEventListener('click',backToMenu);
 if(ui.nextStageBtn)ui.nextStageBtn.addEventListener('click',nextStage);
 if(ui.slimeSelect)ui.slimeSelect.addEventListener('change',e=>selectedSlime=e.target.value);
-if(ui.matchMode)ui.matchMode.addEventListener('change',()=>{matchMode=ui.matchMode.value;if(ui.freeOpponentWrap)ui.freeOpponentWrap.classList.toggle('hidden',matchMode!=='free');});
+if(ui.matchMode)ui.matchMode.addEventListener('change',()=>{matchMode=ui.matchMode.value;if(ui.freeOpponentWrap)ui.freeOpponentWrap.classList.toggle('hidden',matchMode!=='free');if(ui.storyDifficultyWrap)ui.storyDifficultyWrap.classList.toggle('hidden',matchMode==='free');});
+if(ui.storyDifficulty)ui.storyDifficulty.addEventListener('change',()=>{storyDifficulty=ui.storyDifficulty.value;});
 inferSeenStagesFromSkills();refreshFreeOpponents();
 
 ui.startBtn.addEventListener('click',startFromIntro);

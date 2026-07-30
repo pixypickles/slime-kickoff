@@ -549,3 +549,6 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
   .intro-panel>.story-modal .story-full p{margin:6px 0!important}
   .intro-panel>.story-modal .story-close-bottom{min-height:36px;padding:6px 14px;font-size:13px}
 }
+
+/* v0.51: story difficulty selector */
+#storyDifficultyWrap select{min-width:108px}
