@@ -204,7 +204,7 @@ class Player{
   if(this.index!==0)return; // ダッシュは各チームのリーダー専用
   this.dashCd=.4;this.dashTime=.16;
   const n=norm(this.faceX||1,this.faceY||0),sx=this.x,sy=this.y;
-  const distance=146; // 追走時にもう半歩届くよう、従来より少し延長
+  const distance=180; // v0.50: 迎撃で追いつきやすいよう、ダッシュ距離をさらに延長
   this.x+=n.x*distance;this.y+=n.y*distance;constrainToField(this);
   const ex=this.x,ey=this.y;
   let color='#fff1a3',label='ショルダーチャージ！';
@@ -229,7 +229,7 @@ class Player{
 
   let dashKickUsed=false;
   if(slime&&segmentDistance(slime.x,slime.y,sx,sy,ex,ey)<slime.r+30){
-   this.dashSlimeContactT=.2;this.dashContactX=n.x;this.dashContactY=n.y;
+   this.dashSlimeContactT=.5;this.dashContactX=n.x;this.dashContactY=n.y;
    if(kickPressed){
     this.dashBackKick(n.x,n.y);dashKickUsed=true;
    }else{
