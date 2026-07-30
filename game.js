@@ -11,7 +11,7 @@ if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prot
   this.lineTo(x,y+radius);this.quadraticCurveTo(x,y,x+radius,y);this.closePath();return this;
  };
 }
-const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),rematchBtn:document.getElementById('rematchBtn'),menuBtn:document.getElementById('menuBtn'),nextStageBtn:document.getElementById('nextStageBtn'),slimeSelect:document.getElementById('slimeSelect'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus'),stageCard:document.getElementById('stageCard'),clearCard:document.getElementById('clearCard'),clearNextBtn:document.getElementById('clearNextBtn'),matchMode:document.getElementById('matchMode'),freeOpponent:document.getElementById('freeOpponent'),freeOpponentWrap:document.getElementById('freeOpponentWrap'),storyDifficulty:document.getElementById('storyDifficulty'),storyDifficultyWrap:document.getElementById('storyDifficultyWrap')};
+const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),rematchBtn:document.getElementById('rematchBtn'),menuBtn:document.getElementById('menuBtn'),nextStageBtn:document.getElementById('nextStageBtn'),slimeSelect:document.getElementById('slimeSelect'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus'),stageCard:document.getElementById('stageCard'),clearCard:document.getElementById('clearCard'),clearNextBtn:document.getElementById('clearNextBtn'),matchMode:document.getElementById('matchMode'),freeOpponent:document.getElementById('freeOpponent'),freeOpponentWrap:document.getElementById('freeOpponentWrap'),storyDifficulty:document.getElementById('storyDifficulty'),storyDifficultyWrap:document.getElementById('storyDifficultyWrap'),dashBtn:document.querySelector('[data-action="dash"]')};
 const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
 const PLAYER_VISUAL_SCALE=.9; // v0.46: 人物は当たり判定を変えず、見た目だけ少し小さくする
@@ -138,7 +138,7 @@ class Player{
   if(this.stun<=0&&this.frozen<=0){
    if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?590:205;if(isEasyStory()&&this.team===1)sp*=.84;if(isEasyStory()&&this.team===0)sp*=1.04;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
    let dashKickUsed=false;
-   if(actions.dash&&this.dashCd<=0&&this.index===0)dashKickUsed=this.shoulderDash(!!actions.kick);
+   if(actions.dash&&this.dashCd<=0&&this.index===0)dashKickUsed=this.chiefType==='brifo'?(this.chiefFreezeBlizzard(),false):this.shoulderDash(!!actions.kick);
    if(actions.jump&&this.jumpT<=0){this.jumpT=this.chiefType==='brifo'?1.48:.82;burst(this.x,this.y+24,this.chiefType==='brifo'?'#c9f7ff':'#eee1bd',10);}
    if(actions.kick&&this.kickCd<=0&&!dashKickUsed)this.kick();
    if(actions.skill&&this.skillCd<=0&&this.index===0)this.skill();
@@ -356,9 +356,17 @@ class Player{
  }
  chiefFreezeLaser(){
   if(this.skillCd>0)return;
-  this.skillCd=7.0;
-  chiefLaser={x:this.x,originY:this.y-this.jumpHeight(),team:this.team,owner:this,phase:'rise',t:0,life:1.55,sweepY:0,hit:new Set()};
-  message='フリーズレーザー！ 上空から降りてくる！';messageLife=1.2;shake=Math.max(shake,5);
+  this.skillCd=2.8;
+  const aim=norm(this.faceX||1,this.faceY||0),base=Math.atan2(aim.y,aim.x);
+  chiefLaser={mode:'sweep',x:this.x,y:this.y-this.jumpHeight(),team:this.team,owner:this,t:0,life:.56,maxLife:.56,baseAngle:base,angle:base-Math.PI*.52,range:1200,hit:new Set()};
+  message='フリーズレーザー！';messageLife=.8;shake=Math.max(shake,4);
+  burst(this.x,this.y-this.jumpHeight(),'#c9f7ff',20);
+ }
+ chiefFreezeBlizzard(){
+  if(this.dashCd>0)return;
+  this.dashCd=7.0;
+  chiefLaser={mode:'blizzard',x:this.x,originY:this.y-this.jumpHeight(),team:this.team,owner:this,phase:'rise',t:0,life:1.55,sweepY:0,hit:new Set()};
+  message='フリーズブリザード！ 空から氷雪が降る！';messageLife=1.2;shake=Math.max(shake,5);
   burst(this.x,this.y-this.jumpHeight(),'#c9f7ff',30);
  }
  skill(){if(this.chiefType==='brifo')return this.chiefFreezeLaser();if(this.spirit==='thunder')return this.sparkSkill();if(this.spirit==='plain')return this.pebbleToss();if(this.spirit==='ice')return this.coldBreath();if(this.spirit==='wind')return this.hurricane();if(this.spirit==='earth')return this.rockCannon();this.skillCd=5.2;const n=this.autoAim();fireballs.push({x:this.x+n.x*48,y:this.y+n.y*48,vx:n.x*500,vy:n.y*500,z:this.jumpHeight()+20,vz:-24,team:this.team,owner:this,life:2.1,r:24,trail:0});message='ファイアボール！';messageLife=.8;shake=Math.max(shake,5);burst(this.x+n.x*38,this.y+n.y*38,'#ffb13b',18);}
@@ -760,20 +768,44 @@ function updateChiefIceBullets(dt,stopped){
 function drawChiefIceBullets(){for(const b of chiefIceBullets){ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.spin);ctx.globalAlpha=clamp(b.life/.25,0,1);ctx.fillStyle='#dffcff';ctx.strokeStyle='#55bde8';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?7:15;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}}
 function updateChiefLaser(dt,stopped){
  if(!chiefLaser)return;if(stopped)return;chiefLaser.t+=dt;chiefLaser.life-=dt;
- if(chiefLaser.phase==='rise'&&chiefLaser.t>=.35){chiefLaser.phase='sweep';chiefLaser.t=0;chiefLaser.sweepY=0;chiefLaser.hit=new Set();}
- if(chiefLaser.phase==='sweep')chiefLaser.sweepY=clamp(chiefLaser.t/1.05,0,1)*H;
  const hitTarget=(target,key)=>{if(chiefLaser.hit.has(key))return;chiefLaser.hit.add(key);freezeByChief(target);};
- if(chiefLaser.phase==='rise'){
-  for(const target of players){if(target.team===chiefLaser.team||target===chiefLaser.owner||target.respawnT>0)continue;if(Math.abs(target.x-chiefLaser.x)<18&&target.y-target.jumpHeight()<=chiefLaser.originY+12)hitTarget(target,target);}
-  if(Math.abs(slime.x-chiefLaser.x)<slime.r+15&&slime.y<=chiefLaser.originY+slime.r)hitTarget(slime,'slime');
+ if(chiefLaser.mode==='sweep'){
+  const p=clamp(chiefLaser.t/chiefLaser.maxLife,0,1),ease=p*p*(3-2*p);
+  chiefLaser.angle=chiefLaser.baseAngle-Math.PI*.52+Math.PI*1.04*ease;
+  const ex=chiefLaser.x+Math.cos(chiefLaser.angle)*chiefLaser.range,ey=chiefLaser.y+Math.sin(chiefLaser.angle)*chiefLaser.range;
+  for(const target of players){
+   if(target.team===chiefLaser.team||target===chiefLaser.owner||target.respawnT>0)continue;
+   if(segmentDistance(target.x,target.y-target.jumpHeight(),chiefLaser.x,chiefLaser.y,ex,ey)<target.r+12)hitTarget(target,target);
+  }
+  if(segmentDistance(slime.x,slime.y,chiefLaser.x,chiefLaser.y,ex,ey)<slime.r+10)hitTarget(slime,'slime');
  }else{
-  const y=chiefLaser.sweepY;
-  for(const target of players){if(target.team===chiefLaser.team||target===chiefLaser.owner||target.respawnT>0)continue;if(Math.abs((target.y-target.jumpHeight())-y)<22)hitTarget(target,target);}
-  if(Math.abs(slime.y-y)<slime.r+18)hitTarget(slime,'slime');
+  if(chiefLaser.phase==='rise'&&chiefLaser.t>=.35){chiefLaser.phase='sweep';chiefLaser.t=0;chiefLaser.sweepY=0;chiefLaser.hit=new Set();}
+  if(chiefLaser.phase==='sweep')chiefLaser.sweepY=clamp(chiefLaser.t/1.05,0,1)*H;
+  if(chiefLaser.phase==='rise'){
+   for(const target of players){if(target.team===chiefLaser.team||target===chiefLaser.owner||target.respawnT>0)continue;if(Math.abs(target.x-chiefLaser.x)<18&&target.y-target.jumpHeight()<=chiefLaser.originY+12)hitTarget(target,target);}
+   if(Math.abs(slime.x-chiefLaser.x)<slime.r+15&&slime.y<=chiefLaser.originY+slime.r)hitTarget(slime,'slime');
+  }else{
+   const y=chiefLaser.sweepY;
+   for(const target of players){if(target.team===chiefLaser.team||target===chiefLaser.owner||target.respawnT>0)continue;if(Math.abs((target.y-target.jumpHeight())-y)<22)hitTarget(target,target);}
+   if(Math.abs(slime.y-y)<slime.r+18)hitTarget(slime,'slime');
+  }
  }
  if(chiefLaser.life<=0)chiefLaser=null;
 }
-function drawChiefLaser(){if(!chiefLaser)return;ctx.save();ctx.globalCompositeOperation='lighter';if(chiefLaser.phase==='rise'){const pulse=.7+Math.sin(chiefLaser.t*35)*.2;ctx.globalAlpha=pulse;ctx.strokeStyle='#eaffff';ctx.lineWidth=15;ctx.beginPath();ctx.moveTo(chiefLaser.x,chiefLaser.originY);ctx.lineTo(chiefLaser.x,0);ctx.stroke();ctx.strokeStyle='#58d7ff';ctx.lineWidth=5;ctx.stroke();}else{const y=chiefLaser.sweepY;ctx.globalAlpha=.88;ctx.strokeStyle='#eaffff';ctx.lineWidth=20;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();ctx.strokeStyle='#58d7ff';ctx.lineWidth=7;ctx.stroke();ctx.globalAlpha=.22;ctx.fillStyle='#bff7ff';ctx.fillRect(0,y-34,W,68);}ctx.restore();}
+function drawChiefLaser(){
+ if(!chiefLaser)return;ctx.save();ctx.globalCompositeOperation='lighter';
+ if(chiefLaser.mode==='sweep'){
+  const fade=clamp(chiefLaser.life/.16,0,1),ex=chiefLaser.x+Math.cos(chiefLaser.angle)*chiefLaser.range,ey=chiefLaser.y+Math.sin(chiefLaser.angle)*chiefLaser.range;
+  ctx.globalAlpha=.35*fade;ctx.strokeStyle='#8feaff';ctx.lineWidth=18;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(chiefLaser.x,chiefLaser.y);ctx.lineTo(ex,ey);ctx.stroke();
+  ctx.globalAlpha=.95*fade;ctx.strokeStyle='#eaffff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(chiefLaser.x,chiefLaser.y);ctx.lineTo(ex,ey);ctx.stroke();
+  ctx.strokeStyle='#58d7ff';ctx.lineWidth=2;ctx.stroke();
+ }else if(chiefLaser.phase==='rise'){
+  const pulse=.7+Math.sin(chiefLaser.t*35)*.2;ctx.globalAlpha=pulse;ctx.strokeStyle='#eaffff';ctx.lineWidth=15;ctx.beginPath();ctx.moveTo(chiefLaser.x,chiefLaser.originY);ctx.lineTo(chiefLaser.x,0);ctx.stroke();ctx.strokeStyle='#58d7ff';ctx.lineWidth=5;ctx.stroke();
+ }else{
+  const y=chiefLaser.sweepY;ctx.globalAlpha=.88;ctx.strokeStyle='#eaffff';ctx.lineWidth=20;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();ctx.strokeStyle='#58d7ff';ctx.lineWidth=7;ctx.stroke();ctx.globalAlpha=.22;ctx.fillStyle='#bff7ff';ctx.fillRect(0,y-34,W,68);
+ }
+ ctx.restore();
+}
 function drawIceWaves(){for(const w of iceWaves){const p=1-w.life/w.maxLife,a=Math.atan2(w.dy,w.dx),r=w.range*p;ctx.save();ctx.translate(w.x,w.y);ctx.rotate(a);ctx.globalAlpha=.3*(1-p);const g=ctx.createRadialGradient(0,0,10,0,0,r);g.addColorStop(0,'#efffff');g.addColorStop(.45,'#8deeff');g.addColorStop(1,'#73bfff00');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,-w.angle,w.angle);ctx.closePath();ctx.fill();ctx.globalAlpha=.85;ctx.strokeStyle='#dffcff';ctx.lineWidth=3;for(let i=0;i<5;i++){const aa=-w.angle+i*(w.angle*2/4),rr=r*rand(.65,.95);ctx.beginPath();ctx.moveTo(Math.cos(aa)*rr*.4,Math.sin(aa)*rr*.4);ctx.lineTo(Math.cos(aa)*rr,Math.sin(aa)*rr);ctx.stroke();}ctx.restore();}}
 
 function drawFireballs(){for(const f of fireballs){const a=Math.atan2(f.vy,f.vx);ctx.save();ctx.translate(f.x,f.y-(f.z||0));ctx.rotate(a);ctx.globalAlpha=.35;ctx.fillStyle='#ff6b1f';ctx.beginPath();ctx.ellipse(-f.r*1.35,0,f.r*1.75,f.r*.65,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;const g=ctx.createRadialGradient(-5,-6,3,0,0,f.r+5);g.addColorStop(0,'#fff7ba');g.addColorStop(.35,'#ffd447');g.addColorStop(1,'#f0441d');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,f.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
@@ -1058,7 +1090,7 @@ function drawHud(){
  // 褒美までの簡易印
  for(let team=0;team<2;team++)for(let i=0;i<3;i++){ctx.fillStyle=i<score[team]?'#ffd85a':'#ffffff33';ctx.beginPath();ctx.arc(team===0?265-i*18:735+i*18,37,6,0,Math.PI*2);ctx.fill();}
  if(messageLife>0){ctx.fillStyle='#fff4a3';ctx.font='900 36px sans-serif';ctx.fillText(message,500,145);}if(freeze>0){ctx.fillStyle='#b9efff';ctx.font='900 25px sans-serif';ctx.fillText(`TIME STOP ${freeze.toFixed(1)}`,500,174);}
- ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#fff';const human=players.find(p=>p.isHuman),spirit=human?.spirit||selectedSpirit;ctx.fillText(human?.chiefType==='brifo'?'ぶりふぉ村村長：A フリーズレーザー／キックで4秒凍結の氷弾／高跳び・2倍ダッシュ':spirit==='plain'?'ぷれん：小石投げ＋強いフィジカル＋ホームランジャンプキック':spirit==='earth'?'土：ロックキャノン＋強烈なアースキック':spirit==='ice'?'氷：コールドブレス＋凍結するアイスキック':spirit==='wind'?'風：ハリケーン＋吹き飛ばすウインドキック':spirit==='thunder'?'雷：ライトニングダッシュ＋感電サンダーキック':'炎：ファイアボール＋燃えるファイアキック',18,585);
+ ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#fff';const human=players.find(p=>p.isHuman),spirit=human?.spirit||selectedSpirit;ctx.fillText(human?.chiefType==='brifo'?'ぶりふぉ村村長：A フリーズレーザー／ダッシュボタン フリーズブリザード／キックで4秒凍結の氷弾':spirit==='plain'?'ぷれん：小石投げ＋強いフィジカル＋ホームランジャンプキック':spirit==='earth'?'土：ロックキャノン＋強烈なアースキック':spirit==='ice'?'氷：コールドブレス＋凍結するアイスキック':spirit==='wind'?'風：ハリケーン＋吹き飛ばすウインドキック':spirit==='thunder'?'雷：ライトニングダッシュ＋感電サンダーキック':'炎：ファイアボール＋燃えるファイアキック',18,585);
 }
 function loop(t){if(!running)return;const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop);}
 
@@ -1079,7 +1111,7 @@ function startFromIntro(e){
   if(matchMode==='free'||matchMode==='chief')currentStage=clamp(Number(ui.freeOpponent&&ui.freeOpponent.value)||1,1,highestStageSeen);
   else currentStage=campaignStage;
   if(matchMode==='chief'&&!chiefModeUnlocked){matchMode='campaign';if(ui.matchMode)ui.matchMode.value='campaign';currentStage=campaignStage;}
-  if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent='A：レーザー';else if(ui.skillBtn)applySpirit(selectedSpirit);
+  if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent='A：レーザー';else if(ui.skillBtn)applySpirit(selectedSpirit);if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?'ブリザード':'ダッシュ';
   ui.startBtn.textContent='開始します…';
   ui.startBtn.disabled=true;
   ui.intro.classList.add('hidden');
@@ -1196,7 +1228,7 @@ if(ui.rematchBtn)ui.rematchBtn.addEventListener('click',startGame);
 if(ui.menuBtn)ui.menuBtn.addEventListener('click',backToMenu);
 if(ui.nextStageBtn)ui.nextStageBtn.addEventListener('click',nextStage);
 if(ui.slimeSelect)ui.slimeSelect.addEventListener('change',e=>selectedSlime=e.target.value);
-if(ui.matchMode)ui.matchMode.addEventListener('change',()=>{matchMode=ui.matchMode.value;if(ui.freeOpponentWrap)ui.freeOpponentWrap.classList.toggle('hidden',matchMode==='campaign');if(ui.storyDifficultyWrap)ui.storyDifficultyWrap.classList.toggle('hidden',matchMode!=='campaign');if(ui.skillBtn)ui.skillBtn.textContent=matchMode==='chief'?'A：レーザー':selectedSpirit==='plain'?'投石':selectedSpirit==='ice'?'冷気':selectedSpirit==='wind'?'竜巻':selectedSpirit==='earth'?'岩砲':selectedSpirit==='thunder'?'パチッ':'火球';});
+if(ui.matchMode)ui.matchMode.addEventListener('change',()=>{matchMode=ui.matchMode.value;if(ui.freeOpponentWrap)ui.freeOpponentWrap.classList.toggle('hidden',matchMode==='campaign');if(ui.storyDifficultyWrap)ui.storyDifficultyWrap.classList.toggle('hidden',matchMode!=='campaign');if(ui.skillBtn)ui.skillBtn.textContent=matchMode==='chief'?'A：レーザー':selectedSpirit==='plain'?'投石':selectedSpirit==='ice'?'冷気':selectedSpirit==='wind'?'竜巻':selectedSpirit==='earth'?'岩砲':selectedSpirit==='thunder'?'パチッ':'火球';if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?'ブリザード':'ダッシュ';});
 if(ui.storyDifficulty)ui.storyDifficulty.addEventListener('change',()=>{storyDifficulty=ui.storyDifficulty.value;});
 inferSeenStagesFromSkills();refreshFreeOpponents();refreshMatchModes();
 
