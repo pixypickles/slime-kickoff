@@ -237,9 +237,8 @@ class Player{
    burst(slime.x,slime.y,color,20);
   }
 
-  for(let i=0;i<7;i++){
-   const t=i/6;burst(sx+(ex-sx)*t,sy+(ey-sy)*t,color,3);
-  }
+  // v0.47: ダッシュ後のキラキラを廃止し、進行方向へ一本だけ残像線を出す。
+  particles.push({type:'dashLine',x1:sx,y1:sy,x2:ex,y2:ey,life:.14,maxLife:.14,color});
   message=label;messageLife=.65;shake=Math.max(shake,8);
  }
  kick(){
@@ -678,10 +677,10 @@ function collisions(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.l
  }
 }
 function burst(x,y,color,n){for(let i=0;i<n;i++){const a=rand(0,7),s=rand(50,240);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.25,.7),color});}}
-function updateParticles(dt){for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;}particles=particles.filter(p=>p.life>0);}
+function updateParticles(dt){for(const p of particles){p.life-=dt;if(p.type==='dashLine')continue;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;}particles=particles.filter(p=>p.life>0);}
 function drawShadow(x,y,height,r,offsetY=31){const airborne=Math.max(0,height-3),k=clamp(1-airborne/180,.28,1);ctx.save();ctx.globalAlpha=.24*k;ctx.fillStyle='#142018';ctx.beginPath();ctx.ellipse(x,y+offsetY,r*k,Math.max(3,r*.32*k),0,0,Math.PI*2);ctx.fill();ctx.restore();}
 function drawAllShadows(){for(const p of players)drawShadow(p.x,p.y,p.jumpHeight(),27,28);const h=slime.type==='cloud'?38+(Math.sin(performance.now()/430+(slime.floatPhase||0))*7):((slime.hop>0?Math.sin((1-slime.hop/Math.max(.01,slime.hopMax||.58))*Math.PI)*26:0));if(slime.type==='split'&&slime.split){for(const q of slime.pieces)drawShadow(slime.x+q.x,slime.y+q.y,h+8,20,18);}else{const groundOffset=slime.type==='cloud'?27:20;const groundRadius=slime.type==='cloud'?slime.r*.82:slime.r*.94;drawShadow(slime.x,slime.y,h,groundRadius,groundOffset);}}
-function draw(){ctx.save();if(shake){const t=performance.now();ctx.translate(Math.sin(t*.061)*shake*.36,Math.cos(t*.079)*shake*.28);}drawField();drawChiefs();drawAllShadows();for(const p of players)p.draw();drawSlime();drawFireballs();drawIceWaves();drawRockBalls();drawPebbles();drawHurricanes();drawGoalScene();for(const p of particles){ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
+function draw(){ctx.save();if(shake){const t=performance.now();ctx.translate(Math.sin(t*.061)*shake*.36,Math.cos(t*.079)*shake*.28);}drawField();drawChiefs();drawAllShadows();for(const p of players)p.draw();drawSlime();drawFireballs();drawIceWaves();drawRockBalls();drawPebbles();drawHurricanes();drawGoalScene();for(const p of particles){if(p.type==='dashLine'){const a=clamp(p.life/(p.maxLife||.14),0,1);ctx.save();ctx.globalAlpha=a*.82;ctx.strokeStyle=p.color;ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(p.x1,p.y1);ctx.lineTo(p.x2,p.y2);ctx.stroke();ctx.restore();continue;}ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
 function drawField(){
  const isBrifo=currentStage===1,isSalubie=currentStage===2,isSalubibi=currentStage===3,isTakezo=currentStage===4,isChestapi=currentStage===5;
  const opponentBase=isBrifo?'#dff4fb':isSalubie?'#7c4938':isSalubibi?'#71bfae':isTakezo?'#6f614c':'#111d3d';
