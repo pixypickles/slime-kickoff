@@ -131,7 +131,7 @@ class Player{
   else ({ix,iy,actions}=this.ai(dt));
   if(this.stun<=0&&this.frozen<=0){
    if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?590:205;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
-   if(actions.dash&&this.dashCd<=0)this.shoulderDash();
+   if(actions.dash&&this.dashCd<=0&&this.index===0)this.shoulderDash();
    if(actions.jump&&this.jumpT<=0){this.jumpT=.82;burst(this.x,this.y+24,'#eee1bd',10);}
    if(actions.kick&&this.kickCd<=0)this.kick();
    if(actions.skill&&this.skillCd<=0&&this.index===0)this.skill();
@@ -179,7 +179,7 @@ class Player{
   const enemyNear=players.some(p=>p.team!==this.team&&p.respawnT<=0&&p.buriedT<=0&&Math.hypot(p.x-this.x,p.y-this.y)<76);
   const attackingPlayer=this.aiMode==='harass'&&enemyNear;
   return{ix:this.aiX,iy:this.aiY,actions:{
-   dash:(d>145||attackingPlayer)&&Math.random()<.022,
+   dash:this.index===0&&(d>145||attackingPlayer)&&Math.random()<.022,
    kick:(d<94||attackingPlayer)&&Math.random()<.12,
    jump:d<115&&Math.random()<.018,
    skill:this.index===0&&this.skillCd<=0&&d<430&&Math.random()<.009
@@ -200,6 +200,7 @@ class Player{
   return n;
  }
  shoulderDash(){
+  if(this.index!==0)return; // ダッシュは各チームのリーダー専用
   this.dashCd=.4;this.dashTime=.16;
   const n=norm(this.faceX||1,this.faceY||0),sx=this.x,sy=this.y;
   const distance=128; // 約2.5人分
@@ -284,7 +285,21 @@ class Player{
     slime.scared=1;message='空中ボレー！ 属性レジスト！';messageLife=1.0;
     shake=Math.max(shake,16);burst(slime.x,slime.y,'#fff4b5',34);
    }else{
-    const slimePush=slime.type==='rock'?.58:(slime.type==='cloud'?1.28:(slime.type==='speedy'?1.42:1));slime.vx+=n.x*power*elementPower*slimePush;slime.vy+=n.y*power*elementPower*slimePush;
+    // 通常キックは相手ゴール中央へ少しだけ補正し、守備を抜いた後の一押しを決めやすくする。
+    const attackDir=this.team===0?1:-1,goalX=this.team===0?W+45:-45,goalY=(FIELD.goalT+FIELD.goalB)/2;
+    const towardGoal=fx*attackDir>-.15;
+    let kickN=n;
+    if(towardGoal){
+     const g=norm(goalX-slime.x,goalY-slime.y);
+     const nearGoal=this.team===0?slime.x>650:slime.x<350;
+     const assist=nearGoal?.42:.22;
+     kickN=norm(n.x*(1-assist)+g.x*assist,n.y*(1-assist)+g.y*assist);
+    }
+    const slimePush=slime.type==='rock'?.58:(slime.type==='cloud'?1.28:(slime.type==='speedy'?1.42:1));
+    let kickPower=power*elementPower*slimePush;
+    if(towardGoal&&(this.team===0?slime.x>690:slime.x<310))kickPower*=1.18;
+    slime.vx+=kickN.x*kickPower;slime.vy+=kickN.y*kickPower;
+    if(towardGoal){slime.lastKickTeam=this.team;slime.goalAssistT=1.15;}
     slime.wobble+=rand(-2,2);slime.hop=Math.max(slime.hop,air||sliding?.68:.54);
     slime.hopMax=Math.max(slime.hopMax||.45,slime.hop);
     shake=Math.max(shake,sliding?10:6);burst(slime.x,slime.y,elementColor,16);
@@ -551,7 +566,18 @@ function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Mat
   slime.hop=slime.type==='rock'?rand(.22,.38):(slime.type==='cloud'?rand(.08,.18):(slime.type==='speedy'?rand(.12,.25):(slime.type==='jumpy'?rand(.95,1.25):rand(.7,1.0))));slime.hopMax=slime.hop;
   if(Math.random()<.36)slime.think=rand(.14,.28);
  }
- const slimeDrag=slime.type==='cloud'?.42:(slime.type==='speedy'?.34:.18);slime.vx*=Math.pow(slimeDrag,dt);slime.vy*=Math.pow(slimeDrag,dt);if(slime.type==='cloud'){slime.floatPhase=(slime.floatPhase||0)+dt*2.2;slime.vy+=Math.sin(slime.floatPhase*.7)*8*dt;}slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;slime.wobble*=Math.pow(.05,dt);constrainToField(slime);updateSplitPieces(dt);if(slime.type!=='split'||!slime.split){if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}}}
+ const slimeDrag=slime.type==='cloud'?.42:(slime.type==='speedy'?.34:.18);slime.vx*=Math.pow(slimeDrag,dt);slime.vy*=Math.pow(slimeDrag,dt);if(slime.type==='cloud'){slime.floatPhase=(slime.floatPhase||0)+dt*2.2;slime.vy+=Math.sin(slime.floatPhase*.7)*8*dt;}
+ slime.goalAssistT=Math.max(0,(slime.goalAssistT||0)-dt);
+ if(slime.goalAssistT>0&&(slime.lastKickTeam===0||slime.lastKickTeam===1)){
+  const dir=slime.lastKickTeam===0?1:-1,near=slime.lastKickTeam===0?slime.x>690:slime.x<310;
+  if(near&&slime.y>FIELD.goalT-48&&slime.y<FIELD.goalB+48&&slime.vx*dir>0){
+   const gy=(FIELD.goalT+FIELD.goalB)/2;
+   slime.vy+=(gy-slime.y)*4.2*dt;
+   slime.vy*=Math.pow(.34,dt);
+   if(Math.abs(slime.vx)<430)slime.vx+=dir*520*dt;
+  }
+ }
+ slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;slime.wobble*=Math.pow(.05,dt);constrainToField(slime);updateSplitPieces(dt);if(slime.type!=='split'||!slime.split){if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}}}
 
 function updateFireballs(dt,stopped){
  if(stopped)return;
