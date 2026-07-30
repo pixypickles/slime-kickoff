@@ -218,8 +218,9 @@ class Player{
   for(const p of players){
    if(p===this||p.team===this.team||p.respawnT>0||p.buriedT>0||p.wallStickT>0)continue;
    if(segmentDistance(p.x,p.y,sx,sy,ex,ey)>p.r+28)continue;
-   p.vx+=n.x*(this.spirit==='wind'?980:this.spirit==='plain'?860:720);
-   p.vy+=n.y*(this.spirit==='wind'?980:this.spirit==='plain'?860:720);
+   const easyEnemyLaunch=isEasyStory()&&this.team===0&&p.team===1?1.65:1;
+   p.vx+=n.x*(this.spirit==='wind'?980:this.spirit==='plain'?860:720)*easyEnemyLaunch;
+   p.vy+=n.y*(this.spirit==='wind'?980:this.spirit==='plain'?860:720)*easyEnemyLaunch;
    p.stun=Math.max(p.stun,.42);
    if(this.spirit==='fire'){p.burn=Math.max(p.burn,1.0);p.burnTick=0;}
    if(this.spirit==='ice'){p.frozen=Math.max(p.frozen,.72);p.stun=0;}
@@ -332,7 +333,7 @@ class Player{
    if(!airborneVolley&&this.spirit==='earth'){message='アースキック！';messageLife=.6;shake=Math.max(shake,11);}
    if(!airborneVolley&&this.spirit==='thunder'){electrify(slime,1.35,0);message='サンダーキック！';messageLife=.65;}
   }
-  for(const p of players){if(p===this||p.team===this.team||p.respawnT>0||p.buriedT>0||p.wallStickT>0)continue;const px=p.x-this.x,py=p.y-this.y,n=norm(px,py);if(Math.hypot(px,py)<88&&n.x*fx+n.y*fy>-.1){p.vx+=fx*power*1.28*elementPower;p.vy+=fy*power*1.28*elementPower;p.stun=Math.max(p.stun,sliding?.82:air?.62:.46);p.vx+=fx*(air||sliding?360:220);p.vy+=fy*(air||sliding?360:220);shake=Math.max(shake,8);burst(p.x,p.y,elementColor,12);
+  for(const p of players){if(p===this||p.team===this.team||p.respawnT>0||p.buriedT>0||p.wallStickT>0)continue;const px=p.x-this.x,py=p.y-this.y,n=norm(px,py);if(Math.hypot(px,py)<88&&n.x*fx+n.y*fy>-.1){const easyEnemyLaunch=isEasyStory()&&this.team===0&&p.team===1?1.55:1;p.vx+=fx*power*1.28*elementPower*easyEnemyLaunch;p.vy+=fy*power*1.28*elementPower*easyEnemyLaunch;p.stun=Math.max(p.stun,sliding?.82:air?.62:.46);p.vx+=fx*(air||sliding?360:220)*easyEnemyLaunch;p.vy+=fy*(air||sliding?360:220)*easyEnemyLaunch;shake=Math.max(shake,8);burst(p.x,p.y,elementColor,12);
     if(air&&this.spirit==='plain'){
       p.vx=fx*1520;p.vy=fy*1520;p.wallSplatPending=1.2;p.stun=2.2;
       message='ホームランキック！';messageLife=.85;shake=Math.max(shake,14);burst(p.x,p.y,'#fff09a',28);continue;
@@ -588,7 +589,20 @@ function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Mat
   slime.hop=slime.type==='rock'?rand(.22,.38):(slime.type==='cloud'?rand(.08,.18):(slime.type==='speedy'?rand(.12,.25):(slime.type==='jumpy'?rand(.95,1.25):rand(.7,1.0))));slime.hopMax=slime.hop;
   if(Math.random()<.36)slime.think=rand(.14,.28);
  }
- const slimeDrag=slime.type==='cloud'?.42:(slime.type==='speedy'?.34:.18);slime.vx*=Math.pow(slimeDrag,dt);slime.vy*=Math.pow(slimeDrag,dt);if(slime.type==='cloud'){slime.floatPhase=(slime.floatPhase||0)+dt*2.2;slime.vy+=Math.sin(slime.floatPhase*.7)*8*dt;}
+ // v0.52: 地上ではキュッと止まるよう、全スライムの慣性を弱める。
+ const slimeDrag=slime.type==='rock'?.055:(slime.type==='cloud'?.28:(slime.type==='speedy'?.20:.09));
+ slime.vx*=Math.pow(slimeDrag,dt);slime.vy*=Math.pow(slimeDrag,dt);
+ if(slime.type==='cloud'){slime.floatPhase=(slime.floatPhase||0)+dt*2.2;slime.vy+=Math.sin(slime.floatPhase*.7)*8*dt;}
+ // やさしいストーリーでは、止まりかけたスライムがぷれん村の攻める右ゴールへ自然に流れる。
+ if(isEasyStory()&&slime.startT<=0&&slime.frozen<=0&&slime.shockT<=0&&!(slime.lastKickTeam===1&&slime.goalAssistT>0)){
+  const speed=Math.hypot(slime.vx,slime.vy),goalY=(FIELD.goalT+FIELD.goalB)/2;
+  if(speed<620){
+   const drift=slime.type==='rock'?24:(slime.type==='cloud'?40:52);
+   slime.vx+=drift*dt;
+   slime.vy+=(goalY-slime.y)*.34*dt;
+  }
+ }
+ if(slime.type!=='cloud'&&Math.hypot(slime.vx,slime.vy)<22){slime.vx=0;slime.vy=0;}
  slime.goalAssistT=Math.max(0,(slime.goalAssistT||0)-dt);
  if(slime.goalAssistT>0&&(slime.lastKickTeam===0||slime.lastKickTeam===1)){
   const dir=slime.lastKickTeam===0?1:-1,near=slime.lastKickTeam===0?slime.x>690:slime.x<310;
