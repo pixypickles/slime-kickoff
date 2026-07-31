@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.73 SAME CHIEF COLOR FIX</title>
+  <title>スライム・キックオフ！ v0.81 POSTGAME MODES</title>
   <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d151c;color:#fff;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
@@ -618,6 +618,12 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
 .ending-card .the-end{margin:20px 0 12px;font-size:clamp(30px,7vw,58px);letter-spacing:.16em;color:#ffe986;text-shadow:0 0 18px #8ce8ff}
 .ending-card button{padding:13px 25px;border:3px solid #315078;border-radius:14px;background:#d9f5ff;color:#1c2340;font:inherit;font-weight:900}
 @media(max-height:430px) and (orientation:landscape){.ending-card-inner{padding:12px 20px}.ending-card h2{font-size:28px;margin:2px}.ending-card p{font-size:12px;margin:4px}.ending-card .the-end{font-size:31px;margin:7px}.ending-card button{padding:7px 18px}}
+
+/* v0.81: readable title story and postgame modes */
+.story-preview-expanded{max-width:760px;padding:12px 18px;background:linear-gradient(180deg,#142a36ee,#203d49ee);border:2px solid #f0d58a88}
+.story-preview-expanded p{display:block!important;margin:6px 0!important;font-size:clamp(12px,1.6vw,16px)!important;line-height:1.5!important;text-align:left}
+.mode-description{width:min(760px,96%);margin:5px auto 2px;padding:7px 12px;border-radius:12px;background:#071923aa;border:1px solid #9bdcff55;color:#eaf8ff;font-size:clamp(11px,1.35vw,14px);line-height:1.35;text-align:center}
+@media(max-height:560px) and (orientation:landscape){.story-preview-expanded p:nth-child(2),.story-preview-expanded p:nth-child(3){display:none!important}.story-preview-expanded{padding:5px 10px}.mode-description{padding:4px 8px}}
 </style>
 </head>
 <body>
@@ -630,9 +636,11 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
           <div class="crest">二つの村の、どうでもよくて熱い争い</div>
           <h1>スライム・キックオフ！</h1>
           <p class="tagline">ちょっと臭いスライムを、となり村へ。</p>
-          <div class="story-preview" aria-label="物語のあらすじ">
-            <p><strong>異次元ゲートから現れる、ちょっと臭いスライム。</strong><br>蹴って押して、相手村のゴールへ送り返そう！</p>
-            <label class="story-open" for="storyToggle">📖 物語を大きく読む</label>
+          <div class="story-preview story-preview-expanded" aria-label="物語のあらすじ">
+            <p><strong>ある日、ぷれん村と隣り村の間に、不思議な時空の競技場が現れた。</strong></p>
+            <p>中心のゲートから飛び出すのは、人を襲わないけれど、ほんの少しだけ臭いスライム。村人たちはスライムを相手のゴールへ押し返す競技を始め、勝った村には精霊の力が宿っていく。</p>
+            <p>氷、炎、風、岩、雷。村長やサーカス団まで巻き込んだ熱戦の向こうで、すべての時空をつないだ者が退屈そうに試合を眺めていた――。</p>
+            <label class="story-open" for="storyToggle">📖 物語の全文を読む</label>
           </div>
         </div>
         <div class="intro-footer">
@@ -665,7 +673,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
           </fieldset>
           <div class="match-setup" id="matchSetup">
             <label for="matchMode">遊び方
-              <select id="matchMode"><option value="campaign">物語を進める</option><option value="free">練習試合</option><option value="chief">村長参戦モード</option></select>
+              <select id="matchMode"><option value="campaign">📖 ストーリー</option><option value="free">⚽ フリー対戦</option><option value="chief">✨ EX対戦</option><option value="tournament">🏆 トーナメント</option></select>
             </label>
             <label id="storyDifficultyWrap" for="storyDifficulty">物語の難易度
               <select id="storyDifficulty"><option value="normal">ふつう</option><option value="easy">やさしい</option></select>
@@ -700,11 +708,12 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
               </select>
             </label>
           </div>
+          <div id="modeDescription" class="mode-description" aria-live="polite">ストーリーを進め、村々をつないだ謎を追います。</div>
           <div class="intro-action" aria-live="polite">
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.79 FINAL BOSS STORY</small>
+          <small>v0.81 POSTGAME MODES</small>
         </div>
       </div>
       <input class="story-toggle" type="checkbox" id="storyToggle" aria-hidden="true">
@@ -801,11 +810,11 @@ if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prot
   this.lineTo(x,y+radius);this.quadraticCurveTo(x,y,x+radius,y);this.closePath();return this;
  };
 }
-const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),rematchBtn:document.getElementById('rematchBtn'),menuBtn:document.getElementById('menuBtn'),nextStageBtn:document.getElementById('nextStageBtn'),slimeSelect:document.getElementById('slimeSelect'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus'),stageCard:document.getElementById('stageCard'),clearCard:document.getElementById('clearCard'),clearNextBtn:document.getElementById('clearNextBtn'),matchMode:document.getElementById('matchMode'),freeOpponent:document.getElementById('freeOpponent'),freeOpponentWrap:document.getElementById('freeOpponentWrap'),storyDifficulty:document.getElementById('storyDifficulty'),storyDifficultyWrap:document.getElementById('storyDifficultyWrap'),dashBtn:document.querySelector('[data-action="dash"]'),chiefSelect:document.getElementById('chiefSelect'),chiefSelectWrap:document.getElementById('chiefSelectWrap'),enemyChiefSelect:document.getElementById('enemyChiefSelect'),enemyChiefSelectWrap:document.getElementById('enemyChiefSelectWrap'),storyStart:document.getElementById('storyStart'),storyStartWrap:document.getElementById('storyStartWrap'),endingCard:document.getElementById('endingCard'),endingMenuBtn:document.getElementById('endingMenuBtn')};
+const ui={intro:document.getElementById('intro'),result:document.getElementById('result'),controls:document.getElementById('controls'),startBtn:document.getElementById('startBtn'),retryBtn:document.getElementById('retryBtn'),resultTitle:document.getElementById('resultTitle'),resultText:document.getElementById('resultText'),rematchBtn:document.getElementById('rematchBtn'),menuBtn:document.getElementById('menuBtn'),nextStageBtn:document.getElementById('nextStageBtn'),slimeSelect:document.getElementById('slimeSelect'),loadingText:document.getElementById('loadingText'),skillBtn:document.querySelector('[data-action="skill"]'),stick:document.getElementById('stick'),knob:document.getElementById('knob'),introScroll:document.getElementById('introScroll'),spiritSelect:document.getElementById('spiritSelect'),spiritStatus:document.getElementById('spiritStatus'),stageCard:document.getElementById('stageCard'),clearCard:document.getElementById('clearCard'),clearNextBtn:document.getElementById('clearNextBtn'),matchMode:document.getElementById('matchMode'),freeOpponent:document.getElementById('freeOpponent'),freeOpponentWrap:document.getElementById('freeOpponentWrap'),storyDifficulty:document.getElementById('storyDifficulty'),storyDifficultyWrap:document.getElementById('storyDifficultyWrap'),dashBtn:document.querySelector('[data-action="dash"]'),chiefSelect:document.getElementById('chiefSelect'),chiefSelectWrap:document.getElementById('chiefSelectWrap'),enemyChiefSelect:document.getElementById('enemyChiefSelect'),enemyChiefSelectWrap:document.getElementById('enemyChiefSelectWrap'),storyStart:document.getElementById('storyStart'),storyStartWrap:document.getElementById('storyStartWrap'),endingCard:document.getElementById('endingCard'),endingMenuBtn:document.getElementById('endingMenuBtn'),modeDescription:document.getElementById('modeDescription')};
 const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
 const PLAYER_VISUAL_SCALE=.9; // v0.46: 人物は当たり判定を変えず、見た目だけ少し小さくする
-let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],rockBalls=[],pebbles=[],hurricanes=[],chiefIceBullets=[],chiefWindShots=[],chiefLaser=null,chiefHeatWind=null,chiefMegaTornado=null,chiefRockRain=[],chiefLightningBolts=[],chiefDischarge=null,chiefThunderRain=[],magicOrbs=[],timeStopT=0,timeStopOwner=null,chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='plain',selectedSlime='normal',currentStage=1,campaignStage=1,stageIntroT=0,clearSequence=false,gameReady=true,matchMode='campaign',storyDifficulty='normal',selectedChief='brifo',selectedEnemyChief='leader';
+let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],rockBalls=[],pebbles=[],hurricanes=[],chiefIceBullets=[],chiefWindShots=[],chiefLaser=null,chiefHeatWind=null,chiefMegaTornado=null,chiefRockRain=[],chiefLightningBolts=[],chiefDischarge=null,chiefThunderRain=[],magicOrbs=[],timeStopT=0,timeStopOwner=null,chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='plain',selectedSlime='normal',currentStage=1,campaignStage=1,stageIntroT=0,clearSequence=false,gameReady=true,matchMode='campaign',storyDifficulty='normal',selectedChief='brifo',selectedEnemyChief='leader',tournamentRound=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const norm=(x,y)=>{const d=Math.hypot(x,y)||1;return{x:x/d,y:y/d}};
 const rand=(a,b)=>a+Math.random()*(b-a);
@@ -850,6 +859,7 @@ function syncModeUI(){
  if(!ui.matchMode)return;
  matchMode=ui.matchMode.value||'campaign';
  const chief=matchMode==='chief';
+ const tournament=matchMode==='tournament';
  if(document.getElementById('matchSetup'))document.getElementById('matchSetup').dataset.mode=matchMode;
  setSetupVisible(ui.freeOpponentWrap,matchMode==='free');
  setSetupVisible(ui.chiefSelectWrap,chief);
@@ -864,12 +874,13 @@ function syncModeUI(){
  selectedEnemyChief=ui.enemyChiefSelect?ui.enemyChiefSelect.value:'leader';
  if(ui.skillBtn)ui.skillBtn.textContent=chief?(selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':selectedChief==='magician'?'A：空間転送弾':'A：レーザー'):selectedSpirit==='plain'?'投石':selectedSpirit==='ice'?'冷気':selectedSpirit==='wind'?'竜巻':selectedSpirit==='earth'?'岩砲':selectedSpirit==='thunder'?'パチッ':'火球';
  if(ui.dashBtn)ui.dashBtn.textContent=chief?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':selectedChief==='chestapi'?'落雷':selectedChief==='magician'?'時間停止':'ブリザード'):'ダッシュ';
- if(ui.startBtn)ui.startBtn.textContent=chief?'村長の合図で開始！':'試合開始！';
+ if(ui.startBtn)ui.startBtn.textContent=chief?'EX対戦を開始！':tournament?'トーナメント参加！':matchMode==='free'?'フリー対戦開始！':'ストーリー開始！';
+ if(ui.modeDescription)ui.modeDescription.textContent=chief?'村長と大魔導師を自由に組み合わせる、何でもありの特別対戦です。':tournament?'3試合を勝ち抜き、スライム・キックオフ杯の優勝を目指します。':matchMode==='free'?'好きな村とスライムを選び、気軽に1試合だけ対戦します。':'物語を進め、村々をつないだ時空の謎を追います。';
 }
 function refreshMatchModes(){
  if(!ui.matchMode)return;
  const option=ui.matchMode.querySelector('option[value="chief"]');
- if(option){option.disabled=false;option.textContent='村長参戦モード';}
+ if(option){option.disabled=false;option.textContent='✨ EX対戦';}
  chiefModeUnlocked=true;
  syncModeUI();
 }
@@ -1537,6 +1548,7 @@ function startGame(){startLock=false;markStageSeen(currentStage);selectedSlime=u
  }
  reset();last=performance.now();requestAnimationFrame(loop);}
 function endGame(){running=false;ui.controls.classList.add('hidden');ui.controls.style.display='none';const win=score[0]>score[1],draw=score[0]===score[1];
+ if(matchMode==='tournament'){ui.result.classList.remove('hidden');ui.result.style.display='grid';if(draw){ui.resultTitle.textContent='🏆 引き分け・再試合！';ui.resultText.textContent=`第${tournamentRound+1}試合は引き分け。決着がつくまで再戦です。`;if(ui.nextStageBtn)ui.nextStageBtn.hidden=true;return;}if(!win){ui.resultTitle.textContent='トーナメント敗退…';ui.resultText.textContent=`第${tournamentRound+1}試合で敗退。次の大会で優勝を目指そう！`;if(ui.nextStageBtn)ui.nextStageBtn.hidden=true;return;}if(tournamentRound<2){ui.resultTitle.textContent=`🏆 第${tournamentRound+1}試合 勝利！`;ui.resultText.textContent=tournamentRound===0?'準決勝へ進出！ 次の相手は風のさるびび村。':'決勝進出！ 雷鳴のちぇすたぴサーカス団が待っている。';if(ui.nextStageBtn){ui.nextStageBtn.hidden=false;ui.nextStageBtn.textContent=tournamentRound===0?'準決勝へ進む':'決勝へ進む';}return;}ui.resultTitle.textContent='🏆 スライム・キックオフ杯 優勝！';ui.resultText.textContent='ぷれん村が初代大会王者！ 村人もスライムも大騒ぎだ！';if(ui.nextStageBtn)ui.nextStageBtn.hidden=true;try{localStorage.setItem('slimeKickoffTournamentChampion','1');}catch(e){}return;}
  if(matchMode==='free'||matchMode==='chief'){ui.result.classList.remove('hidden');ui.result.style.display='grid';ui.resultTitle.textContent=draw?(isChiefMode()?'村長戦は引き分け！':'練習試合は引き分け！'):win?(isChiefMode()?`${selectedChief==='salubie'?'さるびえ村':selectedChief==='salubibi'?'さるびび村':selectedChief==='takezo'?'たけぞ村':selectedChief==='chestapi'?'ちぇすたぴサーカス団':selectedChief==='magician'?'時空の狭間':'ぶりふぉ村'}村長、勝利！`:'練習試合に勝利！'):(isChiefMode()?(selectedEnemyChief==='leader'?'村長、まさかの敗北…':`${selectedEnemyChief==='salubie'?'さるびえ村':selectedEnemyChief==='salubibi'?'さるびび村':selectedEnemyChief==='takezo'?'たけぞ村':selectedEnemyChief==='chestapi'?'ちぇすたぴサーカス団':selectedEnemyChief==='magician'?'時空の狭間':'ぶりふぉ村'}村長の勝利！`):'練習試合に敗北…');ui.resultText.textContent=`${playerVillageName()} ${score[0]} － ${score[1]} ${enemyVillageName()}`;if(ui.nextStageBtn)ui.nextStageBtn.hidden=true;return;}
  if(win&&currentStage===1){showClearSequence();return;}
  if(win&&currentStage===2){
@@ -2264,8 +2276,10 @@ function startFromIntro(e){
   if(checked)applySpirit(checked.value);
   matchMode=ui.matchMode?ui.matchMode.value:'campaign';
   storyDifficulty=ui.storyDifficulty?ui.storyDifficulty.value:'normal';
-  if(matchMode==='free'||matchMode==='chief')currentStage=clamp(Number(ui.freeOpponent&&ui.freeOpponent.value)||1,1,highestStageSeen);if(matchMode==='chief'){selectedChief=ui.chiefSelect?ui.chiefSelect.value:'brifo';selectedEnemyChief=ui.enemyChiefSelect?ui.enemyChiefSelect.value:'leader';if(selectedEnemyChief==='brifo')currentStage=1;else if(selectedEnemyChief==='salubie')currentStage=2;else if(selectedEnemyChief==='salubibi')currentStage=3;else if(selectedEnemyChief==='takezo')currentStage=4;else if(selectedEnemyChief==='chestapi')currentStage=5;}
-  else{const storyStart=ui.storyStart?ui.storyStart.value:'continue';if(storyStart==='5'){campaignStage=5;currentStage=5;}else currentStage=campaignStage;}
+  if(matchMode==='free'||matchMode==='chief')currentStage=clamp(Number(ui.freeOpponent&&ui.freeOpponent.value)||1,1,highestStageSeen);
+  if(matchMode==='chief'){selectedChief=ui.chiefSelect?ui.chiefSelect.value:'brifo';selectedEnemyChief=ui.enemyChiefSelect?ui.enemyChiefSelect.value:'leader';if(selectedEnemyChief==='brifo')currentStage=1;else if(selectedEnemyChief==='salubie')currentStage=2;else if(selectedEnemyChief==='salubibi')currentStage=3;else if(selectedEnemyChief==='takezo')currentStage=4;else if(selectedEnemyChief==='chestapi')currentStage=5;else if(selectedEnemyChief==='magician')currentStage=6;}
+  else if(matchMode==='tournament'){tournamentRound=0;currentStage=[1,3,5][tournamentRound];}
+  else if(matchMode==='campaign'){const storyStart=ui.storyStart?ui.storyStart.value:'continue';if(storyStart==='5'){campaignStage=5;currentStage=5;}else currentStage=campaignStage;}
   if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':selectedChief==='magician'?'A：空間転送弾':'A：レーザー';else if(ui.skillBtn)applySpirit(selectedSpirit);if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':selectedChief==='chestapi'?'落雷':selectedChief==='magician'?'時間停止':'ブリザード'):'ダッシュ';
   ui.startBtn.textContent='開始します…';
   ui.startBtn.disabled=true;
@@ -2368,10 +2382,11 @@ function backToMenu(){if(ui.endingCard){ui.endingCard.classList.add('hidden');ui
  if(ui.startBtn){
   ui.startBtn.disabled=false;
   ui.startBtn.classList.remove('disabled');
-  ui.startBtn.textContent='村長の合図で開始！';
+  ui.startBtn.textContent='試合を開始！';
  }
 }
 function nextStage(){
+ if(matchMode==='tournament'){tournamentRound=Math.min(2,tournamentRound+1);currentStage=[1,3,5][tournamentRound];selectedSlime=ui.slimeSelect?ui.slimeSelect.value:selectedSlime;startGame();return;}
  campaignStage=Math.min(6,campaignStage+1);currentStage=campaignStage;
  selectedSlime=ui.slimeSelect?ui.slimeSelect.value:selectedSlime;
  startGame();
