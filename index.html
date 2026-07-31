@@ -689,7 +689,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.73 SAME CHIEF COLOR FIX</small>
+          <small>v0.78 MAGICIAN GOAL TIME FIX</small>
         </div>
       </div>
       <input class="story-toggle" type="checkbox" id="storyToggle" aria-hidden="true">
@@ -830,7 +830,7 @@ function syncModeUI(){
  }
  selectedChief=ui.chiefSelect?ui.chiefSelect.value:'brifo';
  selectedEnemyChief=ui.enemyChiefSelect?ui.enemyChiefSelect.value:'leader';
- if(ui.skillBtn)ui.skillBtn.textContent=chief?(selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':selectedChief==='magician'?'A：時空弾':'A：レーザー'):selectedSpirit==='plain'?'投石':selectedSpirit==='ice'?'冷気':selectedSpirit==='wind'?'竜巻':selectedSpirit==='earth'?'岩砲':selectedSpirit==='thunder'?'パチッ':'火球';
+ if(ui.skillBtn)ui.skillBtn.textContent=chief?(selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':selectedChief==='magician'?'A：空間転送弾':'A：レーザー'):selectedSpirit==='plain'?'投石':selectedSpirit==='ice'?'冷気':selectedSpirit==='wind'?'竜巻':selectedSpirit==='earth'?'岩砲':selectedSpirit==='thunder'?'パチッ':'火球';
  if(ui.dashBtn)ui.dashBtn.textContent=chief?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':selectedChief==='chestapi'?'落雷':selectedChief==='magician'?'時間停止':'ブリザード'):'ダッシュ';
  if(ui.startBtn)ui.startBtn.textContent=chief?'村長の合図で開始！':'試合開始！';
 }
@@ -1230,7 +1230,7 @@ class Player{
   message='落雷！ 頭上注意！';messageLife=1.1;shake=Math.max(shake,6);burst(this.x,this.y-this.jumpHeight(),'#fff36a',34);
  }
  chiefTimeOrbSkill(){
-  if(this.skillCd>0)return;this.skillCd=2.8;spawnMagicOrb(this,'blue',this.faceX,this.faceY,false);message='時空弾！';messageLife=.9;shake=Math.max(shake,4);burst(this.x,this.y-this.jumpHeight(),'#67dfff',28);
+  if(this.skillCd>0)return;this.skillCd=2.8;spawnMagicOrb(this,'blue',this.faceX,this.faceY,false);message='空間転送弾！';messageLife=.9;shake=Math.max(shake,4);burst(this.x,this.y-this.jumpHeight(),'#67dfff',28);
  }
  chiefTimeStopSkill(){
   if(this.dashCd>0||timeStopT>0)return;this.dashCd=10;timeStopT=7;timeStopOwner=this;message='時間停止！';messageLife=1.1;shake=Math.max(shake,7);burst(this.x,this.y-this.jumpHeight(),'#b98cff',42);
@@ -1465,7 +1465,7 @@ function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Play
 function startGame(){startLock=false;markStageSeen(currentStage);selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=isEasyStory()?95:75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];pebbles=[];hurricanes=[];chiefIceBullets=[];chiefWindShots=[];chiefLaser=null;chiefHeatWind=null;chiefMegaTornado=null;chiefRockRain=[];chiefLightningBolts=[];chiefDischarge=null;chiefThunderRain=[];magicOrbs=[];timeStopT=0;timeStopOwner=null;freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';if(ui.clearCard){ui.clearCard.classList.add('hidden');ui.clearCard.style.display='none';}ui.controls.classList.add('hidden');ui.controls.style.display='none';
  if(ui.stageCard){
   const title=ui.stageCard.querySelector('h2'),kicker=ui.stageCard.querySelector('.stage-kicker'),paras=ui.stageCard.querySelectorAll('p'),quote=ui.stageCard.querySelector('strong');
-  if(isChiefMode()){kicker.textContent=selectedEnemyChief==='leader'?'👑 村長参戦モード':'👑 村長対決モード';if(selectedChief==='salubie'){title.textContent='さるびえ村村長、参戦！';paras[0].textContent='赤橙の長髪を揺らし、炎の村長がコートへ降り立つ。';paras[1].textContent='拡散ファイアボールと熱風で、相手陣地まで焼き払え！';quote.textContent='さるびえ村村長「熱さに耐えられるか？」';}else if(selectedChief==='salubibi'){title.textContent='さるびび村村長、参戦！';paras[0].textContent='風になびく長髪とともに、風の村長が軽やかに舞い降りる。';paras[1].textContent='超突風と超竜巻で、コートごと押し流せ！';quote.textContent='さるびび村村長「風向きは、こちらのものだ！」';}else if(selectedChief==='magician'){title.textContent='退屈していた大魔導師、参戦！';paras[0].textContent='時計の光をまとった大魔導師が、時空の裂け目から姿を現す。';paras[1].textContent='時空弾と時間停止で、競技そのものを支配しろ！';quote.textContent='大魔導師「見ているだけでは、もう飽きた。」';}else if(selectedChief==='chestapi'){title.textContent='ちぇすたぴ団長、参戦！';paras[0].textContent='三角帽子のピエロ団長が、雷鳴とともにコートへ飛び出す。';paras[1].textContent='放電と落雷で、相手もスライムもしびれさせろ！';quote.textContent='ちぇすたぴ団長「雷鳴のショータイムです！」';}else if(selectedChief==='takezo'){title.textContent='たけぞ村村長、参戦！';paras[0].textContent='岩冠をかぶった土の村長が、重い足取りでコートへ現れる。';paras[1].textContent='五方向岩と岩石雨で、敵もスライムも大地へ叩きつけろ！';quote.textContent='たけぞ村村長「足元を固めろ。岩は裏切らん！」';}else{title.textContent='ぶりふぉ村村長、参戦！';paras[0].textContent='青い長髪をなびかせ、氷の村長がコートへ降り立つ。';paras[1].textContent='フリーズレーザーと氷弾で、試合を凍らせろ！';quote.textContent='ぶりふぉ村村長「凍る覚悟はできているか？」';}}
+  if(isChiefMode()){kicker.textContent=selectedEnemyChief==='leader'?'👑 村長参戦モード':'👑 村長対決モード';if(selectedChief==='salubie'){title.textContent='さるびえ村村長、参戦！';paras[0].textContent='赤橙の長髪を揺らし、炎の村長がコートへ降り立つ。';paras[1].textContent='拡散ファイアボールと熱風で、相手陣地まで焼き払え！';quote.textContent='さるびえ村村長「熱さに耐えられるか？」';}else if(selectedChief==='salubibi'){title.textContent='さるびび村村長、参戦！';paras[0].textContent='風になびく長髪とともに、風の村長が軽やかに舞い降りる。';paras[1].textContent='超突風と超竜巻で、コートごと押し流せ！';quote.textContent='さるびび村村長「風向きは、こちらのものだ！」';}else if(selectedChief==='magician'){title.textContent='退屈していた大魔導師、参戦！';paras[0].textContent='時計の光をまとった大魔導師が、時空の裂け目から姿を現す。';paras[1].textContent='空間転送弾と時間停止で、競技そのものを支配しろ！';quote.textContent='大魔導師「見ているだけでは、もう飽きた。」';}else if(selectedChief==='chestapi'){title.textContent='ちぇすたぴ団長、参戦！';paras[0].textContent='三角帽子のピエロ団長が、雷鳴とともにコートへ飛び出す。';paras[1].textContent='放電と落雷で、相手もスライムもしびれさせろ！';quote.textContent='ちぇすたぴ団長「雷鳴のショータイムです！」';}else if(selectedChief==='takezo'){title.textContent='たけぞ村村長、参戦！';paras[0].textContent='岩冠をかぶった土の村長が、重い足取りでコートへ現れる。';paras[1].textContent='五方向岩と岩石雨で、敵もスライムも大地へ叩きつけろ！';quote.textContent='たけぞ村村長「足元を固めろ。岩は裏切らん！」';}else{title.textContent='ぶりふぉ村村長、参戦！';paras[0].textContent='青い長髪をなびかせ、氷の村長がコートへ降り立つ。';paras[1].textContent='フリーズレーザーと氷弾で、試合を凍らせろ！';quote.textContent='ぶりふぉ村村長「凍る覚悟はできているか？」';}}
   else if(currentStage===1){kicker.textContent='❄ 異次元ゲート接続';title.textContent='ぶりふぉ村';paras[0].textContent='雪と氷に囲まれた静かな村。';paras[1].textContent='ぷれん村の前に、氷の村への道が開いた。';quote.textContent='村長「新しい村が相手だ！ 臭いのは向こうへ返すんだ！」';}
   else if(currentStage===2){kicker.textContent='🔥 新たな異次元ゲート接続';title.textContent='さるびえ村';paras[0].textContent='鍛冶場の煙が立ちのぼる、熱気のある村。';paras[1].textContent='ぷれん村の次の対戦相手。今回は、よく跳ねるスライムが現れた。';quote.textContent='村長「また別の村だ！ こっちへ寄せるな！」';}
   else if(currentStage===3){kicker.textContent='🌪 新たな異次元ゲート接続';title.textContent='さるびび村';paras[0].textContent='風車と旗が絶えず揺れる、風の村。';paras[1].textContent='ターコイズの村人たちが、風に乗って待ち構えている。';quote.textContent='村長「風に飛ばされるな！ 地に足をつけて押し返せ！」';}
@@ -1906,7 +1906,7 @@ function drawChiefLightning(){
  for(const r of chiefThunderRain){if(r.delay>0)continue;ctx.save();ctx.globalAlpha=clamp(r.life/.18,0,1);ctx.strokeStyle='#fff36a';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(r.x,0);ctx.lineTo(r.x-10,r.y*.35);ctx.lineTo(r.x+8,r.y*.66);ctx.lineTo(r.x,r.y);ctx.stroke();ctx.strokeStyle='#9b45ff';ctx.lineWidth=4;ctx.stroke();ctx.restore();}
 }
 
-function goal(team){goalScene={team,life:1.1};message='押し込み成功！';messageLife=1.3;chiefLine=team===0?'見事だ！ 褒美に近づいたぞ！':'押し返せー！ まだ終わっておらん！';chiefLife=2.2;shake=18;if(!isChiefMode()&&Math.max(...score)>=3)return endGame();reset(true);}
+function goal(team){if(timeStopT>0){timeStopT=0;timeStopOwner=null;}goalScene={team,life:1.1};message='押し込み成功！';messageLife=1.3;chiefLine=team===0?'見事だ！ 褒美に近づいたぞ！':'押し返せー！ まだ終わっておらん！';chiefLife=2.2;shake=18;if(!isChiefMode()&&Math.max(...score)>=3)return endGame();reset(true);}
 function pushOutOfBuried(obj,buried,extra=0){
  const dx=obj.x-buried.x,dy=obj.y-buried.y,min=(obj.r||22)+34+extra,d=Math.hypot(dx,dy);
  if(d>=min)return;
@@ -2196,7 +2196,7 @@ function startFromIntro(e){
   storyDifficulty=ui.storyDifficulty?ui.storyDifficulty.value:'normal';
   if(matchMode==='free'||matchMode==='chief')currentStage=clamp(Number(ui.freeOpponent&&ui.freeOpponent.value)||1,1,highestStageSeen);if(matchMode==='chief'){selectedChief=ui.chiefSelect?ui.chiefSelect.value:'brifo';selectedEnemyChief=ui.enemyChiefSelect?ui.enemyChiefSelect.value:'leader';if(selectedEnemyChief==='brifo')currentStage=1;else if(selectedEnemyChief==='salubie')currentStage=2;else if(selectedEnemyChief==='salubibi')currentStage=3;else if(selectedEnemyChief==='takezo')currentStage=4;else if(selectedEnemyChief==='chestapi')currentStage=5;}
   else currentStage=campaignStage;
-  if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':'A：レーザー';else if(ui.skillBtn)applySpirit(selectedSpirit);if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':selectedChief==='chestapi'?'落雷':'ブリザード'):'ダッシュ';
+  if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':selectedChief==='magician'?'A：空間転送弾':'A：レーザー';else if(ui.skillBtn)applySpirit(selectedSpirit);if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':selectedChief==='chestapi'?'落雷':selectedChief==='magician'?'時間停止':'ブリザード'):'ダッシュ';
   ui.startBtn.textContent='開始します…';
   ui.startBtn.disabled=true;
   ui.intro.classList.add('hidden');
@@ -2287,7 +2287,7 @@ function closeClearSequence(){
 }
 if(ui.clearNextBtn)ui.clearNextBtn.addEventListener('click',closeClearSequence);
 
-function backToMenu(){if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':'A：レーザー';if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':selectedChief==='chestapi'?'落雷':'ブリザード'):'ダッシュ';
+function backToMenu(){if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':selectedChief==='magician'?'A：空間転送弾':'A：レーザー';if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':selectedChief==='chestapi'?'落雷':selectedChief==='magician'?'時間停止':'ブリザード'):'ダッシュ';
  running=false;
  startLock=false;
  last=0;
@@ -2311,7 +2311,7 @@ if(ui.menuBtn)ui.menuBtn.addEventListener('click',backToMenu);
 if(ui.nextStageBtn)ui.nextStageBtn.addEventListener('click',nextStage);
 if(ui.slimeSelect)ui.slimeSelect.addEventListener('change',e=>selectedSlime=e.target.value);
 if(ui.matchMode)ui.matchMode.addEventListener('change',syncModeUI);
-if(ui.chiefSelect)ui.chiefSelect.addEventListener('change',()=>{selectedChief=ui.chiefSelect.value;if(matchMode==='chief'){if(ui.skillBtn)ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':'A：レーザー';if(ui.dashBtn)ui.dashBtn.textContent=selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':selectedChief==='chestapi'?'落雷':'ブリザード';}});
+if(ui.chiefSelect)ui.chiefSelect.addEventListener('change',()=>{selectedChief=ui.chiefSelect.value;if(matchMode==='chief'){if(ui.skillBtn)ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':selectedChief==='chestapi'?'A：放電':selectedChief==='magician'?'A：空間転送弾':'A：レーザー';if(ui.dashBtn)ui.dashBtn.textContent=selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':selectedChief==='chestapi'?'落雷':selectedChief==='magician'?'時間停止':'ブリザード';}});
 if(ui.enemyChiefSelect)ui.enemyChiefSelect.addEventListener('change',()=>{selectedEnemyChief=ui.enemyChiefSelect.value;if(selectedEnemyChief==='brifo'){currentStage=1;if(ui.freeOpponent)ui.freeOpponent.value='1';}else if(selectedEnemyChief==='salubie'){currentStage=2;if(ui.freeOpponent)ui.freeOpponent.value='2';}else if(selectedEnemyChief==='salubibi'){currentStage=3;if(ui.freeOpponent)ui.freeOpponent.value='3';}else if(selectedEnemyChief==='takezo'){currentStage=4;if(ui.freeOpponent)ui.freeOpponent.value='4';}});
 if(ui.storyDifficulty)ui.storyDifficulty.addEventListener('change',()=>{storyDifficulty=ui.storyDifficulty.value;});
 inferSeenStagesFromSkills();refreshFreeOpponents();refreshMatchModes();
