@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.64 GIANT AIR BLAST</title>
+  <title>スライム・キックオフ！ v0.69 TAKEZO CHIEF</title>
   <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d151c;color:#fff;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
@@ -668,6 +668,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
                 <option value="brifo">❄ ぶりふぉ村村長</option>
                 <option value="salubie">🔥 さるびえ村村長</option>
                 <option value="salubibi">🌪 さるびび村村長</option>
+                <option value="takezo">🪨 たけぞ村村長</option>
               </select>
             </label>
             <label id="enemyChiefSelectWrap" class="hidden" for="enemyChiefSelect">対戦相手の代表
@@ -676,6 +677,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
                 <option value="brifo">❄ ぶりふぉ村村長</option>
                 <option value="salubie">🔥 さるびえ村村長</option>
                 <option value="salubibi">🌪 さるびび村村長</option>
+                <option value="takezo">🪨 たけぞ村村長</option>
               </select>
             </label>
           </div>
@@ -683,7 +685,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.64 GIANT AIR BLAST</small>
+          <small>v0.69 TAKEZO CHIEF</small>
         </div>
       </div>
       <input class="story-toggle" type="checkbox" id="storyToggle" aria-hidden="true">
@@ -768,7 +770,7 @@ const ui={intro:document.getElementById('intro'),result:document.getElementById(
 const W=1000,H=600,FIELD={cx:500,cy:316,rx:405,ry:216,goalT:238,goalB:394,gateDepth:92};
 const keys={},input={x:0,y:0,dash:false,kick:false,jump:false,skill:false};
 const PLAYER_VISUAL_SCALE=.9; // v0.46: 人物は当たり判定を変えず、見た目だけ少し小さくする
-let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],rockBalls=[],pebbles=[],hurricanes=[],chiefIceBullets=[],chiefWindShots=[],chiefLaser=null,chiefHeatWind=null,chiefMegaTornado=null,chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='plain',selectedSlime='normal',currentStage=1,campaignStage=1,stageIntroT=0,clearSequence=false,gameReady=true,matchMode='campaign',storyDifficulty='normal',selectedChief='brifo',selectedEnemyChief='leader';
+let players=[],slime,score=[0,0],timeLeft=75,running=false,last=0,message='',messageLife=0,shake=0,freeze=0,particles=[],fireballs=[],iceWaves=[],rockBalls=[],pebbles=[],hurricanes=[],chiefIceBullets=[],chiefWindShots=[],chiefLaser=null,chiefHeatWind=null,chiefMegaTornado=null,chiefRockRain=[],chiefLine='',chiefLife=0,chiefThink=0,portalTime=0,goalScene=null,selectedSpirit='plain',selectedSlime='normal',currentStage=1,campaignStage=1,stageIntroT=0,clearSequence=false,gameReady=true,matchMode='campaign',storyDifficulty='normal',selectedChief='brifo',selectedEnemyChief='leader';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const norm=(x,y)=>{const d=Math.hypot(x,y)||1;return{x:x/d,y:y/d}};
 const rand=(a,b)=>a+Math.random()*(b-a);
@@ -779,8 +781,8 @@ const isChiefMode=()=>matchMode==='chief';
 function opponentVillageName(){return currentStage===1?'ぶりふぉ村':currentStage===2?'さるびえ村':currentStage===3?'さるびび村':currentStage===4?'たけぞ村':'ちぇすたぴサーカス団';}
 function opponentElement(){return currentStage===1?'ice':currentStage===2?'fire':currentStage===3?'wind':currentStage===4?'earth':'thunder';}
 function homeVillageName(){return isChiefMode()?(selectedChief==='salubie'?'さるびえ村':selectedChief==='salubibi'?'さるびび村':'ぶりふぉ村'):'ぷれん村';}
-function playerVillageName(){return isChiefMode()?(selectedChief==='salubie'?'さるびえ村村長':selectedChief==='salubibi'?'さるびび村村長':'ぶりふぉ村村長'):'ぷれん村';}
-function enemyVillageName(){if(isChiefMode()&&selectedEnemyChief==='brifo')return 'ぶりふぉ村村長';if(isChiefMode()&&selectedEnemyChief==='salubie')return 'さるびえ村村長';if(isChiefMode()&&selectedEnemyChief==='salubibi')return 'さるびび村村長';return opponentVillageName();}
+function playerVillageName(){return isChiefMode()?(selectedChief==='salubie'?'さるびえ村村長':selectedChief==='salubibi'?'さるびび村村長':selectedChief==='takezo'?'たけぞ村村長':'ぶりふぉ村村長'):'ぷれん村';}
+function enemyVillageName(){if(isChiefMode()&&selectedEnemyChief==='brifo')return 'ぶりふぉ村村長';if(isChiefMode()&&selectedEnemyChief==='salubie')return 'さるびえ村村長';if(isChiefMode()&&selectedEnemyChief==='salubibi')return 'さるびび村村長';if(isChiefMode()&&selectedEnemyChief==='takezo')return 'たけぞ村村長';return opponentVillageName();}
 
 const unlockState={plain:true,ice:false,fire:false,wind:false,earth:false,thunder:false};
 try{
@@ -812,8 +814,8 @@ function syncModeUI(){
  }
  selectedChief=ui.chiefSelect?ui.chiefSelect.value:'brifo';
  selectedEnemyChief=ui.enemyChiefSelect?ui.enemyChiefSelect.value:'leader';
- if(ui.skillBtn)ui.skillBtn.textContent=chief?(selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':'A：レーザー'):selectedSpirit==='plain'?'投石':selectedSpirit==='ice'?'冷気':selectedSpirit==='wind'?'竜巻':selectedSpirit==='earth'?'岩砲':selectedSpirit==='thunder'?'パチッ':'火球';
- if(ui.dashBtn)ui.dashBtn.textContent=chief?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':'ブリザード'):'ダッシュ';
+ if(ui.skillBtn)ui.skillBtn.textContent=chief?(selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':'A：レーザー'):selectedSpirit==='plain'?'投石':selectedSpirit==='ice'?'冷気':selectedSpirit==='wind'?'竜巻':selectedSpirit==='earth'?'岩砲':selectedSpirit==='thunder'?'パチッ':'火球';
+ if(ui.dashBtn)ui.dashBtn.textContent=chief?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':'ブリザード'):'ダッシュ';
  if(ui.startBtn)ui.startBtn.textContent=chief?'村長の合図で開始！':'試合開始！';
 }
 function refreshMatchModes(){
@@ -922,8 +924,8 @@ class Player{
   if(this.stun<=0&&this.frozen<=0){
    if(Math.hypot(ix,iy)>.15){const n=norm(ix,iy);this.faceX=n.x;this.faceY=n.y;let sp=this.dashTime>0?590:205;if(isEasyStory()&&this.team===1)sp*=.84;if(isEasyStory()&&this.team===0)sp*=1.04;if(this.speedBoost>0)sp*=1.72;this.vx+=n.x*sp*dt*8;this.vy+=n.y*sp*dt*8;}
    let dashKickUsed=false;
-   if(actions.dash&&this.dashCd<=0&&this.index===0)dashKickUsed=this.chiefType==='brifo'?(this.chiefFreezeBlizzard(),false):this.chiefType==='salubie'?(this.chiefHeatBlast(),false):this.chiefType==='salubibi'?(this.chiefMegaTornadoSkill(),false):this.shoulderDash(!!actions.kick);
-   if(actions.jump&&this.jumpT<=0){this.jumpT=(this.chiefType==='brifo'||this.chiefType==='salubie'||this.chiefType==='salubibi')?1.48:.82;burst(this.x,this.y+24,this.chiefType==='brifo'?'#c9f7ff':this.chiefType==='salubie'?'#ffb14a':this.chiefType==='salubibi'?'#bdf7cf':'#eee1bd',10);}
+   if(actions.dash&&this.dashCd<=0&&this.index===0)dashKickUsed=this.chiefType==='brifo'?(this.chiefFreezeBlizzard(),false):this.chiefType==='salubie'?(this.chiefHeatBlast(),false):this.chiefType==='salubibi'?(this.chiefMegaTornadoSkill(),false):this.chiefType==='takezo'?(this.chiefRockRainSkill(),false):this.shoulderDash(!!actions.kick);
+   if(actions.jump&&this.jumpT<=0){this.jumpT=(this.chiefType==='brifo'||this.chiefType==='salubie'||this.chiefType==='salubibi'||this.chiefType==='takezo')?1.48:.82;burst(this.x,this.y+24,this.chiefType==='brifo'?'#c9f7ff':this.chiefType==='salubie'?'#ffb14a':this.chiefType==='salubibi'?'#bdf7cf':this.chiefType==='takezo'?'#c99a62':'#eee1bd',10);}
    if(actions.kick&&this.kickCd<=0&&!dashKickUsed)this.kick();
    if(actions.skill&&this.skillCd<=0&&this.index===0)this.skill();
   }
@@ -1055,7 +1057,7 @@ class Player{
  }
  kick(){
   if(this.dashSlimeContactT>0){this.dashBackKick(this.dashContactX,this.dashContactY);return;}
-  this.kickCd=.34;this.kickTime=.22;const sliding=this.dashTime>0,air=this.isAirborne();let power=sliding?980:air?930:720;if(this.chiefType==='brifo'){if(air){spawnChiefIceBullet(this,-.78,.63);spawnChiefIceBullet(this,0,1);spawnChiefIceBullet(this,.78,.63);}else spawnChiefIceBullet(this,this.faceX,this.faceY);}if(this.chiefType==='salubie'){if(air){spawnChiefFireball(this,0,1,.92);spawnChiefFireball(this,this.faceX*.62,.78,.92);spawnChiefFireball(this,-this.faceX*.62,.78,.92);}else spawnChiefFireball(this,this.faceX,this.faceY,1.0);}if(this.chiefType==='salubibi'){if(air){spawnChiefWindShot(this,-.78,.63,'mini');spawnChiefWindShot(this,0,1,'mini');spawnChiefWindShot(this,.78,.63,'mini');}else spawnChiefWindShot(this,this.faceX,this.faceY,'mini');}if(sliding&&air)power=1220;if(this.spirit==='plain')power*=1.22;if(isEasyStory())power*=this.team===0?1.16:.86;
+  this.kickCd=.34;this.kickTime=.22;const sliding=this.dashTime>0,air=this.isAirborne();let power=sliding?980:air?930:720;if(this.chiefType==='brifo'){if(air){spawnChiefIceBullet(this,-.78,.63);spawnChiefIceBullet(this,0,1);spawnChiefIceBullet(this,.78,.63);}else spawnChiefIceBullet(this,this.faceX,this.faceY);}if(this.chiefType==='salubie'){if(air){spawnChiefFireball(this,0,1,.92);spawnChiefFireball(this,this.faceX*.62,.78,.92);spawnChiefFireball(this,-this.faceX*.62,.78,.92);}else spawnChiefFireball(this,this.faceX,this.faceY,1.0);}if(this.chiefType==='salubibi'){if(air){spawnChiefWindShot(this,-.78,.63,'mini');spawnChiefWindShot(this,0,1,'mini');spawnChiefWindShot(this,.78,.63,'mini');}else spawnChiefWindShot(this,this.faceX,this.faceY,'mini');}if(this.chiefType==='takezo'){if(air){spawnChiefRock(this,-.72,.7,.92);spawnChiefRock(this,0,1,.92);spawnChiefRock(this,.72,.7,.92);}else spawnChiefRock(this,this.faceX,this.faceY,1.0);}if(sliding&&air)power=1220;if(this.spirit==='plain')power*=1.22;if(isEasyStory())power*=this.team===0?1.16:.86;
   let elementPower=1,elementColor='#fff1a3';
   if(this.spirit==='wind'){elementPower=1.22;elementColor='#c8ffd4';this.vx+=this.faceX*120;this.vy+=this.faceY*120;this.speedBoost=Math.max(this.speedBoost,.28);if(air){this.spinKick=.46;this.spinAngle=0;message='旋風脚！';messageLife=.7;burst(this.x,this.y-this.jumpHeight(),'#c8ffd4',22);}}
   if(this.spirit==='earth'){elementPower=1.34;elementColor='#d8b27a';}
@@ -1183,7 +1185,20 @@ class Player{
   chiefMegaTornado={team:this.team,owner:this,dir,t:0,life:1.65,maxLife:1.65,x:dir>0?70:W-70,width:185,hitTick:0};
   message='超竜巻！ 敵陣へ吹き抜けろ！';messageLife=1.1;shake=Math.max(shake,5);burst(this.x,this.y-this.jumpHeight(),'#bdf7cf',34);
  }
- skill(){if(this.chiefType==='brifo')return this.chiefFreezeLaser();if(this.chiefType==='salubie')return this.chiefSpreadFire();if(this.chiefType==='salubibi')return this.chiefCrescentGust();if(this.spirit==='thunder')return this.sparkSkill();if(this.spirit==='plain')return this.pebbleToss();if(this.spirit==='ice')return this.coldBreath();if(this.spirit==='wind')return this.hurricane();if(this.spirit==='earth')return this.rockCannon();this.skillCd=5.2;const n=this.autoAim();fireballs.push({x:this.x+n.x*48,y:this.y+n.y*48,vx:n.x*500,vy:n.y*500,z:this.jumpHeight()+20,vz:-24,team:this.team,owner:this,life:2.1,r:24,trail:0});message='ファイアボール！';messageLife=.8;shake=Math.max(shake,5);burst(this.x+n.x*38,this.y+n.y*38,'#ffb13b',18);}
+ chiefRockSpread(){
+  if(this.skillCd>0)return;this.skillCd=2.8;
+  const base=Math.atan2(this.faceY||0,this.faceX||1);
+  for(const off of [-.52,-.26,0,.26,.52])spawnChiefRock(this,Math.cos(base+off),Math.sin(base+off),1.06);
+  message='五方向岩！';messageLife=.9;shake=Math.max(shake,5);burst(this.x,this.y-this.jumpHeight(),'#c99a62',28);
+ }
+ chiefRockRainSkill(){
+  if(this.dashCd>0)return;this.dashCd=7.0;
+  chiefRockRain=[];
+  for(const target of players){if(target.team!==this.team&&target.respawnT<=0)chiefRockRain.push({target,x:target.x,y:target.y,z:330,delay:rand(.05,.42),life:1.4,hit:false});}
+  chiefRockRain.push({target:slime,x:slime.x,y:slime.y,z:360,delay:.22,life:1.5,hit:false,slime:true});
+  message='岩石雨！ 頭上注意！';messageLife=1.1;shake=Math.max(shake,5);burst(this.x,this.y-this.jumpHeight(),'#c99a62',34);
+ }
+ skill(){if(this.chiefType==='brifo')return this.chiefFreezeLaser();if(this.chiefType==='salubie')return this.chiefSpreadFire();if(this.chiefType==='salubibi')return this.chiefCrescentGust();if(this.chiefType==='takezo')return this.chiefRockSpread();if(this.spirit==='thunder')return this.sparkSkill();if(this.spirit==='plain')return this.pebbleToss();if(this.spirit==='ice')return this.coldBreath();if(this.spirit==='wind')return this.hurricane();if(this.spirit==='earth')return this.rockCannon();this.skillCd=5.2;const n=this.autoAim();fireballs.push({x:this.x+n.x*48,y:this.y+n.y*48,vx:n.x*500,vy:n.y*500,z:this.jumpHeight()+20,vz:-24,team:this.team,owner:this,life:2.1,r:24,trail:0});message='ファイアボール！';messageLife=.8;shake=Math.max(shake,5);burst(this.x+n.x*38,this.y+n.y*38,'#ffb13b',18);}
  sparkSkill(){
   this.skillCd=1.8;
   let target=null,best=Infinity;
@@ -1353,6 +1368,10 @@ class Player{
    ctx.beginPath();ctx.moveTo(-15,-34);ctx.quadraticCurveTo(-34,-18,-25,15);ctx.quadraticCurveTo(-10,2,-7,-26);ctx.closePath();ctx.fill();ctx.stroke();
    ctx.beginPath();ctx.moveTo(15,-34);ctx.quadraticCurveTo(37,-20,24,14);ctx.quadraticCurveTo(10,3,7,-26);ctx.closePath();ctx.fill();ctx.stroke();
    ctx.strokeStyle='#dffff0';ctx.lineWidth=3;ctx.beginPath();ctx.arc(3,-43,10,Math.PI*.9,Math.PI*1.8);ctx.stroke();
+  }else if(this.chiefType==='takezo'){
+   ctx.fillStyle='#6f5238';ctx.strokeStyle='#3b2b20';ctx.lineWidth=2.5;
+   ctx.beginPath();ctx.arc(0,-31,17,Math.PI,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.fillStyle='#9b7650';ctx.beginPath();ctx.moveTo(-17,-33);ctx.lineTo(-8,-48);ctx.lineTo(0,-39);ctx.lineTo(9,-50);ctx.lineTo(17,-32);ctx.closePath();ctx.fill();ctx.stroke();
   }else{
    ctx.fillStyle=this.spirit==='ice'?'#b7efff':this.spirit==='fire'?'#d9482f':this.spirit==='wind'?'#85d69a':this.spirit==='earth'?'#8a6844':'#53321f';ctx.beginPath();ctx.arc(0,-31,15,Math.PI,Math.PI*2);ctx.fill();
   }
@@ -1376,11 +1395,11 @@ class Player{
  }
 }
 
-function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=isChiefMode()?(selectedChief==='salubie'?'fire':selectedChief==='salubibi'?'wind':'ice'):selectedSpirit;b.spirit=opponentElement();if(isChiefMode()){a.chiefType=selectedChief;if(selectedEnemyChief==='brifo'){b.chiefType='brifo';b.spirit='ice';}else if(selectedEnemyChief==='salubie'){b.chiefType='salubie';b.spirit='fire';}else if(selectedEnemyChief==='salubibi'){b.chiefType='salubibi';b.spirit='wind';}}}players.push(a,b);}
+function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Player(0,250,[225,310,395][i],i===0,i),b=new Player(1,750,[225,310,395][i],false,i);if(i===0){a.spirit=isChiefMode()?(selectedChief==='salubie'?'fire':selectedChief==='salubibi'?'wind':selectedChief==='takezo'?'earth':'ice'):selectedSpirit;b.spirit=opponentElement();if(isChiefMode()){a.chiefType=selectedChief;if(selectedEnemyChief==='brifo'){b.chiefType='brifo';b.spirit='ice';}else if(selectedEnemyChief==='salubie'){b.chiefType='salubie';b.spirit='fire';}else if(selectedEnemyChief==='salubibi'){b.chiefType='salubibi';b.spirit='wind';}else if(selectedEnemyChief==='takezo'){b.chiefType='takezo';b.spirit='earth';}}}players.push(a,b);}
  const jumpy=selectedSlime==='jumpy',rock=selectedSlime==='rock',cloud=selectedSlime==='cloud',split=selectedSlime==='split',speedy=selectedSlime==='speedy';
  slime={x:500,y:310,vx:0,vy:0,r:rock?42:(cloud?35:(split?38:(speedy?35:(jumpy?34:37)))),wobble:0,think:rock?rand(.9,1.8):(cloud?rand(.8,1.5):(speedy?rand(.12,.25):(jumpy?rand(.35,.8):rand(.7,1.6)))),hop:0,hopMax:rock?.34:(cloud?.2:(speedy?.24:(jumpy?.82:.58))),airSpin:0,airSpinSpeed:0,airVolleyT:0,blink:rand(1.2,3.4),blinkT:0,startT:afterGoal?0:.9,startY:316,scared:0,frozen:0,shockT:0,type:selectedSlime,mass:rock?1.75:(cloud?.62:(speedy?.56:1)),floatPhase:rand(0,Math.PI*2),split:false,splitTimer:split?rand(3.5,6.5):0,mergeTimer:0,pieces:[]};
  if(afterGoal)for(const p of players)p.stun=.45;message='押し付け合い、始めぇぇ！！';messageLife=1.2;chiefLine='相手の村へ押し込め！ 褒美は弾むぞ！';chiefLife=2.5;chiefThink=rand(4,7);goalScene=null;}
-function startGame(){startLock=false;markStageSeen(currentStage);selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=isEasyStory()?95:75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];pebbles=[];hurricanes=[];chiefIceBullets=[];chiefWindShots=[];chiefLaser=null;chiefHeatWind=null;chiefMegaTornado=null;freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';if(ui.clearCard){ui.clearCard.classList.add('hidden');ui.clearCard.style.display='none';}ui.controls.classList.add('hidden');ui.controls.style.display='none';
+function startGame(){startLock=false;markStageSeen(currentStage);selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=isEasyStory()?95:75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];pebbles=[];hurricanes=[];chiefIceBullets=[];chiefWindShots=[];chiefLaser=null;chiefHeatWind=null;chiefMegaTornado=null;chiefRockRain=[];freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';if(ui.clearCard){ui.clearCard.classList.add('hidden');ui.clearCard.style.display='none';}ui.controls.classList.add('hidden');ui.controls.style.display='none';
  if(ui.stageCard){
   const title=ui.stageCard.querySelector('h2'),kicker=ui.stageCard.querySelector('.stage-kicker'),paras=ui.stageCard.querySelectorAll('p'),quote=ui.stageCard.querySelector('strong');
   if(isChiefMode()){kicker.textContent=selectedEnemyChief==='leader'?'👑 村長参戦モード':'👑 村長対決モード';if(selectedChief==='salubie'){title.textContent='さるびえ村村長、参戦！';paras[0].textContent='赤橙の長髪を揺らし、炎の村長がコートへ降り立つ。';paras[1].textContent='拡散ファイアボールと熱風で、相手陣地まで焼き払え！';quote.textContent='さるびえ村村長「熱さに耐えられるか？」';}else if(selectedChief==='salubibi'){title.textContent='さるびび村村長、参戦！';paras[0].textContent='風になびく長髪とともに、風の村長が軽やかに舞い降りる。';paras[1].textContent='超突風と超竜巻で、コートごと押し流せ！';quote.textContent='さるびび村村長「風向きは、こちらのものだ！」';}else{title.textContent='ぶりふぉ村村長、参戦！';paras[0].textContent='青い長髪をなびかせ、氷の村長がコートへ降り立つ。';paras[1].textContent='フリーズレーザーと氷弾で、試合を凍らせろ！';quote.textContent='ぶりふぉ村村長「凍る覚悟はできているか？」';}}
@@ -1434,7 +1453,7 @@ function endGame(){running=false;ui.controls.classList.add('hidden');ui.controls
 }
 function update(dt){if(!running)return;
  if(stageIntroT>0){stageIntroT=Math.max(0,stageIntroT-dt);portalTime+=dt;if(stageIntroT===0){if(ui.stageCard){ui.stageCard.classList.add('hidden');ui.stageCard.style.display='none';}ui.controls.classList.remove('hidden');ui.controls.style.display='block';message='押し付け合い、始めぇぇ！！';messageLife=1.1;}return;}
- timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=currentStage===1?['氷の村へ押し返せー！','ぷれん村を守れ！','雪の向こうへやれ！','靴を止めるなー！','その調子だ！']:currentStage===2?['炎の村へ押し返せー！','鍛冶場の方へやれ！','ぷれん村へ入れるな！','熱さに負けるな！','そのまま押し込め！']:currentStage===3?['風車の向こうへ押し返せー！','飛ばされるな！','ターコイズの旗を狙え！','風に負けず踏ん張れ！','そのまま押し込め！']:currentStage===4?['石垣の向こうへ押し返せー！','地面に埋められるな！','竹林まで飛ばせ！','足元を固めろ！','そのまま押し込め！']:['感電するなー！','サーカスの舞台へ押し返せ！','雷より速く蹴れ！','煙を出すなー！','ショーを終わらせろ！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*34);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);updateRockBalls(dt,stopped);updatePebbles(dt,stopped);updateHurricanes(dt,stopped);updateChiefIceBullets(dt,stopped);updateChiefWindShots(dt,stopped);updateChiefLaser(dt,stopped);updateChiefHeatWind(dt,stopped);updateChiefMegaTornado(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
+ timeLeft-=dt;if(timeLeft<=0)return endGame();portalTime+=dt;messageLife=Math.max(0,messageLife-dt);chiefLife=Math.max(0,chiefLife-dt);chiefThink-=dt;if(chiefThink<=0&&chiefLife<=0){const lines=currentStage===1?['氷の村へ押し返せー！','ぷれん村を守れ！','雪の向こうへやれ！','靴を止めるなー！','その調子だ！']:currentStage===2?['炎の村へ押し返せー！','鍛冶場の方へやれ！','ぷれん村へ入れるな！','熱さに負けるな！','そのまま押し込め！']:currentStage===3?['風車の向こうへ押し返せー！','飛ばされるな！','ターコイズの旗を狙え！','風に負けず踏ん張れ！','そのまま押し込め！']:currentStage===4?['石垣の向こうへ押し返せー！','地面に埋められるな！','竹林まで飛ばせ！','足元を固めろ！','そのまま押し込め！']:['感電するなー！','サーカスの舞台へ押し返せ！','雷より速く蹴れ！','煙を出すなー！','ショーを終わらせろ！'];chiefLine=lines[(Math.random()*lines.length)|0];chiefLife=2.1;chiefThink=rand(5,9);}shake=Math.max(0,shake-dt*34);const stopped=freeze>0;freeze=Math.max(0,freeze-dt);for(const p of players)if(!stopped||p.team===0)p.update(dt);updateSlime(dt,stopped);updateFireballs(dt,stopped);updateIceWaves(dt,stopped);updateRockBalls(dt,stopped);updatePebbles(dt,stopped);updateHurricanes(dt,stopped);updateChiefIceBullets(dt,stopped);updateChiefWindShots(dt,stopped);updateChiefLaser(dt,stopped);updateChiefHeatWind(dt,stopped);updateChiefMegaTornado(dt,stopped);updateChiefRockRain(dt,stopped);collisions();updateParticles(dt);if(goalScene){goalScene.life-=dt;if(goalScene.life<=0)goalScene=null;}input.dash=input.kick=input.jump=input.skill=false;}
 function triggerSplit(){if(!slime||slime.type!=='split'||slime.split)return;slime.split=true;slime.mergeTimer=rand(4.5,8);slime.pieces=[{x:-24,y:-8,vx:rand(-85,-35),vy:rand(-55,55),goal:0},{x:24,y:8,vx:rand(35,85),vy:rand(-55,55),goal:0}];message='分裂スライムが ぷるんっ！';messageLife=1;burst(slime.x,slime.y,'#8df06d',24);}
 function updateSplitPieces(dt){if(slime.type!=='split')return;if(!slime.split){slime.splitTimer-=dt;if(slime.splitTimer<=0||Math.hypot(slime.vx,slime.vy)>980)triggerSplit();return;}slime.mergeTimer-=dt;for(const q of slime.pieces){q.vx*=Math.pow(.28,dt);q.vy*=Math.pow(.28,dt);q.vx+=rand(-25,25)*dt;q.vy+=rand(-25,25)*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.x=clamp(q.x,-105,105);q.y=clamp(q.y,-72,72);const wx=slime.x+q.x;q.goal=wx<-18? -1:(wx>W+18?1:0);}const gs=slime.pieces.map(q=>q.goal);if(gs.every(g=>g===1)){score[0]++;goal(0);return;}if(gs.every(g=>g===-1)){score[1]++;goal(1);return;}if(gs.includes(1)&&gs.includes(-1)){message='別々のゴールでは得点なし！';messageLife=1.2;reset(true);return;}if(slime.mergeTimer<=0&&gs.every(g=>g===0)){slime.split=false;slime.pieces=[];slime.splitTimer=rand(4,7);message='分裂スライムが ひとつに戻った！';messageLife=1;}}
 function updateSlime(dt,stopped){if(stopped)return;slime.think-=dt;slime.hop=Math.max(0,slime.hop-dt*.62);slime.blink-=dt;slime.blinkT=Math.max(0,slime.blinkT-dt);slime.scared=Math.max(0,slime.scared-dt);slime.airVolleyT=Math.max(0,(slime.airVolleyT||0)-dt);slime.airSpin+=(slime.airSpinSpeed||0)*dt;if(slime.airVolleyT<=0)slime.airSpinSpeed*=Math.pow(.08,dt);slime.frozen=Math.max(0,(slime.frozen||0)-dt);slime.shockT=Math.max(0,(slime.shockT||0)-dt);if(slime.shockT>0){slime.vx*=Math.pow(.08,dt);slime.vy*=Math.pow(.08,dt);if(Math.random()<.22)burst(slime.x+rand(-18,18),slime.y+rand(-18,18),'#fff36a',1);}if(slime.blink<=0){slime.blink=rand(1.5,4);slime.blinkT=.13;}if(slime.frozen>0){slime.vx*=Math.pow(.75,dt);slime.vy*=Math.pow(.75,dt);slime.x+=slime.vx*dt;slime.y+=slime.vy*dt;constrainToField(slime);if(slime.x<-slime.r){score[1]++;goal(1);}else if(slime.x>W+slime.r){score[0]++;goal(0);}return;}if(slime.startT>0){slime.startT=Math.max(0,slime.startT-dt);slime.hop=.58;slime.hopMax=.58;const burstOut=1-slime.startT/.9;slime.y=slime.startY-Math.sin(burstOut*Math.PI)*42;slime.vx*=.8;slime.vy*=.8;return;}if(slime.think<=0){
@@ -1494,7 +1513,7 @@ function updateFireballs(dt,stopped){
   if(f.trail<=0){f.trail=.035;particles.push({x:f.x+rand(-4,4),y:f.y-f.z+rand(-4,4),vx:rand(-35,35),vy:rand(-35,35),life:rand(.18,.38),color:Math.random()<.5?'#ffcf45':'#ff6b2c'});}
   if(!insideEllipse(f.x,f.y,-18)){f.life=0;burst(f.x,f.y-f.z,'#ff8b2c',8);continue;}
   const sd=Math.hypot(slime.x-f.x,slime.y-f.y);
-  if(sd<slime.r+f.r+8&&Math.abs((slimeAirborne()?42:0)-f.z)<86){const n=norm(f.vx,f.vy);const fp=f.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=.9;slime.hop=.72;slime.hopMax=.72;f.life=0;message='スライムが熱くて転がった！';messageLife=.9;shake=12;burst(slime.x,slime.y,'#ff9a32',28);continue;}
+  if(sd<slime.r+f.r+8&&Math.abs((slimeAirborne()?42:0)-f.z)<86){const n=norm(f.vx,f.vy);const fp=r.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=.9;slime.hop=.72;slime.hopMax=.72;f.life=0;message='スライムが熱くて転がった！';messageLife=.9;shake=12;burst(slime.x,slime.y,'#ff9a32',28);continue;}
   for(const target of players){
    if(target===f.owner||target.respawnT>0||target.buriedT>0)continue;if(f.aSkill&&target.isAirborne())continue;
    if(target.team===f.team&&(!f.chief||target.frozen<=0))continue;
@@ -1537,13 +1556,31 @@ function updatePebbles(dt,stopped){
 function drawPebbles(){
  for(const b of pebbles){ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.spin);ctx.fillStyle='#8b7355';ctx.strokeStyle='#211a14';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,0,12,8,.2,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();}
 }
+function spawnChiefRock(owner,dx,dy,power=1){
+ const n=norm(dx||owner.faceX||1,dy||owner.faceY||0);
+ rockBalls.push({x:owner.x+n.x*46,y:owner.y-owner.jumpHeight()+n.y*42,vx:n.x*560,vy:n.y*560,team:owner.team,owner,life:1.7,r:19,spin:0,chiefPower:power,chief:true});
+ burst(owner.x+n.x*34,owner.y-owner.jumpHeight()+n.y*30,'#c99a62',10);
+}
+function updateChiefRockRain(dt,stopped){
+ if(stopped)return;
+ for(const r of chiefRockRain){r.life-=dt;if(r.hit)continue;r.delay-=dt;if(r.delay>0)continue;
+  if(r.target&&r.target!==slime&&r.target.respawnT>0){r.hit=true;continue;}
+  r.x=r.target.x;r.y=r.target.y;r.z=Math.max(0,r.z-760*dt);
+  if(r.z<=0){r.hit=true;shake=Math.max(shake,12);burst(r.x,r.y,'#c99a62',30);
+   if(r.slime){slime.vx*=.25;slime.vy*=.25;slime.hop=.72;slime.hopMax=.72;slime.scared=1;message='スライムに岩が直撃！';messageLife=.8;}
+   else{const t=r.target;t.spinStun=0;t.vx=t.vy=0;t.buriedT=3.2;t.stun=3.2;message='岩が直撃！ 足だけになった！';messageLife=1;}
+  }
+ }
+ chiefRockRain=chiefRockRain.filter(r=>r.life>0);
+}
+function drawChiefRockRain(){for(const r of chiefRockRain){if(r.delay>0||r.hit)continue;ctx.save();ctx.translate(r.x,r.y-r.z);ctx.rotate((1.5-r.life)*8);ctx.fillStyle='#8b6542';ctx.strokeStyle='#4f3928';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-22,-10);ctx.lineTo(-9,-24);ctx.lineTo(14,-20);ctx.lineTo(24,-2);ctx.lineTo(14,20);ctx.lineTo(-11,22);ctx.lineTo(-25,6);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}}
 function updateRockBalls(dt,stopped){
  if(stopped)return;
  for(const r of rockBalls){
   r.life-=dt;r.spin+=dt*9;r.x+=r.vx*dt;r.y+=r.vy*dt;r.vx*=Math.pow(.985,dt*60);r.vy*=Math.pow(.985,dt*60);
   if(!insideEllipse(r.x,r.y,-10)){r.life=0;shake=Math.max(shake,7);burst(r.x,r.y,'#b88652',18);continue;}
-  if(Math.hypot(slime.x-r.x,slime.y-r.y)<slime.r+r.r){const n=norm(r.vx,r.vy);const fp=f.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=1;slime.hop=.58;slime.hopMax=.58;r.life=0;message='岩でスライムが吹っ飛んだ！';messageLife=1;shake=15;burst(slime.x,slime.y,'#d8b27a',28);continue;}
-  for(const target of players){if(target.team===r.team||target===r.owner||target.jumpHeight()>72)continue;if(Math.hypot(target.x-r.x,target.y-r.y)<target.r+r.r){const n=norm(r.vx,r.vy);target.vx+=n.x*1050;target.vy+=n.y*1050;target.stun=Math.max(target.stun,1.05);r.life=0;message='特大ノックバック！';messageLife=.9;shake=17;burst(target.x,target.y,'#d8b27a',30);break;}}
+  if(Math.hypot(slime.x-r.x,slime.y-r.y)<slime.r+r.r){const n=norm(r.vx,r.vy);const fp=r.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=1;slime.hop=.58;slime.hopMax=.58;r.life=0;message='岩でスライムが吹っ飛んだ！';messageLife=1;shake=15;burst(slime.x,slime.y,'#d8b27a',28);continue;}
+  for(const target of players){if(target.team===r.team||target===r.owner||target.jumpHeight()>72)continue;if(Math.hypot(target.x-r.x,target.y-r.y)<target.r+r.r){const n=norm(r.vx,r.vy);const fp=r.chiefPower||1;target.vx+=n.x*1050*fp;target.vy+=n.y*1050*fp;target.stun=Math.max(target.stun,1.05);r.life=0;message='特大ノックバック！';messageLife=.9;shake=17;burst(target.x,target.y,'#d8b27a',30);break;}}
  }
  rockBalls=rockBalls.filter(r=>r.life>0);
 }
@@ -1622,8 +1659,8 @@ function updateChiefWindShots(dt,stopped){
  if(stopped)return;
  for(const w of chiefWindShots){w.life-=dt;w.x+=w.vx*dt;w.y+=w.vy*dt;w.spin+=dt*(w.kind==='crescent'?5:13);
   if(!insideEllipse(w.x,w.y,-28)){w.life=0;continue;}
-  for(const target of players){if(target===w.owner||target.respawnT>0||target.buriedT>0||target.team===w.team||w.hit.has(target))continue;if(w.aSkill&&target.isAirborne())continue;
-   if(Math.hypot(target.x-w.x,target.y-w.y)<target.r+w.r){const n=norm(w.vx,w.vy),power=w.kind==='crescent'?1120:590;target.vx+=n.x*power;target.vy+=n.y*power;target.stun=Math.max(target.stun,w.kind==='crescent'?.7:.3);w.hit.add(target);burst(target.x,target.y-target.jumpHeight(),'#bdf7cf',16);if(w.kind!=='crescent')w.life=0;}
+  for(const target of players){if(target===w.owner||target.respawnT>0||target.team===w.team||w.hit.has(target))continue;if(w.aSkill&&target.isAirborne())continue;
+   if(Math.hypot(target.x-w.x,target.y-w.y)<target.r+w.r){if(target.buriedT>0){target.buriedT=0;target.stun=0;burst(target.x,target.y,'#bdf7cf',18);}const n=norm(w.vx,w.vy),power=w.kind==='crescent'?1120:590;target.vx+=n.x*power;target.vy+=n.y*power;target.stun=Math.max(target.stun,w.kind==='crescent'?.7:.3);w.hit.add(target);burst(target.x,target.y-target.jumpHeight(),'#bdf7cf',16);if(w.kind!=='crescent')w.life=0;}
   }
   if(Math.hypot(slime.x-w.x,slime.y-w.y)<slime.r+w.r){const n=norm(w.vx,w.vy),power=w.kind==='crescent'?1220:650;slime.vx+=n.x*power;slime.vy+=n.y*power;slime.scared=.65;slime.hop=Math.max(slime.hop,.35);if(w.kind!=='crescent')w.life=0;}
  }
@@ -1650,8 +1687,9 @@ function updateChiefMegaTornado(dt,stopped){
  if(chiefMegaTornado.hitTick<=0){
   chiefMegaTornado.hitTick=.08;
   for(const target of players){
-   if(target===chiefMegaTornado.owner||target.respawnT>0||target.buriedT>0||target.team===chiefMegaTornado.team)continue;
+   if(target===chiefMegaTornado.owner||target.respawnT>0||target.team===chiefMegaTornado.team)continue;
    if(Math.abs(target.x-chiefMegaTornado.x)<chiefMegaTornado.width*.56){
+    if(target.buriedT>0){target.buriedT=0;target.stun=0;burst(target.x,target.y,'#bdf7cf',20);}
     target.spinStun=Math.max(target.spinStun,3);target.stun=Math.max(target.stun,3);
     target.vx+=chiefMegaTornado.dir*255;target.vy+=(target.y-H/2)*.22;
     burst(target.x,target.y-target.jumpHeight(),'#bdf7cf',10);
@@ -1776,7 +1814,7 @@ function burst(x,y,color,n){for(let i=0;i<n;i++){const a=rand(0,7),s=rand(50,240
 function updateParticles(dt){for(const p of particles){p.life-=dt;if(p.type==='dashLine')continue;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;}particles=particles.filter(p=>p.life>0);}
 function drawShadow(x,y,height,r,offsetY=31){const airborne=Math.max(0,height-3),k=clamp(1-airborne/180,.28,1);ctx.save();ctx.globalAlpha=.24*k;ctx.fillStyle='#142018';ctx.beginPath();ctx.ellipse(x,y+offsetY,r*k,Math.max(3,r*.32*k),0,0,Math.PI*2);ctx.fill();ctx.restore();}
 function drawAllShadows(){for(const p of players)drawShadow(p.x,p.y,p.jumpHeight(),27,28);const h=slime.type==='cloud'?38+(Math.sin(performance.now()/430+(slime.floatPhase||0))*7):((slime.hop>0?Math.sin((1-slime.hop/Math.max(.01,slime.hopMax||.58))*Math.PI)*26:0));if(slime.type==='split'&&slime.split){for(const q of slime.pieces)drawShadow(slime.x+q.x,slime.y+q.y,h+8,20,18);}else{const groundOffset=slime.type==='cloud'?27:20;const groundRadius=slime.type==='cloud'?slime.r*.82:slime.r*.94;drawShadow(slime.x,slime.y,h,groundRadius,groundOffset);}}
-function draw(){ctx.save();if(shake){const t=performance.now();ctx.translate(Math.sin(t*.061)*shake*.36,Math.cos(t*.079)*shake*.28);}drawField();drawChiefs();drawAllShadows();for(const p of players)p.draw();drawSlime();drawFireballs();drawIceWaves();drawRockBalls();drawPebbles();drawHurricanes();drawChiefIceBullets();drawChiefWindShots();drawChiefLaser();drawChiefHeatWind();drawChiefMegaTornado();drawGoalScene();for(const p of particles){if(p.type==='dashLine'){const a=clamp(p.life/(p.maxLife||.14),0,1);ctx.save();ctx.globalAlpha=a*.82;ctx.strokeStyle=p.color;ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(p.x1,p.y1);ctx.lineTo(p.x2,p.y2);ctx.stroke();ctx.restore();continue;}ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
+function draw(){ctx.save();if(shake){const t=performance.now();ctx.translate(Math.sin(t*.061)*shake*.36,Math.cos(t*.079)*shake*.28);}drawField();drawChiefs();drawAllShadows();for(const p of players)p.draw();drawSlime();drawFireballs();drawIceWaves();drawRockBalls();drawPebbles();drawHurricanes();drawChiefIceBullets();drawChiefWindShots();drawChiefLaser();drawChiefHeatWind();drawChiefMegaTornado();drawChiefRockRain();drawGoalScene();for(const p of particles){if(p.type==='dashLine'){const a=clamp(p.life/(p.maxLife||.14),0,1);ctx.save();ctx.globalAlpha=a*.82;ctx.strokeStyle=p.color;ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(p.x1,p.y1);ctx.lineTo(p.x2,p.y2);ctx.stroke();ctx.restore();continue;}ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
 function drawField(){
  const isBrifo=currentStage===1,isSalubie=currentStage===2,isSalubibi=currentStage===3,isTakezo=currentStage===4,isChestapi=currentStage===5;
  const opponentBase=isBrifo?'#dff4fb':isSalubie?'#7c4938':isSalubibi?'#71bfae':isTakezo?'#6f614c':'#111d3d';
@@ -2036,7 +2074,7 @@ function drawHud(){
  // 通常モードだけ、3点先取の簡易印を表示。村長戦は時間制限のみ。
  if(!isChiefMode())for(let team=0;team<2;team++)for(let i=0;i<3;i++){ctx.fillStyle=i<score[team]?'#ffd85a':'#ffffff33';ctx.beginPath();ctx.arc(team===0?265-i*18:735+i*18,37,6,0,Math.PI*2);ctx.fill();}
  if(messageLife>0){ctx.fillStyle='#fff4a3';ctx.font='900 36px sans-serif';ctx.fillText(message,500,145);}if(freeze>0){ctx.fillStyle='#b9efff';ctx.font='900 25px sans-serif';ctx.fillText(`TIME STOP ${freeze.toFixed(1)}`,500,174);}
- ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#fff';const human=players.find(p=>p.isHuman),spirit=human?.spirit||selectedSpirit;ctx.fillText(human?.chiefType==='brifo'?'ぶりふぉ村村長：A フリーズレーザー／ダッシュボタン フリーズブリザード／キックで4秒凍結の氷弾':human?.chiefType==='salubie'?'さるびえ村村長：A 拡散ファイアボール／ダッシュボタン 熱風／キックで火球':human?.chiefType==='salubibi'?'さるびび村村長：A 超突風／ダッシュボタン 超竜巻／キックでミニ竜巻':spirit==='plain'?'ぷれん：小石投げ＋強いフィジカル＋ホームランジャンプキック':spirit==='earth'?'土：ロックキャノン＋強烈なアースキック':spirit==='ice'?'氷：コールドブレス＋凍結するアイスキック':spirit==='wind'?'風：ハリケーン＋吹き飛ばすウインドキック':spirit==='thunder'?'雷：ライトニングダッシュ＋感電サンダーキック':'炎：ファイアボール＋燃えるファイアキック',18,585);
+ ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#fff';const human=players.find(p=>p.isHuman),spirit=human?.spirit||selectedSpirit;ctx.fillText(human?.chiefType==='brifo'?'ぶりふぉ村村長：A フリーズレーザー／ダッシュボタン フリーズブリザード／キックで4秒凍結の氷弾':human?.chiefType==='salubie'?'さるびえ村村長：A 拡散ファイアボール／ダッシュボタン 熱風／キックで火球':human?.chiefType==='salubibi'?'さるびび村村長：A 超突風／ダッシュボタン 超竜巻／キックでミニ竜巻':human?.chiefType==='takezo'?'たけぞ村村長：A 五方向岩／ダッシュボタン 岩石雨／キックで岩':spirit==='plain'?'ぷれん：小石投げ＋強いフィジカル＋ホームランジャンプキック':spirit==='earth'?'土：ロックキャノン＋強烈なアースキック':spirit==='ice'?'氷：コールドブレス＋凍結するアイスキック':spirit==='wind'?'風：ハリケーン＋吹き飛ばすウインドキック':spirit==='thunder'?'雷：ライトニングダッシュ＋感電サンダーキック':'炎：ファイアボール＋燃えるファイアキック',18,585);
 }
 function loop(t){if(!running)return;const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop);}
 
@@ -2056,7 +2094,7 @@ function startFromIntro(e){
   storyDifficulty=ui.storyDifficulty?ui.storyDifficulty.value:'normal';
   if(matchMode==='free'||matchMode==='chief')currentStage=clamp(Number(ui.freeOpponent&&ui.freeOpponent.value)||1,1,highestStageSeen);if(matchMode==='chief'){selectedChief=ui.chiefSelect?ui.chiefSelect.value:'brifo';selectedEnemyChief=ui.enemyChiefSelect?ui.enemyChiefSelect.value:'leader';if(selectedEnemyChief==='brifo')currentStage=1;else if(selectedEnemyChief==='salubie')currentStage=2;else if(selectedEnemyChief==='salubibi')currentStage=3;}
   else currentStage=campaignStage;
-  if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':'A：レーザー';else if(ui.skillBtn)applySpirit(selectedSpirit);if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':'ブリザード'):'ダッシュ';
+  if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':'A：レーザー';else if(ui.skillBtn)applySpirit(selectedSpirit);if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':'ブリザード'):'ダッシュ';
   ui.startBtn.textContent='開始します…';
   ui.startBtn.disabled=true;
   ui.intro.classList.add('hidden');
@@ -2147,7 +2185,7 @@ function closeClearSequence(){
 }
 if(ui.clearNextBtn)ui.clearNextBtn.addEventListener('click',closeClearSequence);
 
-function backToMenu(){if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':'A：レーザー';if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':'ブリザード'):'ダッシュ';
+function backToMenu(){if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':'A：レーザー';if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':'ブリザード'):'ダッシュ';
  running=false;
  startLock=false;
  last=0;
@@ -2171,7 +2209,7 @@ if(ui.menuBtn)ui.menuBtn.addEventListener('click',backToMenu);
 if(ui.nextStageBtn)ui.nextStageBtn.addEventListener('click',nextStage);
 if(ui.slimeSelect)ui.slimeSelect.addEventListener('change',e=>selectedSlime=e.target.value);
 if(ui.matchMode)ui.matchMode.addEventListener('change',syncModeUI);
-if(ui.chiefSelect)ui.chiefSelect.addEventListener('change',()=>{selectedChief=ui.chiefSelect.value;if(matchMode==='chief'){if(ui.skillBtn)ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':'A：レーザー';if(ui.dashBtn)ui.dashBtn.textContent=selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':'ブリザード';}});
+if(ui.chiefSelect)ui.chiefSelect.addEventListener('change',()=>{selectedChief=ui.chiefSelect.value;if(matchMode==='chief'){if(ui.skillBtn)ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':'A：レーザー';if(ui.dashBtn)ui.dashBtn.textContent=selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':'ブリザード';}});
 if(ui.enemyChiefSelect)ui.enemyChiefSelect.addEventListener('change',()=>{selectedEnemyChief=ui.enemyChiefSelect.value;if(selectedEnemyChief==='brifo'){currentStage=1;if(ui.freeOpponent)ui.freeOpponent.value='1';}else if(selectedEnemyChief==='salubie'){currentStage=2;if(ui.freeOpponent)ui.freeOpponent.value='2';}else if(selectedEnemyChief==='salubibi'){currentStage=3;if(ui.freeOpponent)ui.freeOpponent.value='3';}});
 if(ui.storyDifficulty)ui.storyDifficulty.addEventListener('change',()=>{storyDifficulty=ui.storyDifficulty.value;});
 inferSeenStagesFromSkills();refreshFreeOpponents();refreshMatchModes();
