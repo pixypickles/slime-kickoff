@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.70 TAKEZO CHIEF</title>
+  <title>スライム・キックオフ！ v0.71 TAKEZO FIX</title>
   <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d151c;color:#fff;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
@@ -685,7 +685,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.70 TAKEZO CHIEF</small>
+          <small>v0.71 TAKEZO FIX</small>
         </div>
       </div>
       <input class="story-toggle" type="checkbox" id="storyToggle" aria-hidden="true">
@@ -1307,18 +1307,21 @@ class Player{
   ctx.save();ctx.translate(this.x,this.y-jump);ctx.scale(PLAYER_VISUAL_SCALE,PLAYER_VISUAL_SCALE);if(this.burn>0)ctx.rotate(this.rollAngle);
 
   // 胴体は常に上向き。片足は胴体の下へ固定し、もう片足だけ大きく蹴り出す。
-  const isHomePlayer=this.team===0;
-  const enemyBrifo=this.team===1&&currentStage===1;
-  ctx.fillStyle=isHomePlayer?'#fffdf0':(enemyBrifo?'#ffffff':currentStage===2?'#7b2438':currentStage===3?'#29b8b4':currentStage===4?'#ec73ad':'#111d3d');ctx.strokeStyle='#16120f';ctx.lineWidth=this.isHuman?6:4;
+  // 村長戦では左右とも選択した村の衣装を使う。操作側を常にぷれん村扱いにしない。
+  const playerVillage=fieldVillageKey(this.team);
+  const isHomePlayer=playerVillage==='plain';
+  const enemyBrifo=playerVillage==='brifo';
+  ctx.fillStyle=isHomePlayer?'#fffdf0':enemyBrifo?'#ffffff':playerVillage==='salubie'?'#7b2438':playerVillage==='salubibi'?'#29b8b4':playerVillage==='takezo'?'#ec73ad':'#111d3d';ctx.strokeStyle='#16120f';ctx.lineWidth=this.isHuman?6:4;
   ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.fill();ctx.stroke();
   if(isHomePlayer){ctx.fillStyle='#f2cf4a';ctx.fillRect(-20,7,40,10);}
-  else if(enemyBrifo){ctx.save();ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.clip();ctx.fillStyle='#7fd5ef';for(let sx=-18;sx<22;sx+=12)ctx.fillRect(sx,-7,6,42);ctx.restore();}else if(this.team===1&&currentStage===4){ctx.fillStyle='#172c55';ctx.fillRect(-20,6,40,12);}
+  else if(enemyBrifo){ctx.save();ctx.beginPath();ctx.roundRect(-20,-7,40,42,11);ctx.clip();ctx.fillStyle='#7fd5ef';for(let sx=-18;sx<22;sx+=12)ctx.fillRect(sx,-7,6,42);ctx.restore();}
+  else if(playerVillage==='takezo'){ctx.fillStyle='#172c55';ctx.fillRect(-20,6,40,12);}
   let shorts='#444',shoe='#ffffff';
   if(isHomePlayer){shorts='#4b4b4b';shoe='#ffffff';}
   else if(enemyBrifo){shorts='#ffffff';shoe='#2b7cff';}
-  else if(currentStage===2){shorts='#ffffff';shoe='#ff8c2b';}
-  else if(currentStage===3){shorts='#ffffff';shoe='#29b8b4';}
-  else if(currentStage===4){shorts='#ffffff';shoe='#f27bb8';}
+  else if(playerVillage==='salubie'){shorts='#ffffff';shoe='#ff8c2b';}
+  else if(playerVillage==='salubibi'){shorts='#ffffff';shoe='#29b8b4';}
+  else if(playerVillage==='takezo'){shorts='#ffffff';shoe='#f27bb8';}
   else {shorts='#222';shoe='#ffe14a';}
   ctx.fillStyle=shorts;ctx.fillRect(-15,17,30,7);
   ctx.fillStyle='#d9b36c';ctx.fillRect(-13,25,9,12);ctx.fillRect(5,25,9,12);
@@ -1523,7 +1526,7 @@ function updateFireballs(dt,stopped){
   if(f.trail<=0){f.trail=.035;particles.push({x:f.x+rand(-4,4),y:f.y-f.z+rand(-4,4),vx:rand(-35,35),vy:rand(-35,35),life:rand(.18,.38),color:Math.random()<.5?'#ffcf45':'#ff6b2c'});}
   if(!insideEllipse(f.x,f.y,-18)){f.life=0;burst(f.x,f.y-f.z,'#ff8b2c',8);continue;}
   const sd=Math.hypot(slime.x-f.x,slime.y-f.y);
-  if(sd<slime.r+f.r+8&&Math.abs((slimeAirborne()?42:0)-f.z)<86){const n=norm(f.vx,f.vy);const fp=r.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=.9;slime.hop=.72;slime.hopMax=.72;f.life=0;message='スライムが熱くて転がった！';messageLife=.9;shake=12;burst(slime.x,slime.y,'#ff9a32',28);continue;}
+  if(sd<slime.r+f.r+8&&Math.abs((slimeAirborne()?42:0)-f.z)<86){const n=norm(f.vx,f.vy);const fp=f.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=.9;slime.hop=.72;slime.hopMax=.72;f.life=0;message='スライムが熱くて転がった！';messageLife=.9;shake=12;burst(slime.x,slime.y,'#ff9a32',28);continue;}
   for(const target of players){
    if(target===f.owner||target.respawnT>0||target.buriedT>0)continue;if(f.aSkill&&target.isAirborne())continue;
    if(target.team===f.team&&(!f.chief||target.frozen<=0))continue;
@@ -1589,7 +1592,7 @@ function updateRockBalls(dt,stopped){
  for(const r of rockBalls){
   r.life-=dt;r.spin+=dt*9;r.x+=r.vx*dt;r.y+=r.vy*dt;r.vx*=Math.pow(.985,dt*60);r.vy*=Math.pow(.985,dt*60);
   if(!insideEllipse(r.x,r.y,-10)){r.life=0;shake=Math.max(shake,7);burst(r.x,r.y,'#b88652',18);continue;}
-  if(Math.hypot(slime.x-r.x,slime.y-r.y)<slime.r+r.r){const n=norm(r.vx,r.vy);const fp=r.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=1;slime.hop=.58;slime.hopMax=.58;r.life=0;message='岩でスライムが吹っ飛んだ！';messageLife=1;shake=15;burst(slime.x,slime.y,'#d8b27a',28);continue;}
+  if(Math.hypot(slime.x-r.x,slime.y-r.y)<slime.r+r.r){const n=norm(r.vx,r.vy);const fp=f.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=1;slime.hop=.58;slime.hopMax=.58;r.life=0;message='岩でスライムが吹っ飛んだ！';messageLife=1;shake=15;burst(slime.x,slime.y,'#d8b27a',28);continue;}
   for(const target of players){if(target.team===r.team||target===r.owner||target.jumpHeight()>72)continue;if(Math.hypot(target.x-r.x,target.y-r.y)<target.r+r.r){const n=norm(r.vx,r.vy);const fp=r.chiefPower||1;target.vx+=n.x*1050*fp;target.vy+=n.y*1050*fp;target.stun=Math.max(target.stun,1.05);r.life=0;message='特大ノックバック！';messageLife=.9;shake=17;burst(target.x,target.y,'#d8b27a',30);break;}}
  }
  rockBalls=rockBalls.filter(r=>r.life>0);
@@ -2210,7 +2213,7 @@ if(ui.nextStageBtn)ui.nextStageBtn.addEventListener('click',nextStage);
 if(ui.slimeSelect)ui.slimeSelect.addEventListener('change',e=>selectedSlime=e.target.value);
 if(ui.matchMode)ui.matchMode.addEventListener('change',syncModeUI);
 if(ui.chiefSelect)ui.chiefSelect.addEventListener('change',()=>{selectedChief=ui.chiefSelect.value;if(matchMode==='chief'){if(ui.skillBtn)ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':'A：レーザー';if(ui.dashBtn)ui.dashBtn.textContent=selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':'ブリザード';}});
-if(ui.enemyChiefSelect)ui.enemyChiefSelect.addEventListener('change',()=>{selectedEnemyChief=ui.enemyChiefSelect.value;if(selectedEnemyChief==='brifo'){currentStage=1;if(ui.freeOpponent)ui.freeOpponent.value='1';}else if(selectedEnemyChief==='salubie'){currentStage=2;if(ui.freeOpponent)ui.freeOpponent.value='2';}else if(selectedEnemyChief==='salubibi'){currentStage=3;if(ui.freeOpponent)ui.freeOpponent.value='3';}});
+if(ui.enemyChiefSelect)ui.enemyChiefSelect.addEventListener('change',()=>{selectedEnemyChief=ui.enemyChiefSelect.value;if(selectedEnemyChief==='brifo'){currentStage=1;if(ui.freeOpponent)ui.freeOpponent.value='1';}else if(selectedEnemyChief==='salubie'){currentStage=2;if(ui.freeOpponent)ui.freeOpponent.value='2';}else if(selectedEnemyChief==='salubibi'){currentStage=3;if(ui.freeOpponent)ui.freeOpponent.value='3';}else if(selectedEnemyChief==='takezo'){currentStage=4;if(ui.freeOpponent)ui.freeOpponent.value='4';}});
 if(ui.storyDifficulty)ui.storyDifficulty.addEventListener('change',()=>{storyDifficulty=ui.storyDifficulty.value;});
 inferSeenStagesFromSkills();refreshFreeOpponents();refreshMatchModes();
 
