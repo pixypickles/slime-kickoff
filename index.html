@@ -1629,7 +1629,18 @@ function updateChiefWindShots(dt,stopped){
  }
  chiefWindShots=chiefWindShots.filter(w=>w.life>0);
 }
-function drawChiefWindShots(){for(const w of chiefWindShots){ctx.save();ctx.translate(w.x,w.y);ctx.rotate(w.kind==='crescent'?Math.atan2(w.vy,w.vx):w.spin);ctx.globalAlpha=clamp(w.life/.18,0,1);if(w.kind==='crescent'){ctx.globalCompositeOperation='lighter';ctx.strokeStyle='rgba(234,255,239,.30)';ctx.lineWidth=48;ctx.beginPath();ctx.arc(0,0,178,-1.18,1.18);ctx.stroke();ctx.strokeStyle='#eaffef';ctx.lineWidth=22;ctx.beginPath();ctx.arc(0,0,174,-1.18,1.18);ctx.stroke();ctx.strokeStyle='#77d99a';ctx.lineWidth=9;ctx.beginPath();ctx.arc(0,0,170,-1.18,1.18);ctx.stroke();for(let i=0;i<5;i++){ctx.strokeStyle='rgba(195,255,213,.65)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,112+i*14,-1.08,1.08);ctx.stroke();}}else{ctx.strokeStyle='#eaffef';ctx.lineWidth=6;for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(0,0,8+i*6,i*.9,Math.PI*1.55+i*.9);ctx.stroke();}}ctx.restore();}}
+function drawChiefWindShots(){for(const w of chiefWindShots){ctx.save();ctx.translate(w.x,w.y);ctx.rotate(w.kind==='crescent'?Math.atan2(w.vy,w.vx):w.spin);ctx.globalAlpha=clamp(w.life/.18,0,1);if(w.kind==='crescent'){ctx.globalCompositeOperation='lighter';ctx.strokeStyle='rgba(234,255,239,.30)';ctx.lineWidth=48;ctx.beginPath();ctx.arc(0,0,178,-1.18,1.18);ctx.stroke();ctx.strokeStyle='#eaffef';ctx.lineWidth=22;ctx.beginPath();ctx.arc(0,0,174,-1.18,1.18);ctx.stroke();ctx.strokeStyle='#77d99a';ctx.lineWidth=9;ctx.beginPath();ctx.arc(0,0,170,-1.18,1.18);ctx.stroke();for(let i=0;i<5;i++){ctx.strokeStyle='rgba(195,255,213,.65)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,112+i*14,-1.08,1.08);ctx.stroke();}}else{
+  // v0.67: 丸い渦ではなく、先端へ細くなるシャープなミニ竜巻。
+  ctx.rotate(-.18);
+  ctx.globalCompositeOperation='lighter';
+  const fade=clamp(w.life/.22,0,1);
+  ctx.globalAlpha=fade*.28;ctx.strokeStyle='#77e6b2';ctx.lineWidth=13;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(-21,-14);ctx.bezierCurveTo(18,-28,29,-13,-9,-3);ctx.bezierCurveTo(-26,4,22,7,12,15);ctx.bezierCurveTo(5,21,-10,22,-3,31);ctx.stroke();
+  ctx.globalAlpha=fade;ctx.strokeStyle='#eaffef';ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(-23,-15);ctx.bezierCurveTo(17,-30,31,-12,-8,-2);ctx.bezierCurveTo(-28,4,23,7,13,15);ctx.bezierCurveTo(5,22,-12,22,-3,32);ctx.stroke();
+  ctx.strokeStyle='#66dca0';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(-13,-9);ctx.bezierCurveTo(13,-18,19,-9,-5,-3);ctx.moveTo(-11,8);ctx.bezierCurveTo(12,2,18,10,5,15);ctx.moveTo(2,22);ctx.quadraticCurveTo(-7,26,-2,34);ctx.stroke();
+ }ctx.restore();}}
 function updateChiefMegaTornado(dt,stopped){
  if(!chiefMegaTornado||stopped)return;
  chiefMegaTornado.t+=dt;chiefMegaTornado.life-=dt;
@@ -1745,7 +1756,7 @@ function drawIceWaves(){for(const w of iceWaves){const p=1-w.life/w.maxLife,a=Ma
 
 function drawFireballs(){for(const f of fireballs){const a=Math.atan2(f.vy,f.vx);ctx.save();ctx.translate(f.x,f.y-(f.z||0));ctx.rotate(a);ctx.globalAlpha=.35;ctx.fillStyle='#ff6b1f';ctx.beginPath();ctx.ellipse(-f.r*1.35,0,f.r*1.75,f.r*.65,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;const g=ctx.createRadialGradient(-5,-6,3,0,0,f.r+5);g.addColorStop(0,'#fff7ba');g.addColorStop(.35,'#ffd447');g.addColorStop(1,'#f0441d');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,f.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
 
-function goal(team){goalScene={team,life:1.1};message='押し込み成功！';messageLife=1.3;chiefLine=team===0?'見事だ！ 褒美に近づいたぞ！':'押し返せー！ まだ終わっておらん！';chiefLife=2.2;shake=18;if(Math.max(...score)>=3)return endGame();reset(true);}
+function goal(team){goalScene={team,life:1.1};message='押し込み成功！';messageLife=1.3;chiefLine=team===0?'見事だ！ 褒美に近づいたぞ！':'押し返せー！ まだ終わっておらん！';chiefLife=2.2;shake=18;if(!isChiefMode()&&Math.max(...score)>=3)return endGame();reset(true);}
 function pushOutOfBuried(obj,buried,extra=0){
  const dx=obj.x-buried.x,dy=obj.y-buried.y,min=(obj.r||22)+34+extra,d=Math.hypot(dx,dy);
  if(d>=min)return;
@@ -2021,9 +2032,9 @@ function drawHud(){
  ctx.fillStyle='#8ed7ff';ctx.textAlign='right';ctx.font='900 16px sans-serif';ctx.fillText(playerVillageName(),420,28);
  ctx.fillStyle='#ffaaaa';ctx.textAlign='left';ctx.fillText(enemyVillageName(),580,28);
  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='900 30px sans-serif';ctx.fillText(`${score[0]} － ${score[1]}`,500,38);
- ctx.font='bold 13px sans-serif';ctx.fillStyle='#ffeeb0';ctx.fillText(`押し付け数　　残り ${Math.ceil(timeLeft)}秒　　3回で褒美！${isEasyStory()?'　🌱やさしい':isChiefMode()?'　👑村長参戦':''}`,500,58);
- // 褒美までの簡易印
- for(let team=0;team<2;team++)for(let i=0;i<3;i++){ctx.fillStyle=i<score[team]?'#ffd85a':'#ffffff33';ctx.beginPath();ctx.arc(team===0?265-i*18:735+i*18,37,6,0,Math.PI*2);ctx.fill();}
+ ctx.font='bold 13px sans-serif';ctx.fillStyle='#ffeeb0';ctx.fillText(isChiefMode()?`押し付け数　　残り ${Math.max(0,Math.ceil(timeLeft))}秒　　時間終了まで勝負！　👑村長参戦`:`押し付け数　　残り ${Math.max(0,Math.ceil(timeLeft))}秒　　3回で褒美！${isEasyStory()?'　🌱やさしい':''}`,500,58);
+ // 通常モードだけ、3点先取の簡易印を表示。村長戦は時間制限のみ。
+ if(!isChiefMode())for(let team=0;team<2;team++)for(let i=0;i<3;i++){ctx.fillStyle=i<score[team]?'#ffd85a':'#ffffff33';ctx.beginPath();ctx.arc(team===0?265-i*18:735+i*18,37,6,0,Math.PI*2);ctx.fill();}
  if(messageLife>0){ctx.fillStyle='#fff4a3';ctx.font='900 36px sans-serif';ctx.fillText(message,500,145);}if(freeze>0){ctx.fillStyle='#b9efff';ctx.font='900 25px sans-serif';ctx.fillText(`TIME STOP ${freeze.toFixed(1)}`,500,174);}
  ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#fff';const human=players.find(p=>p.isHuman),spirit=human?.spirit||selectedSpirit;ctx.fillText(human?.chiefType==='brifo'?'ぶりふぉ村村長：A フリーズレーザー／ダッシュボタン フリーズブリザード／キックで4秒凍結の氷弾':human?.chiefType==='salubie'?'さるびえ村村長：A 拡散ファイアボール／ダッシュボタン 熱風／キックで火球':human?.chiefType==='salubibi'?'さるびび村村長：A 超突風／ダッシュボタン 超竜巻／キックでミニ竜巻':spirit==='plain'?'ぷれん：小石投げ＋強いフィジカル＋ホームランジャンプキック':spirit==='earth'?'土：ロックキャノン＋強烈なアースキック':spirit==='ice'?'氷：コールドブレス＋凍結するアイスキック':spirit==='wind'?'風：ハリケーン＋吹き飛ばすウインドキック':spirit==='thunder'?'雷：ライトニングダッシュ＋感電サンダーキック':'炎：ファイアボール＋燃えるファイアキック',18,585);
 }
