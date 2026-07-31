@@ -931,7 +931,7 @@ function insideEllipse(x,y,margin=0){const rx=FIELD.rx-margin,ry=FIELD.ry-margin
 function constrainToField(o){const inGate=o.y>FIELD.goalT&&o.y<FIELD.goalB;if(inGate&&o.x<FIELD.cx-FIELD.rx+o.r)return;if(inGate&&o.x>FIELD.cx+FIELD.rx-o.r)return;const rx=FIELD.rx-o.r,ry=FIELD.ry-o.r,dx=o.x-FIELD.cx,dy=o.y-FIELD.cy,q=(dx*dx)/(rx*rx)+(dy*dy)/(ry*ry);if(q>1){const k=1/Math.sqrt(q);o.x=FIELD.cx+dx*k;o.y=FIELD.cy+dy*k;const nx=dx/(rx*rx),ny=dy/(ry*ry),n=norm(nx,ny),dot=o.vx*n.x+o.vy*n.y;if(dot>0){o.vx-=1.75*dot*n.x;o.vy-=1.75*dot*n.y;}}}
 
 class Player{
- constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0,respawnT:0,spinKick:0,spinAngle:0,buriedT:0,airKO:null,aiMode:'slime',aiModeT:0,wallSplatPending:0,wallStickT:0,wallStickAngle:0,shockT:0,smokeT:0,dashArmorT:0,dashSlimeContactT:0,dashContactX:0,dashContactY:0,chiefType:null,spinStun:0,thunderLandingPending:false,magicLandingPending:false,temporalStopT:0});}
+ constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0,respawnT:0,spinKick:0,spinAngle:0,buriedT:0,airKO:null,aiMode:'slime',aiModeT:0,wallSplatPending:0,wallStickT:0,wallStickAngle:0,shockT:0,smokeT:0,dashArmorT:0,dashSlimeContactT:0,dashContactX:0,dashContactY:0,chiefType:null,spinStun:0,thunderLandingPending:false,magicLandingPending:false,temporalStopT:0,aiTimeStopUses:0});}
  jumpHeight(){const chiefFloat=this.chiefType==='brifo'||this.chiefType==='salubie'||this.chiefType==='salubibi'||this.chiefType==='takezo'||this.chiefType==='chestapi'||this.chiefType==='magician';const duration=chiefFloat?1.48:.82,maxHeight=chiefFloat?184:124;return this.jumpT>0?Math.sin((1-this.jumpT/duration)*Math.PI)*maxHeight:0;}
  isAirborne(){return this.jumpHeight()>34;}
  update(dt){
@@ -1265,7 +1265,16 @@ class Player{
   if(this.skillCd>0)return;this.skillCd=2.8;spawnMagicOrb(this,'blue',this.faceX,this.faceY,false);message='空間転送弾！';messageLife=.9;shake=Math.max(shake,4);burst(this.x,this.y-this.jumpHeight(),'#67dfff',28);
  }
  chiefTimeStopSkill(){
-  if(this.dashCd>0||timeStopT>0)return;this.dashCd=10;timeStopT=7;timeStopOwner=this;message='時間停止！';messageLife=1.1;shake=Math.max(shake,7);burst(this.x,this.y-this.jumpHeight(),'#b98cff',42);
+  if(this.dashCd>0||timeStopT>0)return;
+  // AIの大魔導師は、競技を楽しむため時間停止を連発しない。
+  // やさしいストーリーでは1試合1回、通常時も最大2回・長い間隔に制限する。
+  if(!this.isHuman){
+   const maxUses=isEasyStory()?1:2;
+   if(this.aiTimeStopUses>=maxUses)return;
+   this.aiTimeStopUses++;
+   this.dashCd=isEasyStory()?999:38;
+  }else this.dashCd=10;
+  timeStopT=7;timeStopOwner=this;message='時間停止！';messageLife=1.1;shake=Math.max(shake,7);burst(this.x,this.y-this.jumpHeight(),'#b98cff',42);
  }
  skill(){if(this.chiefType==='brifo')return this.chiefFreezeLaser();if(this.chiefType==='salubie')return this.chiefSpreadFire();if(this.chiefType==='salubibi')return this.chiefCrescentGust();if(this.chiefType==='takezo')return this.chiefRockSpread();if(this.chiefType==='chestapi')return this.chiefDischargeSkill();if(this.chiefType==='magician')return this.chiefTimeOrbSkill();if(this.spirit==='thunder')return this.sparkSkill();if(this.spirit==='plain')return this.pebbleToss();if(this.spirit==='ice')return this.coldBreath();if(this.spirit==='wind')return this.hurricane();if(this.spirit==='earth')return this.rockCannon();this.skillCd=5.2;const n=this.autoAim();fireballs.push({x:this.x+n.x*48,y:this.y+n.y*48,vx:n.x*500,vy:n.y*500,z:this.jumpHeight()+20,vz:-24,team:this.team,owner:this,life:2.1,r:24,trail:0});message='ファイアボール！';messageLife=.8;shake=Math.max(shake,5);burst(this.x+n.x*38,this.y+n.y*38,'#ffb13b',18);}
  sparkSkill(){
