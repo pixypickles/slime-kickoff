@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.72 TAKEZO FIX</title>
+  <title>スライム・キックオフ！ v0.73 SAME CHIEF COLOR FIX</title>
   <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d151c;color:#fff;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
@@ -685,7 +685,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.72 TAKEZO FIX</small>
+          <small>v0.73 SAME CHIEF COLOR FIX</small>
         </div>
       </div>
       <input class="story-toggle" type="checkbox" id="storyToggle" aria-hidden="true">
@@ -784,7 +784,7 @@ function homeVillageName(){return isChiefMode()?(selectedChief==='salubie'?'さ�
 function playerVillageName(){return isChiefMode()?(selectedChief==='salubie'?'さるびえ村村長':selectedChief==='salubibi'?'さるびび村村長':selectedChief==='takezo'?'たけぞ村村長':'ぶりふぉ村村長'):'ぷれん村';}
 function enemyVillageName(){if(isChiefMode()&&selectedEnemyChief==='brifo')return 'ぶりふぉ村村長';if(isChiefMode()&&selectedEnemyChief==='salubie')return 'さるびえ村村長';if(isChiefMode()&&selectedEnemyChief==='salubibi')return 'さるびび村村長';if(isChiefMode()&&selectedEnemyChief==='takezo')return 'たけぞ村村長';return opponentVillageName();}
 function chiefVillageKey(chief){return chief==='salubie'?'salubie':chief==='salubibi'?'salubibi':chief==='takezo'?'takezo':chief==='brifo'?'brifo':'plain';}
-function fieldVillageKey(team){if(isChiefMode())return team===0?chiefVillageKey(selectedChief):(selectedEnemyChief==='leader'?'plain':chiefVillageKey(selectedEnemyChief));return team===0?'plain':(currentStage===1?'brifo':currentStage===2?'salubie':currentStage===3?'salubibi':currentStage===4?'takezo':'chestapi');}
+function fieldVillageKey(team){if(isChiefMode()){if(team===0)return chiefVillageKey(selectedChief);if(selectedEnemyChief==='leader'||selectedEnemyChief===selectedChief)return 'plain';return chiefVillageKey(selectedEnemyChief);}return team===0?'plain':(currentStage===1?'brifo':currentStage===2?'salubie':currentStage===3?'salubibi':currentStage===4?'takezo':'chestapi');}
 function villagePalette(key){const map={
  plain:{base:'#77a957',light:'#92bd69',mid:'#789b55',dark:'#6f5538',stripe1:'#8dbc68',stripe2:'#67974c',flag:'#fff4a8'},
  brifo:{base:'#dff4fb',light:'#edfaff',mid:'#b9dce8',dark:'#7899aa',stripe1:'#c5e7f2',stripe2:'#eefbff',flag:'#79cfe9'},
@@ -1382,9 +1382,16 @@ class Player{
    ctx.beginPath();ctx.moveTo(15,-34);ctx.quadraticCurveTo(37,-20,24,14);ctx.quadraticCurveTo(10,3,7,-26);ctx.closePath();ctx.fill();ctx.stroke();
    ctx.strokeStyle='#dffff0';ctx.lineWidth=3;ctx.beginPath();ctx.arc(3,-43,10,Math.PI*.9,Math.PI*1.8);ctx.stroke();
   }else if(this.chiefType==='takezo'){
-   ctx.fillStyle='#6f5238';ctx.strokeStyle='#3b2b20';ctx.lineWidth=2.5;
-   ctx.beginPath();ctx.arc(0,-31,17,Math.PI,Math.PI*2);ctx.fill();ctx.stroke();
-   ctx.fillStyle='#9b7650';ctx.beginPath();ctx.moveTo(-17,-33);ctx.lineTo(-8,-48);ctx.lineTo(0,-39);ctx.lineTo(9,-50);ctx.lineTo(17,-32);ctx.closePath();ctx.fill();ctx.stroke();
+   // たけぞ村村長：短く刈り込んだ、平らな角刈り。
+   ctx.fillStyle='#4b382a';ctx.strokeStyle='#241a13';ctx.lineWidth=2.5;
+   ctx.beginPath();
+   ctx.moveTo(-17,-31);ctx.lineTo(-15,-47);ctx.quadraticCurveTo(-8,-51,0,-51);
+   ctx.quadraticCurveTo(8,-51,15,-47);ctx.lineTo(17,-31);
+   ctx.lineTo(11,-27);ctx.lineTo(-11,-27);ctx.closePath();ctx.fill();ctx.stroke();
+   // 角刈りらしい水平な天面と短い刈り込み線。
+   ctx.strokeStyle='#806147';ctx.lineWidth=2;
+   ctx.beginPath();ctx.moveTo(-11,-47);ctx.lineTo(11,-47);ctx.stroke();
+   for(let hx=-10;hx<=10;hx+=5){ctx.beginPath();ctx.moveTo(hx,-45);ctx.lineTo(hx+1,-39);ctx.stroke();}
   }else{
    ctx.fillStyle=this.spirit==='ice'?'#b7efff':this.spirit==='fire'?'#d9482f':this.spirit==='wind'?'#85d69a':this.spirit==='earth'?'#8a6844':'#53321f';ctx.beginPath();ctx.arc(0,-31,15,Math.PI,Math.PI*2);ctx.fill();
   }
