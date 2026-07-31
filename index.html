@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.69 TAKEZO CHIEF</title>
+  <title>スライム・キックオフ！ v0.70 TAKEZO CHIEF</title>
   <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d151c;color:#fff;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
@@ -685,7 +685,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.69 TAKEZO CHIEF</small>
+          <small>v0.70 TAKEZO CHIEF</small>
         </div>
       </div>
       <input class="story-toggle" type="checkbox" id="storyToggle" aria-hidden="true">
@@ -780,9 +780,19 @@ const isChiefMode=()=>matchMode==='chief';
 
 function opponentVillageName(){return currentStage===1?'ぶりふぉ村':currentStage===2?'さるびえ村':currentStage===3?'さるびび村':currentStage===4?'たけぞ村':'ちぇすたぴサーカス団';}
 function opponentElement(){return currentStage===1?'ice':currentStage===2?'fire':currentStage===3?'wind':currentStage===4?'earth':'thunder';}
-function homeVillageName(){return isChiefMode()?(selectedChief==='salubie'?'さるびえ村':selectedChief==='salubibi'?'さるびび村':'ぶりふぉ村'):'ぷれん村';}
+function homeVillageName(){return isChiefMode()?(selectedChief==='salubie'?'さるびえ村':selectedChief==='salubibi'?'さるびび村':selectedChief==='takezo'?'たけぞ村':'ぶりふぉ村'):'ぷれん村';}
 function playerVillageName(){return isChiefMode()?(selectedChief==='salubie'?'さるびえ村村長':selectedChief==='salubibi'?'さるびび村村長':selectedChief==='takezo'?'たけぞ村村長':'ぶりふぉ村村長'):'ぷれん村';}
 function enemyVillageName(){if(isChiefMode()&&selectedEnemyChief==='brifo')return 'ぶりふぉ村村長';if(isChiefMode()&&selectedEnemyChief==='salubie')return 'さるびえ村村長';if(isChiefMode()&&selectedEnemyChief==='salubibi')return 'さるびび村村長';if(isChiefMode()&&selectedEnemyChief==='takezo')return 'たけぞ村村長';return opponentVillageName();}
+function chiefVillageKey(chief){return chief==='salubie'?'salubie':chief==='salubibi'?'salubibi':chief==='takezo'?'takezo':chief==='brifo'?'brifo':'plain';}
+function fieldVillageKey(team){if(isChiefMode())return team===0?chiefVillageKey(selectedChief):(selectedEnemyChief==='leader'?'plain':chiefVillageKey(selectedEnemyChief));return team===0?'plain':(currentStage===1?'brifo':currentStage===2?'salubie':currentStage===3?'salubibi':currentStage===4?'takezo':'chestapi');}
+function villagePalette(key){const map={
+ plain:{base:'#77a957',light:'#92bd69',mid:'#789b55',dark:'#6f5538',stripe1:'#8dbc68',stripe2:'#67974c',flag:'#fff4a8'},
+ brifo:{base:'#dff4fb',light:'#edfaff',mid:'#b9dce8',dark:'#7899aa',stripe1:'#c5e7f2',stripe2:'#eefbff',flag:'#79cfe9'},
+ salubie:{base:'#7c4938',light:'#b97955',mid:'#9c6248',dark:'#5c3027',stripe1:'#8f5843',stripe2:'#6f3f31',flag:'#7b2438'},
+ salubibi:{base:'#71bfae',light:'#a9dfc4',mid:'#65b99b',dark:'#357866',stripe1:'#7bcbb2',stripe2:'#59a78f',flag:'#29b8b4'},
+ takezo:{base:'#6f614c',light:'#9b886b',mid:'#7f6f57',dark:'#4d4234',stripe1:'#806f58',stripe2:'#5e5241',flag:'#ec73ad'},
+ chestapi:{base:'#111d3d',light:'#253864',mid:'#1b2a52',dark:'#090f25',stripe1:'#1b2c59',stripe2:'#0c1532',flag:'#111d3d'}
+ };return map[key]||map.plain;}
 
 const unlockState={plain:true,ice:false,fire:false,wind:false,earth:false,thunder:false};
 try{
@@ -1402,7 +1412,7 @@ function reset(afterGoal=false){players=[];for(let i=0;i<3;i++){const a=new Play
 function startGame(){startLock=false;markStageSeen(currentStage);selectedSlime=ui.slimeSelect?ui.slimeSelect.value:'normal';score=[0,0];timeLeft=isEasyStory()?95:75;particles=[];fireballs=[];iceWaves=[];rockBalls=[];pebbles=[];hurricanes=[];chiefIceBullets=[];chiefWindShots=[];chiefLaser=null;chiefHeatWind=null;chiefMegaTornado=null;chiefRockRain=[];freeze=0;running=true;stageIntroT=1.8;ui.intro.classList.add('hidden');ui.intro.style.display='none';ui.result.classList.add('hidden');ui.result.style.display='none';if(ui.clearCard){ui.clearCard.classList.add('hidden');ui.clearCard.style.display='none';}ui.controls.classList.add('hidden');ui.controls.style.display='none';
  if(ui.stageCard){
   const title=ui.stageCard.querySelector('h2'),kicker=ui.stageCard.querySelector('.stage-kicker'),paras=ui.stageCard.querySelectorAll('p'),quote=ui.stageCard.querySelector('strong');
-  if(isChiefMode()){kicker.textContent=selectedEnemyChief==='leader'?'👑 村長参戦モード':'👑 村長対決モード';if(selectedChief==='salubie'){title.textContent='さるびえ村村長、参戦！';paras[0].textContent='赤橙の長髪を揺らし、炎の村長がコートへ降り立つ。';paras[1].textContent='拡散ファイアボールと熱風で、相手陣地まで焼き払え！';quote.textContent='さるびえ村村長「熱さに耐えられるか？」';}else if(selectedChief==='salubibi'){title.textContent='さるびび村村長、参戦！';paras[0].textContent='風になびく長髪とともに、風の村長が軽やかに舞い降りる。';paras[1].textContent='超突風と超竜巻で、コートごと押し流せ！';quote.textContent='さるびび村村長「風向きは、こちらのものだ！」';}else{title.textContent='ぶりふぉ村村長、参戦！';paras[0].textContent='青い長髪をなびかせ、氷の村長がコートへ降り立つ。';paras[1].textContent='フリーズレーザーと氷弾で、試合を凍らせろ！';quote.textContent='ぶりふぉ村村長「凍る覚悟はできているか？」';}}
+  if(isChiefMode()){kicker.textContent=selectedEnemyChief==='leader'?'👑 村長参戦モード':'👑 村長対決モード';if(selectedChief==='salubie'){title.textContent='さるびえ村村長、参戦！';paras[0].textContent='赤橙の長髪を揺らし、炎の村長がコートへ降り立つ。';paras[1].textContent='拡散ファイアボールと熱風で、相手陣地まで焼き払え！';quote.textContent='さるびえ村村長「熱さに耐えられるか？」';}else if(selectedChief==='salubibi'){title.textContent='さるびび村村長、参戦！';paras[0].textContent='風になびく長髪とともに、風の村長が軽やかに舞い降りる。';paras[1].textContent='超突風と超竜巻で、コートごと押し流せ！';quote.textContent='さるびび村村長「風向きは、こちらのものだ！」';}else if(selectedChief==='takezo'){title.textContent='たけぞ村村長、参戦！';paras[0].textContent='岩冠をかぶった土の村長が、重い足取りでコートへ現れる。';paras[1].textContent='五方向岩と岩石雨で、敵もスライムも大地へ叩きつけろ！';quote.textContent='たけぞ村村長「足元を固めろ。岩は裏切らん！」';}else{title.textContent='ぶりふぉ村村長、参戦！';paras[0].textContent='青い長髪をなびかせ、氷の村長がコートへ降り立つ。';paras[1].textContent='フリーズレーザーと氷弾で、試合を凍らせろ！';quote.textContent='ぶりふぉ村村長「凍る覚悟はできているか？」';}}
   else if(currentStage===1){kicker.textContent='❄ 異次元ゲート接続';title.textContent='ぶりふぉ村';paras[0].textContent='雪と氷に囲まれた静かな村。';paras[1].textContent='ぷれん村の前に、氷の村への道が開いた。';quote.textContent='村長「新しい村が相手だ！ 臭いのは向こうへ返すんだ！」';}
   else if(currentStage===2){kicker.textContent='🔥 新たな異次元ゲート接続';title.textContent='さるびえ村';paras[0].textContent='鍛冶場の煙が立ちのぼる、熱気のある村。';paras[1].textContent='ぷれん村の次の対戦相手。今回は、よく跳ねるスライムが現れた。';quote.textContent='村長「また別の村だ！ こっちへ寄せるな！」';}
   else if(currentStage===3){kicker.textContent='🌪 新たな異次元ゲート接続';title.textContent='さるびび村';paras[0].textContent='風車と旗が絶えず揺れる、風の村。';paras[1].textContent='ターコイズの村人たちが、風に乗って待ち構えている。';quote.textContent='村長「風に飛ばされるな！ 地に足をつけて押し返せ！」';}
@@ -1412,7 +1422,7 @@ function startGame(){startLock=false;markStageSeen(currentStage);selectedSlime=u
  }
  reset();last=performance.now();requestAnimationFrame(loop);}
 function endGame(){running=false;ui.controls.classList.add('hidden');ui.controls.style.display='none';const win=score[0]>score[1],draw=score[0]===score[1];
- if(matchMode==='free'||matchMode==='chief'){ui.result.classList.remove('hidden');ui.result.style.display='grid';ui.resultTitle.textContent=draw?(isChiefMode()?'村長戦は引き分け！':'練習試合は引き分け！'):win?(isChiefMode()?`${selectedChief==='salubie'?'さるびえ村':selectedChief==='salubibi'?'さるびび村':'ぶりふぉ村'}村長、勝利！`:'練習試合に勝利！'):(isChiefMode()?(selectedEnemyChief==='leader'?'村長、まさかの敗北…':`${selectedEnemyChief==='salubie'?'さるびえ村':selectedEnemyChief==='salubibi'?'さるびび村':'ぶりふぉ村'}村長の勝利！`):'練習試合に敗北…');ui.resultText.textContent=`${playerVillageName()} ${score[0]} － ${score[1]} ${enemyVillageName()}`;if(ui.nextStageBtn)ui.nextStageBtn.hidden=true;return;}
+ if(matchMode==='free'||matchMode==='chief'){ui.result.classList.remove('hidden');ui.result.style.display='grid';ui.resultTitle.textContent=draw?(isChiefMode()?'村長戦は引き分け！':'練習試合は引き分け！'):win?(isChiefMode()?`${selectedChief==='salubie'?'さるびえ村':selectedChief==='salubibi'?'さるびび村':selectedChief==='takezo'?'たけぞ村':'ぶりふぉ村'}村長、勝利！`:'練習試合に勝利！'):(isChiefMode()?(selectedEnemyChief==='leader'?'村長、まさかの敗北…':`${selectedEnemyChief==='salubie'?'さるびえ村':selectedEnemyChief==='salubibi'?'さるびび村':selectedEnemyChief==='takezo'?'たけぞ村':'ぶりふぉ村'}村長の勝利！`):'練習試合に敗北…');ui.resultText.textContent=`${playerVillageName()} ${score[0]} － ${score[1]} ${enemyVillageName()}`;if(ui.nextStageBtn)ui.nextStageBtn.hidden=true;return;}
  if(win&&currentStage===1){showClearSequence();return;}
  if(win&&currentStage===2){
   unlockSpirit('fire');
@@ -1816,25 +1826,17 @@ function drawShadow(x,y,height,r,offsetY=31){const airborne=Math.max(0,height-3)
 function drawAllShadows(){for(const p of players)drawShadow(p.x,p.y,p.jumpHeight(),27,28);const h=slime.type==='cloud'?38+(Math.sin(performance.now()/430+(slime.floatPhase||0))*7):((slime.hop>0?Math.sin((1-slime.hop/Math.max(.01,slime.hopMax||.58))*Math.PI)*26:0));if(slime.type==='split'&&slime.split){for(const q of slime.pieces)drawShadow(slime.x+q.x,slime.y+q.y,h+8,20,18);}else{const groundOffset=slime.type==='cloud'?27:20;const groundRadius=slime.type==='cloud'?slime.r*.82:slime.r*.94;drawShadow(slime.x,slime.y,h,groundRadius,groundOffset);}}
 function draw(){ctx.save();if(shake){const t=performance.now();ctx.translate(Math.sin(t*.061)*shake*.36,Math.cos(t*.079)*shake*.28);}drawField();drawChiefs();drawAllShadows();for(const p of players)p.draw();drawSlime();drawFireballs();drawIceWaves();drawRockBalls();drawPebbles();drawHurricanes();drawChiefIceBullets();drawChiefWindShots();drawChiefLaser();drawChiefHeatWind();drawChiefMegaTornado();drawChiefRockRain();drawGoalScene();for(const p of particles){if(p.type==='dashLine'){const a=clamp(p.life/(p.maxLife||.14),0,1);ctx.save();ctx.globalAlpha=a*.82;ctx.strokeStyle=p.color;ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(p.x1,p.y1);ctx.lineTo(p.x2,p.y2);ctx.stroke();ctx.restore();continue;}ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();}ctx.globalAlpha=1;drawHud();ctx.restore();}
 function drawField(){
- const isBrifo=currentStage===1,isSalubie=currentStage===2,isSalubibi=currentStage===3,isTakezo=currentStage===4,isChestapi=currentStage===5;
- const opponentBase=isBrifo?'#dff4fb':isSalubie?'#7c4938':isSalubibi?'#71bfae':isTakezo?'#6f614c':'#111d3d';
- const opponentLight=isBrifo?'#edfaff':isSalubie?'#b97955':isSalubibi?'#a9dfc4':isTakezo?'#9b886b':'#253864';
- const opponentMid=isBrifo?'#b9dce8':isSalubie?'#9c6248':isSalubibi?'#65b99b':isTakezo?'#7f6f57':'#1b2a52';
- const opponentDark=isBrifo?'#7899aa':isSalubie?'#5c3027':isSalubibi?'#357866':isTakezo?'#4d4234':'#090f25';
+ const leftKey=fieldVillageKey(0),rightKey=fieldVillageKey(1),leftPal=villagePalette(leftKey),rightPal=villagePalette(rightKey);
+ const isBrifo=rightKey==='brifo',isSalubie=rightKey==='salubie',isSalubibi=rightKey==='salubibi',isTakezo=rightKey==='takezo',isChestapi=rightKey==='chestapi';
+ const opponentBase=rightPal.base,opponentLight=rightPal.light,opponentMid=rightPal.mid,opponentDark=rightPal.dark;
 
- // 画面外周も左右それぞれの村の景色。
- ctx.fillStyle='#77a957';ctx.fillRect(0,0,W/2,H);
- ctx.fillStyle=opponentBase;ctx.fillRect(W/2,0,W/2,H);
+ // 画面外周も、村長戦では左右それぞれ選択した村の景色。
+ ctx.fillStyle=leftPal.base;ctx.fillRect(0,0,W/2,H);
+ ctx.fillStyle=rightPal.base;ctx.fillRect(W/2,0,W/2,H);
 
- // 左：ぷれん村の素朴な地面模様
- for(let y=0;y<H;y+=42)for(let x=(y/42%2)*24;x<W/2;x+=48){
-  ctx.fillStyle=((x+y)/48)%2?'#8dbc68':'#67974c';ctx.fillRect(x,y,25,3);
- }
- // 右：対戦村の地面模様
- for(let y=0;y<H;y+=42)for(let x=W/2+(y/42%2)*24;x<W;x+=48){
-  ctx.fillStyle=isBrifo?(((x+y)/48)%2?'#c5e7f2':'#eefbff'):isSalubie?(((x+y)/48)%2?'#8f5843':'#6f3f31'):isSalubibi?(((x+y)/48)%2?'#7bcbb2':'#59a78f'):isTakezo?(((x+y)/48)%2?'#806f58':'#5e5241'):(((x+y)/48)%2?'#1b2c59':'#0c1532');
-  ctx.fillRect(x,y,25,3);
- }
+ // 左右それぞれの村の地面模様
+ for(let y=0;y<H;y+=42)for(let x=(y/42%2)*24;x<W/2;x+=48){ctx.fillStyle=((x+y)/48)%2?leftPal.stripe1:leftPal.stripe2;ctx.fillRect(x,y,25,3);}
+ for(let y=0;y<H;y+=42)for(let x=W/2+(y/42%2)*24;x<W;x+=48){ctx.fillStyle=((x+y)/48)%2?rightPal.stripe1:rightPal.stripe2;ctx.fillRect(x,y,25,3);}
 
  drawVillage(0,0);drawVillage(1,W);
 
@@ -1842,7 +1844,7 @@ function drawField(){
  ctx.save();ctx.translate(FIELD.cx,FIELD.cy);
  ctx.beginPath();ctx.ellipse(0,0,FIELD.rx+25,FIELD.ry+25,0,0,Math.PI*2);ctx.clip();
 
- ctx.fillStyle='#6f5538';ctx.fillRect(-FIELD.rx-35,-FIELD.ry-35,FIELD.rx+35,(FIELD.ry+35)*2);
+ ctx.fillStyle=leftPal.dark;ctx.fillRect(-FIELD.rx-35,-FIELD.ry-35,FIELD.rx+35,(FIELD.ry+35)*2);
  ctx.fillStyle=opponentDark;ctx.fillRect(0,-FIELD.ry-35,FIELD.rx+35,(FIELD.ry+35)*2);
 
  ctx.strokeStyle='#493a26';ctx.lineWidth=7;ctx.beginPath();ctx.ellipse(0,0,FIELD.rx+25,FIELD.ry+25,0,0,Math.PI*2);ctx.stroke();
@@ -1850,11 +1852,11 @@ function drawField(){
 
  // コート内側も中央線で景色が切り替わる。
  ctx.save();ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx+8,FIELD.ry+8,0,0,Math.PI*2);ctx.clip();
- ctx.fillStyle='#789b55';ctx.fillRect(FIELD.cx-FIELD.rx-12,FIELD.cy-FIELD.ry-12,FIELD.rx+12,(FIELD.ry+12)*2);
+ ctx.fillStyle=leftPal.mid;ctx.fillRect(FIELD.cx-FIELD.rx-12,FIELD.cy-FIELD.ry-12,FIELD.rx+12,(FIELD.ry+12)*2);
  ctx.fillStyle=opponentMid;ctx.fillRect(FIELD.cx,FIELD.cy-FIELD.ry-12,FIELD.rx+12,(FIELD.ry+12)*2);
 
  ctx.beginPath();ctx.ellipse(FIELD.cx,FIELD.cy,FIELD.rx-4,FIELD.ry-4,0,0,Math.PI*2);ctx.clip();
- ctx.fillStyle='#92bd69';ctx.fillRect(FIELD.cx-FIELD.rx,FIELD.cy-FIELD.ry,FIELD.rx,FIELD.ry*2);
+ ctx.fillStyle=leftPal.light;ctx.fillRect(FIELD.cx-FIELD.rx,FIELD.cy-FIELD.ry,FIELD.rx,FIELD.ry*2);
  ctx.fillStyle=opponentLight;ctx.fillRect(FIELD.cx,FIELD.cy-FIELD.ry,FIELD.rx,FIELD.ry*2);
 
  // ぷれん村側：草、白と黄色の花、踏み固められた土。
@@ -1967,12 +1969,10 @@ function drawField(){
  ctx.restore();ctx.globalAlpha=1;
 }
 function drawVillage(team,edge){
- const left=team===0,x0=left?0:910;
- const isHome=left;
- const isBrifo=!left&&currentStage===1;
- const isSalubie=!left&&currentStage===2,isSalubibi=!left&&currentStage===3,isTakezo=!left&&currentStage===4,isChestapi=!left&&currentStage===5;
- const villageName=isHome?homeVillageName():(isBrifo?'ぶりふぉ村':isSalubie?'さるびえ村':isSalubibi?'さるびび村':isTakezo?'たけぞ村':'ちぇすたぴ');
- const villageColor=isHome?'#fff4a8':(isBrifo?'#79cfe9':isSalubie?'#7b2438':isSalubibi?'#29b8b4':isTakezo?'#ec73ad':'#111d3d');
+ const left=team===0,x0=left?0:910,key=fieldVillageKey(team),pal=villagePalette(key);
+ const isHome=key==='plain',isBrifo=key==='brifo',isSalubie=key==='salubie',isSalubibi=key==='salubibi',isTakezo=key==='takezo',isChestapi=key==='chestapi';
+ const villageName=isHome?'ぷれん村':isBrifo?'ぶりふぉ村':isSalubie?'さるびえ村':isSalubibi?'さるびび村':isTakezo?'たけぞ村':'ちぇすたぴ';
+ const villageColor=pal.flag;
 
  // 村の地面
  ctx.fillStyle=isHome?'#78a958':(isBrifo?'#c9effa':isSalubie?'#754338':isSalubibi?'#6fbaa4':'#6e604d');ctx.fillRect(x0,172,90,286);
@@ -2033,7 +2033,7 @@ function drawVillage(team,edge){
 }
 function drawSpectator(x,y,team,i){
  const bounce=Math.sin(performance.now()/220+i*1.7)*3;ctx.save();ctx.translate(x,y+bounce);
- ctx.fillStyle=team===0?'#fff4a8':(currentStage===1?'#8edcff':currentStage===2?'#7b2438':currentStage===3?'#29b8b4':currentStage===4?'#ec73ad':'#111d3d');ctx.strokeStyle='#17120f';ctx.lineWidth=2;ctx.fillRect(-7,-2,14,18);ctx.strokeRect(-7,-2,14,18);ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-10,7,0,Math.PI*2);ctx.fill();ctx.stroke();
+ ctx.fillStyle=villagePalette(fieldVillageKey(team)).flag;ctx.strokeStyle='#17120f';ctx.lineWidth=2;ctx.fillRect(-7,-2,14,18);ctx.strokeRect(-7,-2,14,18);ctx.fillStyle='#f2c895';ctx.beginPath();ctx.arc(0,-10,7,0,Math.PI*2);ctx.fill();ctx.stroke();
  ctx.strokeStyle='#51321f';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-5,3);ctx.lineTo(-12,-5);ctx.moveTo(5,3);ctx.lineTo(12,-7);ctx.stroke();ctx.restore();
 }
 function drawBrokenGate(x,top,bottom,team){
@@ -2092,7 +2092,7 @@ function startFromIntro(e){
   if(checked)applySpirit(checked.value);
   matchMode=ui.matchMode?ui.matchMode.value:'campaign';
   storyDifficulty=ui.storyDifficulty?ui.storyDifficulty.value:'normal';
-  if(matchMode==='free'||matchMode==='chief')currentStage=clamp(Number(ui.freeOpponent&&ui.freeOpponent.value)||1,1,highestStageSeen);if(matchMode==='chief'){selectedChief=ui.chiefSelect?ui.chiefSelect.value:'brifo';selectedEnemyChief=ui.enemyChiefSelect?ui.enemyChiefSelect.value:'leader';if(selectedEnemyChief==='brifo')currentStage=1;else if(selectedEnemyChief==='salubie')currentStage=2;else if(selectedEnemyChief==='salubibi')currentStage=3;}
+  if(matchMode==='free'||matchMode==='chief')currentStage=clamp(Number(ui.freeOpponent&&ui.freeOpponent.value)||1,1,highestStageSeen);if(matchMode==='chief'){selectedChief=ui.chiefSelect?ui.chiefSelect.value:'brifo';selectedEnemyChief=ui.enemyChiefSelect?ui.enemyChiefSelect.value:'leader';if(selectedEnemyChief==='brifo')currentStage=1;else if(selectedEnemyChief==='salubie')currentStage=2;else if(selectedEnemyChief==='salubibi')currentStage=3;else if(selectedEnemyChief==='takezo')currentStage=4;}
   else currentStage=campaignStage;
   if(ui.skillBtn&&matchMode==='chief')ui.skillBtn.textContent=selectedChief==='salubie'?'A：拡散火球':selectedChief==='salubibi'?'A：超突風':selectedChief==='takezo'?'A：五方向岩':'A：レーザー';else if(ui.skillBtn)applySpirit(selectedSpirit);if(ui.dashBtn)ui.dashBtn.textContent=matchMode==='chief'?(selectedChief==='salubie'?'熱風':selectedChief==='salubibi'?'超竜巻':selectedChief==='takezo'?'岩石雨':'ブリザード'):'ダッシュ';
   ui.startBtn.textContent='開始します…';
