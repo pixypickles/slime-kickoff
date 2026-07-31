@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#17222c">
-  <title>スライム・キックオフ！ v0.71 TAKEZO FIX</title>
+  <title>スライム・キックオフ！ v0.72 TAKEZO FIX</title>
   <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d151c;color:#fff;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
@@ -685,7 +685,7 @@ button{border:0;border-radius:18px;color:#fff;font-weight:900;background:#35516a
             <div id="loadingText" class="loading">異次元の穴を安定させています…</div>
             <button id="startBtn" type="button">村長の合図で開始！</button>
           </div>
-          <small>v0.71 TAKEZO FIX</small>
+          <small>v0.72 TAKEZO FIX</small>
         </div>
       </div>
       <input class="story-toggle" type="checkbox" id="storyToggle" aria-hidden="true">
@@ -894,7 +894,7 @@ function constrainToField(o){const inGate=o.y>FIELD.goalT&&o.y<FIELD.goalB;if(in
 
 class Player{
  constructor(team,x,y,isHuman=false,index=0){Object.assign(this,{team,x,y,isHuman,index,vx:0,vy:0,r:25,faceX:team?-1:1,faceY:0,dashTime:0,dashCd:0,kickCd:0,kickTime:0,jumpT:0,stun:0,burn:0,burnTick:0,frozen:0,rollAngle:0,speedBoost:0,skillCd:0,spirit:null,aiThink:0,aiX:0,aiY:0,respawnT:0,spinKick:0,spinAngle:0,buriedT:0,airKO:null,aiMode:'slime',aiModeT:0,wallSplatPending:0,wallStickT:0,wallStickAngle:0,shockT:0,smokeT:0,dashArmorT:0,dashSlimeContactT:0,dashContactX:0,dashContactY:0,chiefType:null,spinStun:0});}
- jumpHeight(){const chiefFloat=this.chiefType==='brifo'||this.chiefType==='salubie'||this.chiefType==='salubibi';const duration=chiefFloat?1.48:.82,maxHeight=chiefFloat?184:124;return this.jumpT>0?Math.sin((1-this.jumpT/duration)*Math.PI)*maxHeight:0;}
+ jumpHeight(){const chiefFloat=this.chiefType==='brifo'||this.chiefType==='salubie'||this.chiefType==='salubibi'||this.chiefType==='takezo';const duration=chiefFloat?1.48:.82,maxHeight=chiefFloat?184:124;return this.jumpT>0?Math.sin((1-this.jumpT/duration)*Math.PI)*maxHeight:0;}
  isAirborne(){return this.jumpHeight()>34;}
  update(dt){
   if(this.respawnT>0){
@@ -1592,7 +1592,7 @@ function updateRockBalls(dt,stopped){
  for(const r of rockBalls){
   r.life-=dt;r.spin+=dt*9;r.x+=r.vx*dt;r.y+=r.vy*dt;r.vx*=Math.pow(.985,dt*60);r.vy*=Math.pow(.985,dt*60);
   if(!insideEllipse(r.x,r.y,-10)){r.life=0;shake=Math.max(shake,7);burst(r.x,r.y,'#b88652',18);continue;}
-  if(Math.hypot(slime.x-r.x,slime.y-r.y)<slime.r+r.r){const n=norm(r.vx,r.vy);const fp=f.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=1;slime.hop=.58;slime.hopMax=.58;r.life=0;message='岩でスライムが吹っ飛んだ！';messageLife=1;shake=15;burst(slime.x,slime.y,'#d8b27a',28);continue;}
+  if(Math.hypot(slime.x-r.x,slime.y-r.y)<slime.r+r.r){const n=norm(r.vx,r.vy);const fp=r.chiefPower||1;slime.vx+=n.x*1120*fp;slime.vy+=n.y*1120*fp;slime.scared=1;slime.hop=.58;slime.hopMax=.58;r.life=0;message='岩でスライムが吹っ飛んだ！';messageLife=1;shake=15;burst(slime.x,slime.y,'#d8b27a',28);continue;}
   for(const target of players){if(target.team===r.team||target===r.owner||target.jumpHeight()>72)continue;if(Math.hypot(target.x-r.x,target.y-r.y)<target.r+r.r){const n=norm(r.vx,r.vy);const fp=r.chiefPower||1;target.vx+=n.x*1050*fp;target.vy+=n.y*1050*fp;target.stun=Math.max(target.stun,1.05);r.life=0;message='特大ノックバック！';messageLife=.9;shake=17;burst(target.x,target.y,'#d8b27a',30);break;}}
  }
  rockBalls=rockBalls.filter(r=>r.life>0);
